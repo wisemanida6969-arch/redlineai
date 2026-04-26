@@ -82,7 +82,8 @@ export default function AnalysisPage() {
             >
               <ArrowLeft className="w-4 h-4" /> Scan another contract
             </button>
-            <h1 className="text-3xl font-bold text-white mb-1">Risk Report</h1>
+            {/* Mobile: text-2xl, desktop: text-3xl */}
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">Risk Report</h1>
             <p className="text-slate-400 text-sm">
               {totalIssues} issue{totalIssues !== 1 ? "s" : ""} found ·{" "}
               {new Date(result.scannedAt).toLocaleString()}
@@ -101,7 +102,17 @@ export default function AnalysisPage() {
               ) : (
                 <Download className="w-4 h-4" />
               )}
-              {exporting === "pdf" ? "Generating PDF…" : exporting === "docx" ? "Generating DOCX…" : "Download Report"}
+              {/* Mobile: show short label; desktop: show full label */}
+              {exporting === "pdf"
+                ? "Generating PDF…"
+                : exporting === "docx"
+                ? "Generating DOCX…"
+                : (
+                  <>
+                    <span className="hidden sm:inline">Download Report</span>
+                    <span className="sm:hidden">Export</span>
+                  </>
+                )}
               {!exporting && <ChevronDown className={`w-3.5 h-3.5 transition-transform ${dropOpen ? "rotate-180" : ""}`} />}
             </button>
 
@@ -161,20 +172,22 @@ export default function AnalysisPage() {
           <p className="text-slate-300 text-sm leading-relaxed">{result.summary}</p>
         </div>
 
-        {/* Filter tabs */}
-        <div className="flex gap-1 bg-[#162035] p-1 rounded-xl border border-[#1e3050] mb-6 w-fit">
-          {(["all", "high", "medium", "low"] as const).map((tab) => {
-            const count = tab === "all" ? totalIssues : result[tab].length;
-            return (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium capitalize transition-colors ${activeTab === tab ? "bg-red-600 text-white" : "text-slate-400 hover:text-white"}`}
-              >
-                {tab} {count > 0 && <span className="ml-1 opacity-70">({count})</span>}
-              </button>
-            );
-          })}
+        {/* Filter tabs — scrollable on mobile */}
+        <div className="overflow-x-auto mb-6">
+          <div className="flex gap-1 bg-[#162035] p-1 rounded-xl border border-[#1e3050] w-fit min-w-max">
+            {(["all", "high", "medium", "low"] as const).map((tab) => {
+              const count = tab === "all" ? totalIssues : result[tab].length;
+              return (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium capitalize transition-colors ${activeTab === tab ? "bg-red-600 text-white" : "text-slate-400 hover:text-white"}`}
+                >
+                  {tab} {count > 0 && <span className="ml-1 opacity-70">({count})</span>}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Clauses */}
@@ -208,7 +221,8 @@ function ScoreCard({ count, level }: { count: number; level: "high" | "medium" |
   return (
     <div className={`${c.bg} border ${c.border} rounded-xl p-4 text-center`}>
       <Icon className={`w-5 h-5 ${c.text} mx-auto mb-2`} />
-      <div className={`text-2xl font-bold ${c.text}`}>{count}</div>
+      {/* Mobile: text-xl, desktop: text-2xl */}
+      <div className={`text-xl sm:text-2xl font-bold ${c.text}`}>{count}</div>
       <div className="text-slate-400 text-xs mt-0.5">{c.label}</div>
     </div>
   );
@@ -261,7 +275,8 @@ function ClauseCard({ clause, copied, onCopy }: {
                 className="flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors"
               >
                 {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
-                {copied ? "Copied!" : "Copy"}
+                {/* Icon only on mobile, icon + text on desktop */}
+                <span className="hidden sm:inline">{copied ? "Copied!" : "Copy"}</span>
               </button>
             </div>
             <p className="text-green-300 text-sm">{clause.fix}</p>

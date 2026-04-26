@@ -108,7 +108,8 @@ export default function Dashboard() {
         {/* Header + plan badge */}
         <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-1">Dashboard</h1>
+            {/* Mobile: text-2xl, desktop: text-3xl */}
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">Dashboard</h1>
             <p className="text-slate-400 text-sm">Upload a contract to get an instant AI risk report.</p>
           </div>
           <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium border ${plan === "free" ? "bg-slate-800/50 border-slate-700 text-slate-300" : "bg-yellow-900/20 border-yellow-700/50 text-yellow-400"}`}>
@@ -155,7 +156,7 @@ export default function Dashboard() {
               onDragLeave={() => setDragging(false)}
               onDrop={handleDrop}
               onClick={() => document.getElementById("file-input")?.click()}
-              className={`border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-colors ${dragging ? "border-red-500 bg-red-900/10" : file ? "border-green-600 bg-green-900/10" : "border-[#1e3050] hover:border-red-700/50 bg-[#162035]"}`}
+              className={`border-2 border-dashed rounded-2xl p-8 sm:p-12 text-center cursor-pointer transition-colors ${dragging ? "border-red-500 bg-red-900/10" : file ? "border-green-600 bg-green-900/10" : "border-[#1e3050] hover:border-red-700/50 bg-[#162035]"}`}
             >
               <input id="file-input" type="file" accept={ACCEPTED_EXT.join(",")} onChange={(e) => { const f = e.target.files?.[0]; if (f && validateFile(f)) { setFile(f); setError(""); } }} className="hidden" />
               {file ? (
@@ -196,8 +197,9 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Mobile: text-base, desktop: text-lg */}
         <button onClick={handleAnalyze} disabled={loading || (plan === "free" && scansLeft === 0)}
-          className="mt-5 w-full bg-red-600 hover:bg-red-700 disabled:bg-red-900/50 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl text-lg transition-colors flex items-center justify-center gap-3">
+          className="mt-5 w-full bg-red-600 hover:bg-red-700 disabled:bg-red-900/50 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl text-base sm:text-lg transition-colors flex items-center justify-center gap-3">
           {loading ? <><Loader2 className="w-5 h-5 animate-spin" />{loadingStep}</> : "Analyze Contract →"}
         </button>
 
@@ -262,7 +264,8 @@ function ScanHistoryItem({ scan }: { scan: ScanRecord }) {
             <CheckCircle className="w-3 h-3" />{scan.low_count}
           </span>
         )}
-        <span className="flex items-center gap-1 text-xs text-slate-500 ml-1">
+        {/* Date hidden on mobile, visible on sm+ */}
+        <span className="hidden sm:flex items-center gap-1 text-xs text-slate-500 ml-1">
           <Clock className="w-3 h-3" />
           {new Date(scan.created_at).toLocaleDateString()}
         </span>

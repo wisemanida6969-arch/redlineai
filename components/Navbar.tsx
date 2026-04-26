@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Shield, ChevronDown, LogOut, LayoutDashboard } from "lucide-react";
+import { Shield, ChevronDown, LogOut, LayoutDashboard, Menu, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
@@ -10,6 +10,7 @@ export default function Navbar() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -32,6 +33,7 @@ export default function Navbar() {
   const handleSignOut = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
+    setMobileOpen(false);
     router.push("/");
     router.refresh();
   };
@@ -39,6 +41,7 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[#1e3050] bg-[#0f1a2e]/90 backdrop-blur-sm">
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+        {/* Logo — always visible */}
         <Link href="/" className="flex items-center gap-2">
           <Shield className="w-6 h-6 text-red-500" />
           <span className="text-xl font-bold text-white">
@@ -46,13 +49,14 @@ export default function Navbar() {
           </span>
         </Link>
 
+        {/* Desktop nav */}
         <div className="flex items-center gap-4">
           <Link href="/#pricing" className="text-slate-400 hover:text-white text-sm transition-colors hidden sm:block">
             Pricing
           </Link>
 
           {user ? (
-            <div className="relative" ref={menuRef}>
+            <div className="relative hidden sm:block" ref={menuRef}>
               <button
                 onClick={() => setMenuOpen((v) => !v)}
                 className="flex items-center gap-2 bg-[#162035] border border-[#1e3050] hover:border-slate-500 text-slate-300 px-3 py-2 rounded-xl text-sm transition-colors"
@@ -84,7 +88,7 @@ export default function Navbar() {
               )}
             </div>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-2">
               <Link href="/auth/login" className="text-slate-400 hover:text-white text-sm transition-colors px-3 py-2">
                 Sign in
               </Link>
@@ -93,8 +97,68 @@ export default function Navbar() {
               </Link>
             </div>
           )}
+
+          {/* Hamburger — mobile only */}
+          <button
+            className="sm:hidden flex items-center justify-center w-9 h-9 text-slate-400 hover:text-white transition-colors"
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
       </div>
+
+      {/* Mobile slide-down menu */}
+      {mobileOpen && (
+        <div className="sm:hidden border-t border-[#1e3050] bg-[#0f1a2e]/95 backdrop-blur-sm">
+          <div className="px-6 py-4 space-y-1">
+            <Link
+              href="/#pricing"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-2 px-3 py-2.5 text-sm text-slate-300 hover:text-white hover:bg-[#162035] rounded-lg transition-colors"
+            >
+              Pricing
+            </Link>
+
+            {user ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2.5 text-sm text-slate-300 hover:text-white hover:bg-[#162035] rounded-lg transition-colors"
+                >
+                  <LayoutDashboard className="w-4 h-4" /> Dashboard
+                </Link>
+                <div className="h-px bg-[#1e3050] my-1" />
+                <button
+                  onClick={handleSignOut}
+                  className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
+                >
+                  <LogOut className="w-4 h-4" /> Sign out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/auth/login"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2.5 text-sm text-slate-300 hover:text-white hover:bg-[#162035] rounded-lg transition-colors"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  href="/auth/signup"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                >
+                  Try Free
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </nav>
   );
 }
