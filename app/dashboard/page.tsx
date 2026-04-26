@@ -8,6 +8,7 @@ import {
   Search, Receipt, PenTool, Sparkles, Building2, Lock
 } from "lucide-react";
 import QuoteToContract from "@/components/QuoteToContract";
+import VendorRiskScan from "@/components/VendorRiskScan";
 import UsageCounter from "@/components/UsageCounter";
 import { type Plan, type FeatureKey, hasAccess, isOverLimit } from "@/lib/planLimits";
 
@@ -115,9 +116,9 @@ export default function Dashboard() {
   const analysisLocked = !hasAccess(plan, "analysis");
 
   const FEATURES: { id: Feature; label: string; icon: typeof FileText; soon: boolean }[] = [
-    { id: "analysis", label: "Contract Analysis", icon: FileText, soon: false },
+    { id: "analysis", label: "Contract Analysis", icon: FileText,  soon: false },
     { id: "quote",    label: "Quote to Contract", icon: Receipt,   soon: false },
-    { id: "vendor",   label: "Vendor Risk Scan",  icon: Building2, soon: true },
+    { id: "vendor",   label: "Vendor Risk Scan",  icon: Building2, soon: false },
     { id: "esign",    label: "E-Signature",       icon: PenTool,   soon: true },
   ];
 
@@ -287,18 +288,11 @@ export default function Dashboard() {
         {feature === "vendor" && (
           <>
             <UsageCounter plan={plan} feature="vendor" used={usage.vendor} />
-            <ComingSoonPanel
-              icon={Building2}
-              title="Vendor Risk Scan"
-              tagline="Know who you're signing with — before you sign"
-              description="Type any vendor or company name and RedlineAI scans recent news, lawsuits, regulatory filings, and reputation signals to deliver a complete risk profile in under a minute."
-              features={[
-                "Real-time news & lawsuit search",
-                "Reputation & compliance signals",
-                "Risk score with red flags highlighted",
-                "Downloadable due-diligence report",
-              ]}
-            />
+            {hasAccess(plan, "vendor") && (
+              <VendorRiskScan
+                onUsed={() => setUsage((u) => ({ ...u, vendor: u.vendor + 1 }))}
+              />
+            )}
           </>
         )}
 
