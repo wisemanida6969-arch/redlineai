@@ -7,6 +7,7 @@ import {
   FileType, AlertTriangle, Clock, Crown,
   Search, Receipt, PenTool, Sparkles, Building2
 } from "lucide-react";
+import QuoteToContract from "@/components/QuoteToContract";
 
 interface ScanRecord {
   id: string;
@@ -106,7 +107,7 @@ export default function Dashboard() {
 
   const FEATURES: { id: Feature; label: string; icon: typeof FileText; soon: boolean }[] = [
     { id: "analysis", label: "Contract Analysis", icon: FileText, soon: false },
-    { id: "quote", label: "Quote to Contract", icon: Receipt, soon: true },
+    { id: "quote", label: "Quote to Contract", icon: Receipt, soon: false },
     { id: "vendor", label: "Vendor Risk Scan", icon: Building2, soon: true },
     { id: "esign", label: "E-Signature", icon: PenTool, soon: true },
   ];
@@ -276,20 +277,7 @@ export default function Dashboard() {
           </>
         )}
 
-        {feature === "quote" && (
-          <ComingSoonPanel
-            icon={Receipt}
-            title="Quote to Contract"
-            tagline="Turn quotes into airtight contracts in seconds"
-            description="Upload a quote or proposal and RedlineAI will extract every key term — parties, scope, pricing, payment schedule, deliverables — and auto-generate a complete, lawyer-ready contract you can download as PDF."
-            features={[
-              "Auto-extract key fields from quotes (PDF, DOCX, image)",
-              "Generate full contract draft with standard clauses",
-              "Edit and customize before download",
-              "Download as PDF or Word",
-            ]}
-          />
-        )}
+        {feature === "quote" && <QuoteToContract />}
 
         {feature === "vendor" && (
           <ComingSoonPanel
