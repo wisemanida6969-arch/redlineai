@@ -1,8 +1,8 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Upload, FileText, AlertCircle, Loader2, CheckCircle, Mail, Send, Eye,
-  PenTool, Type, Calendar, X, ArrowLeft, Download, Clock
+  PenTool, Type, Calendar, X, ArrowLeft, Download, Clock, ChevronDown
 } from "lucide-react";
 
 type FieldType = "signature" | "name" | "date";
@@ -499,8 +499,44 @@ function RequestRow({ req }: { req: SignatureRequest }) {
   const Icon = c.icon;
   const date = req.signed_at || req.created_at;
 
-  const handleDownload = () => {
-    window.location.href = `/api/esign/${req.id}/download`;
+  const [dropOpen, setDropOpen] = useState(false);
+  const [downloading, setDownloading] = useState<"pdf" | "docx" | null>(null);
+  const dropRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const h = (e: MouseEvent) => {
+      if (dropRef.current && !dropRef.current.contains(e.target as Node)) setDropOpen(false);
+    };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
+
+  const handleDownload = async (type: "pdf" | "docx") => {
+    setDropOpen(false);
+    setDownloading(type);
+    try {
+      const url = type === "pdf" ? `/api/esign/${req.id}/download` : `/api/esign/${req.id}/download-docx`;
+      const res = await fetch(url);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Download failed" }));
+        throw new Error(err.error || "Download failed");
+      }
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      const safeName = req.filename.replace(/\.pdf$/i, "");
+      a.download = `${safeName}-signed.${type}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    } catch (e) {
+      console.error(e);
+      alert(e instanceof Error ? e.message : "Download failed");
+    } finally {
+      setDownloading(null);
+    }
   };
 
   return (
@@ -520,15 +556,54 @@ function RequestRow({ req }: { req: SignatureRequest }) {
           <Clock className="w-3 h-3" />
           {new Date(date).toLocaleDateString()}
         </span>
+
         {req.status === "signed" && (
-          <button
-            onClick={handleDownload}
-            className="flex items-center gap-1 text-xs bg-red-900/30 hover:bg-red-900/50 text-red-400 px-2 py-1 rounded-full transition-colors"
-            title="Download signed PDF"
-          >
-            <Download className="w-3 h-3" />
-          </button>
+          <div className="relative" ref={dropRef}>
+            <button
+              onClick={() => setDropOpen((v) => !v)}
+              disabled={!!downloading}
+              className="flex items-center gap-1 text-xs bg-red-900/30 hover:bg-red-900/50 disabled:opacity-50 text-red-400 px-2.5 py-1 rounded-full transition-colors"
+              title="Download signed document"
+            >
+              {downloading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
+              <span className="hidden sm:inline">
+                {downloading === "pdf" ? "PDF…" : downloading === "docx" ? "Word…" : "Download"}
+              </span>
+              {!downloading && <ChevronDown className="w-3 h-3" />}
+            </button>
+
+            {dropOpen && (
+              <div className="absolute right-0 mt-2 w-52 bg-[#162035] border border-[#1e3050] rounded-xl shadow-2xl overflow-hidden z-50">
+                <button
+                  onClick={() => handleDownload("pdf")}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-300 hover:bg-[#1e3050] hover:text-white transition-colors"
+                >
+                  <div className="w-7 h-7 bg-red-900/40 rounded-lg flex items-center justify-center shrink-0">
+                    <FileText className="w-3.5 h-3.5 text-red-400" />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-medium">Download PDF</div>
+                    <div className="text-xs text-slate-500">Signed contract · .pdf</div>
+                  </div>
+                </button>
+                <div className="h-px bg-[#1e3050]" />
+                <button
+                  onClick={() => handleDownload("docx")}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-300 hover:bg-[#1e3050] hover:text-white transition-colors"
+                >
+                  <div className="w-7 h-7 bg-blue-900/40 rounded-lg flex items-center justify-center shrink-0">
+                    <FileText className="w-3.5 h-3.5 text-blue-400" />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-medium">Download Word</div>
+                    <div className="text-xs text-slate-500">Editable · .docx</div>
+                  </div>
+                </button>
+              </div>
+            )}
+          </div>
         )}
+
         {req.status === "pending" && (
           <button
             onClick={() => navigator.clipboard.writeText(`${window.location.origin}/sign/${req.token}`)}
