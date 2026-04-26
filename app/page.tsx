@@ -177,18 +177,18 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[#1e3050] py-8 px-6">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <footer className="border-t border-[#1e3050] py-10 px-6">
+        <div className="max-w-6xl mx-auto flex flex-col items-center gap-4 text-center">
           <div className="flex items-center gap-2">
             <Shield className="w-5 h-5 text-red-500" />
             <span className="text-white font-bold">RedlineAI</span>
           </div>
-          <p className="text-slate-500 text-sm">© 2025 RedlineAI. All rights reserved.</p>
-          <div className="flex gap-6 text-slate-500 text-sm flex-wrap justify-center">
-            <Link href="/privacy" className="hover:text-slate-300">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-slate-300">Terms of Service</Link>
-            <Link href="/refund" className="hover:text-slate-300">Refund Policy</Link>
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-500">
+            <Link href="/terms" className="hover:text-slate-300 transition-colors">Terms of Service</Link>
+            <Link href="/privacy" className="hover:text-slate-300 transition-colors">Privacy Policy</Link>
+            <Link href="/refund" className="hover:text-slate-300 transition-colors">Refund Policy</Link>
           </div>
+          <p className="text-slate-600 text-xs">© 2026 RedlineAI. Operated by Trytimeback. All rights reserved.</p>
         </div>
       </footer>
     </div>
