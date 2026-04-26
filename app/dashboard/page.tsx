@@ -1,7 +1,6 @@
 "use client";
 import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import {
   Upload, FileText, AlertCircle, Loader2, CheckCircle,
@@ -9,7 +8,8 @@ import {
   Search, Receipt, PenTool, Sparkles, Building2, Lock
 } from "lucide-react";
 import QuoteToContract from "@/components/QuoteToContract";
-import { PLAN_LIMITS, type Plan, type FeatureKey, hasAccess, isOverLimit } from "@/lib/planLimits";
+import UsageCounter from "@/components/UsageCounter";
+import { type Plan, type FeatureKey, hasAccess, isOverLimit } from "@/lib/planLimits";
 
 interface ScanRecord {
   id: string;
@@ -111,7 +111,6 @@ export default function Dashboard() {
     }
   };
 
-  const analysisLimit = PLAN_LIMITS[plan].analysis;
   const analysisOver = isOverLimit(plan, "analysis", usage.analysis);
   const analysisLocked = !hasAccess(plan, "analysis");
 
@@ -171,40 +170,11 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* ── Plan / usage summary card ── */}
-        <div className="bg-[#162035] border border-[#1e3050] rounded-2xl p-4 mb-6">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <UsageStat label="Contract Analysis" used={usage.analysis} limit={PLAN_LIMITS[plan].analysis} />
-            <UsageStat label="Quote to Contract" used={usage.quote}    limit={PLAN_LIMITS[plan].quote} />
-            <UsageStat label="Vendor Risk Scan"  used={usage.vendor}   limit={PLAN_LIMITS[plan].vendor} />
-            <UsageStat label="E-Signature"       used={usage.esign}    limit={PLAN_LIMITS[plan].esign} />
-          </div>
-        </div>
 
         {/* ── Tab content ── */}
         {feature === "analysis" && (
           <>
-            {/* Upgrade banner when over limit */}
-            {analysisOver && (
-              <div className="mb-6 bg-yellow-900/20 border border-yellow-700/50 rounded-2xl p-4 flex items-center justify-between gap-4 flex-wrap">
-                <div className="flex items-center gap-3">
-                  <Crown className="w-5 h-5 text-yellow-400 shrink-0" />
-                  <div>
-                    <p className="text-yellow-300 font-semibold text-sm">
-                      You&apos;ve used all {analysisLimit} Contract Analysis scans this month
-                    </p>
-                    <p className="text-yellow-600 text-xs">
-                      {plan === "free"
-                        ? "Upgrade to Pro ($49/mo) for 30 scans or Business ($99/mo) for unlimited."
-                        : "Upgrade to Business ($99/mo) for unlimited scans."}
-                    </p>
-                  </div>
-                </div>
-                <Link href="/#pricing" className="bg-yellow-500 hover:bg-yellow-400 text-black font-semibold text-sm px-4 py-2 rounded-xl transition-colors">
-                  Upgrade →
-                </Link>
-              </div>
-            )}
+            <UsageCounter plan={plan} feature="analysis" used={usage.analysis} />
 
             {/* Mode tabs */}
             <div className="flex gap-1 bg-[#162035] p-1 rounded-xl border border-[#1e3050] mb-6 w-fit">
@@ -304,123 +274,52 @@ export default function Dashboard() {
         )}
 
         {feature === "quote" && (
-          hasAccess(plan, "quote") ? (
-            <QuoteToContract />
-          ) : (
-            <UpgradeLockPanel
-              icon={Receipt}
-              title="Quote to Contract"
-              tagline="Turn quotes into airtight contracts in seconds"
-              description="Upload a quote and RedlineAI extracts every key term — parties, scope, pricing, schedule — and auto-drafts a complete service agreement you can edit and download."
-              currentPlan={plan}
-              requiredPlan="pro"
-            />
-          )
+          <>
+            <UsageCounter plan={plan} feature="quote" used={usage.quote} />
+            {hasAccess(plan, "quote") && (
+              <QuoteToContract
+                onUsed={() => setUsage((u) => ({ ...u, quote: u.quote + 1 }))}
+              />
+            )}
+          </>
         )}
 
         {feature === "vendor" && (
-          <ComingSoonPanel
-            icon={Building2}
-            title="Vendor Risk Scan"
-            tagline="Know who you're signing with — before you sign"
-            description="Type any vendor or company name and RedlineAI scans recent news, lawsuits, regulatory filings, and reputation signals to deliver a complete risk profile in under a minute."
-            features={[
-              "Real-time news & lawsuit search",
-              "Reputation & compliance signals",
-              "Risk score with red flags highlighted",
-              "Downloadable due-diligence report",
-            ]}
-          />
+          <>
+            <UsageCounter plan={plan} feature="vendor" used={usage.vendor} />
+            <ComingSoonPanel
+              icon={Building2}
+              title="Vendor Risk Scan"
+              tagline="Know who you're signing with — before you sign"
+              description="Type any vendor or company name and RedlineAI scans recent news, lawsuits, regulatory filings, and reputation signals to deliver a complete risk profile in under a minute."
+              features={[
+                "Real-time news & lawsuit search",
+                "Reputation & compliance signals",
+                "Risk score with red flags highlighted",
+                "Downloadable due-diligence report",
+              ]}
+            />
+          </>
         )}
 
         {feature === "esign" && (
-          <ComingSoonPanel
-            icon={PenTool}
-            title="E-Signature"
-            tagline="Send. Sign. Save. All in one place."
-            description="Upload any contract, drop signature fields where you need them, and email it to counterparties. Recipients sign in their browser — no account needed. Get a signed PDF back automatically."
-            features={[
-              "Drag-and-drop signature fields",
-              "Email signing requests with one click",
-              "Track who's signed and who hasn't",
-              "Legally binding signed PDF stored in your dashboard",
-            ]}
-          />
-        )}
-      </div>
-    </div>
-  );
-}
-
-function UsageStat({ label, used, limit }: { label: string; used: number; limit: number | null }) {
-  const isLocked = limit === 0;
-  const isUnlimited = limit === null;
-  const isOver = !isUnlimited && !isLocked && used >= (limit ?? 0);
-  const pct = isUnlimited || isLocked ? 0 : Math.min(100, Math.round((used / (limit ?? 1)) * 100));
-
-  return (
-    <div className={`rounded-xl p-3 border ${
-      isLocked ? "bg-slate-900/40 border-slate-800" :
-      isOver ? "bg-yellow-900/20 border-yellow-800/50" :
-      "bg-[#0f1a2e] border-[#1e3050]"
-    }`}>
-      <p className={`text-[11px] font-medium uppercase tracking-wider ${
-        isLocked ? "text-slate-600" : "text-slate-500"
-      }`}>{label}</p>
-      <div className="flex items-baseline gap-1 mt-0.5">
-        {isLocked ? (
-          <span className="text-slate-500 text-sm font-medium flex items-center gap-1">
-            <Lock className="w-3 h-3" /> Locked
-          </span>
-        ) : isUnlimited ? (
-          <span className="text-yellow-400 text-sm font-bold">Unlimited</span>
-        ) : (
           <>
-            <span className={`text-base font-bold ${isOver ? "text-yellow-300" : "text-white"}`}>{used}</span>
-            <span className="text-slate-500 text-xs">/ {limit}</span>
+            <UsageCounter plan={plan} feature="esign" used={usage.esign} />
+            <ComingSoonPanel
+              icon={PenTool}
+              title="E-Signature"
+              tagline="Send. Sign. Save. All in one place."
+              description="Upload any contract, drop signature fields where you need them, and email it to counterparties. Recipients sign in their browser — no account needed. Get a signed PDF back automatically."
+              features={[
+                "Drag-and-drop signature fields",
+                "Email signing requests with one click",
+                "Track who's signed and who hasn't",
+                "Legally binding signed PDF stored in your dashboard",
+              ]}
+            />
           </>
         )}
       </div>
-      {!isLocked && !isUnlimited && (
-        <div className="mt-2 h-1 bg-[#1e3050] rounded-full overflow-hidden">
-          <div className={`h-full rounded-full ${isOver ? "bg-yellow-500" : "bg-red-600"}`} style={{ width: `${pct}%` }} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-function UpgradeLockPanel({
-  icon: Icon, title, tagline, description, currentPlan, requiredPlan,
-}: {
-  icon: typeof FileText;
-  title: string;
-  tagline: string;
-  description: string;
-  currentPlan: Plan;
-  requiredPlan: "pro" | "business";
-}) {
-  const planLabel = requiredPlan === "pro" ? "Pro ($49/mo)" : "Business ($99/mo)";
-  return (
-    <div className="bg-[#162035] border border-[#1e3050] rounded-2xl p-8 sm:p-10 text-center">
-      <div className="inline-flex items-center gap-2 bg-red-900/30 border border-red-700/50 text-red-300 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-6">
-        <Lock className="w-3.5 h-3.5" /> {requiredPlan === "pro" ? "Pro Feature" : "Business Feature"}
-      </div>
-
-      <div className="w-16 h-16 bg-red-900/30 border border-red-800/50 rounded-2xl flex items-center justify-center mx-auto mb-5">
-        <Icon className="w-7 h-7 text-red-400" />
-      </div>
-
-      <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">{title}</h2>
-      <p className="text-red-400 text-sm font-medium mb-4">{tagline}</p>
-      <p className="text-slate-400 text-sm sm:text-base max-w-xl mx-auto mb-8 leading-relaxed">
-        {description}
-      </p>
-
-      <Link href="/#pricing" className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-xl transition-colors">
-        <Crown className="w-4 h-4" /> Upgrade to {planLabel}
-      </Link>
-      <p className="text-slate-500 text-xs mt-4">Currently on the <span className="capitalize text-slate-400">{currentPlan}</span> plan</p>
     </div>
   );
 }

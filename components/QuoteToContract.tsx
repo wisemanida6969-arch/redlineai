@@ -17,7 +17,11 @@ interface QuoteResult {
 
 type View = "upload" | "review" | "preview";
 
-export default function QuoteToContract() {
+interface QuoteToContractProps {
+  onUsed?: () => void;
+}
+
+export default function QuoteToContract({ onUsed }: QuoteToContractProps = {}) {
   const [view, setView] = useState<View>("upload");
   const [file, setFile] = useState<File | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -63,6 +67,7 @@ export default function QuoteToContract() {
       setResult(data);
       setEditedData(data.extracted);
       setView("review");
+      onUsed?.();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
