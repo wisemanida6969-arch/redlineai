@@ -69,7 +69,7 @@ export default function PrivacyPage() {
 
             <section>
               <h2 className="text-lg font-semibold text-white mb-3">4. Document Privacy</h2>
-              <p className="text-slate-400 text-sm">Your uploaded documents are processed in memory to generate analysis. Document text is sent to Anthropic's Claude AI API for analysis. We do not permanently store the full content of your uploaded documents. Only the risk report summary and clause metadata are stored in your scan history.</p>
+              <p className="text-slate-400 text-sm">Your uploaded documents are processed in memory to generate analysis. Document text is sent to Anthropic&apos;s Claude AI API for analysis. We do not permanently store the full content of your uploaded documents. Only the risk report summary and clause metadata are stored in your scan history.</p>
             </section>
 
             <section>
