@@ -1,11 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Search, Loader2, AlertCircle, AlertTriangle, CheckCircle,
   Building2, Newspaper, DollarSign, Scale, Shield, Download,
-  ArrowLeft, Copy, Check, ExternalLink, Sparkles
+  ArrowLeft, Copy, Check, ExternalLink, Sparkles, FileText, ChevronDown
 } from "lucide-react";
-import { downloadVendorPDF, type VendorReport } from "@/lib/vendorReportExport";
+import { downloadVendorPDF, downloadVendorDOCX, type VendorReport } from "@/lib/vendorReportExport";
 
 interface VendorScanResult {
   report: VendorReport;
@@ -28,7 +28,19 @@ export default function VendorRiskScan({ onUsed }: Props = {}) {
   const [error, setError] = useState("");
   const [result, setResult] = useState<VendorScanResult | null>(null);
   const [copied, setCopied] = useState(false);
-  const [downloading, setDownloading] = useState(false);
+  const [downloading, setDownloading] = useState<"pdf" | "docx" | null>(null);
+  const [dropOpen, setDropOpen] = useState(false);
+  const dropRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropRef.current && !dropRef.current.contains(e.target as Node)) {
+        setDropOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   const handleScan = async () => {
     const name = vendorName.trim();
@@ -87,17 +99,24 @@ ${r.recommendations.map((rec, i) => `${i + 1}. ${rec}`).join("\n")}
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleDownload = async () => {
+  const handleDownload = async (type: "pdf" | "docx") => {
     if (!result) return;
-    setDownloading(true);
+    setDropOpen(false);
+    setDownloading(type);
+    setError("");
     try {
       const safeName = result.report.vendorName.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 30);
       const dateStr = new Date(result.scannedAt).toISOString().slice(0, 10);
-      await downloadVendorPDF(result.report, result.scannedAt, `vendor-risk-${safeName}-${dateStr}`);
+      const filename = `vendor-risk-${safeName}-${dateStr}`;
+      if (type === "pdf") {
+        await downloadVendorPDF(result.report, result.scannedAt, filename);
+      } else {
+        await downloadVendorDOCX(result.report, result.scannedAt, filename);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Download failed");
     } finally {
-      setDownloading(false);
+      setDownloading(null);
     }
   };
 
@@ -187,14 +206,47 @@ ${r.recommendations.map((rec, i) => `${i + 1}. ${rec}`).join("\n")}
               {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
               {copied ? "Copied!" : "Copy Summary"}
             </button>
-            <button
-              onClick={handleDownload}
-              disabled={downloading}
-              className="flex items-center gap-2 bg-red-600 hover:bg-red-700 disabled:bg-red-900/50 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
-            >
-              {downloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-              {downloading ? "PDF…" : "Download PDF"}
-            </button>
+            <div className="relative" ref={dropRef}>
+              <button
+                onClick={() => setDropOpen((v) => !v)}
+                disabled={!!downloading}
+                className="flex items-center gap-2 bg-red-600 hover:bg-red-700 disabled:bg-red-900/50 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
+              >
+                {downloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                {downloading === "pdf" ? "PDF…" : downloading === "docx" ? "Word…" : "Download Report"}
+                {!downloading && <ChevronDown className={`w-3.5 h-3.5 transition-transform ${dropOpen ? "rotate-180" : ""}`} />}
+              </button>
+
+              {dropOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-[#162035] border border-[#1e3050] rounded-xl shadow-2xl overflow-hidden z-50">
+                  <button
+                    onClick={() => handleDownload("pdf")}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-300 hover:bg-[#1e3050] hover:text-white transition-colors"
+                  >
+                    <div className="w-7 h-7 bg-red-900/40 rounded-lg flex items-center justify-center shrink-0">
+                      <FileText className="w-3.5 h-3.5 text-red-400" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-medium">Download PDF</div>
+                      <div className="text-xs text-slate-500">Styled report · .pdf</div>
+                    </div>
+                  </button>
+                  <div className="h-px bg-[#1e3050]" />
+                  <button
+                    onClick={() => handleDownload("docx")}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-300 hover:bg-[#1e3050] hover:text-white transition-colors"
+                  >
+                    <div className="w-7 h-7 bg-blue-900/40 rounded-lg flex items-center justify-center shrink-0">
+                      <FileText className="w-3.5 h-3.5 text-blue-400" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-medium">Download Word</div>
+                      <div className="text-xs text-slate-500">Editable document · .docx</div>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

@@ -234,3 +234,30 @@ export async function downloadVendorPDF(report: VendorReport, scannedAt: string,
 
   doc.save(`${filename}.pdf`);
 }
+
+
+/* ================================================================== */
+/*  DOCX export – server-side API route                                */
+/* ================================================================== */
+export async function downloadVendorDOCX(report: VendorReport, scannedAt: string, filename = "vendor-risk-report") {
+  const res = await fetch("/api/vendor-export", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ report, scannedAt }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Export failed" }));
+    throw new Error(err.error || "Export failed");
+  }
+
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${filename}.docx`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
