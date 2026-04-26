@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+const FREE_SCAN_LIMIT = 3;
 
 const SYSTEM_PROMPT = `You are a senior contract lawyer specializing in identifying risky, vague, or one-sided contract clauses. You analyze contracts and provide actionable risk assessments.
 
@@ -33,12 +36,10 @@ Be thorough but practical. Focus on real risks, not nitpicking.`;
 
 async function extractTextFromPdf(buffer: Buffer): Promise<string | null> {
   try {
-    // pdf-parse v1 — works as a direct function call
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const pdfParse = require("pdf-parse");
     const parsed = await pdfParse(buffer);
     const text = (parsed.text as string)?.trim();
-    // If fewer than 100 chars, likely a scanned PDF with no embedded text
     return text && text.length > 100 ? text : null;
   } catch {
     return null;
@@ -46,33 +47,18 @@ async function extractTextFromPdf(buffer: Buffer): Promise<string | null> {
 }
 
 async function extractTextWithVision(buffer: Buffer, mimeType: string): Promise<string> {
-  // Send image/PDF directly to Claude Vision for OCR
   const base64 = buffer.toString("base64");
-
   const response = await client.messages.create({
     model: "claude-sonnet-4-20250514",
     max_tokens: 4096,
-    messages: [
-      {
-        role: "user",
-        content: [
-          {
-            type: "document",
-            source: {
-              type: "base64",
-              media_type: mimeType as "application/pdf",
-              data: base64,
-            },
-          },
-          {
-            type: "text",
-            text: "Please extract and return ALL text from this document exactly as it appears. Do not summarize or analyze — just transcribe the full text.",
-          },
-        ],
-      },
-    ],
+    messages: [{
+      role: "user",
+      content: [
+        { type: "document", source: { type: "base64", media_type: mimeType as "application/pdf", data: base64 } },
+        { type: "text", text: "Please extract and return ALL text from this document exactly as it appears. Do not summarize or analyze — just transcribe the full text." },
+      ],
+    }],
   });
-
   return response.content[0].type === "text" ? response.content[0].text : "";
 }
 
@@ -84,19 +70,12 @@ async function extractTextFromDocx(buffer: Buffer): Promise<string> {
 
 async function analyzeContract(contractText: string): Promise<object> {
   const truncated = contractText.slice(0, 15000);
-
   const message = await client.messages.create({
     model: "claude-sonnet-4-20250514",
     max_tokens: 4096,
     system: SYSTEM_PROMPT,
-    messages: [
-      {
-        role: "user",
-        content: `Please analyze this contract and return a JSON risk report:\n\n${truncated}`,
-      },
-    ],
+    messages: [{ role: "user", content: `Please analyze this contract and return a JSON risk report:\n\n${truncated}` }],
   });
-
   const rawText = message.content[0].type === "text" ? message.content[0].text : "";
   const jsonMatch = rawText.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error("Invalid AI response format");
@@ -105,33 +84,57 @@ async function analyzeContract(contractText: string): Promise<object> {
 
 export async function POST(req: NextRequest) {
   try {
+    // ── Auth check ──
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Please sign in to scan contracts." }, { status: 401 });
+    }
+
+    // ── Scan limit check ──
+    const serviceClient = createServiceClient();
+    const { data: profile } = await serviceClient
+      .from("profiles")
+      .select("plan, scans_used, scan_month")
+      .eq("id", user.id)
+      .single();
+
+    const currentMonth = new Date().toISOString().slice(0, 7); // e.g. "2025-04"
+    const scansUsed = profile?.scan_month === currentMonth ? (profile?.scans_used ?? 0) : 0;
+    const plan = profile?.plan ?? "free";
+
+    if (plan === "free" && scansUsed >= FREE_SCAN_LIMIT) {
+      return NextResponse.json({
+        error: `You've used all ${FREE_SCAN_LIMIT} free scans this month. Upgrade to Pro for unlimited scans.`,
+        limitReached: true,
+      }, { status: 403 });
+    }
+
+    // ── Extract text ──
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     const pastedText = formData.get("text") as string | null;
 
     let contractText = "";
-    let extractionMethod = "text";
+    let extractionMethod = "paste";
+    let filename = "Pasted text";
 
     if (pastedText?.trim()) {
       contractText = pastedText.trim();
-      extractionMethod = "paste";
     } else if (file) {
-      const arrayBuffer = await file.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      const fileName = file.name.toLowerCase();
+      filename = file.name;
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const name = file.name.toLowerCase();
 
-      if (fileName.endsWith(".docx")) {
-        // DOCX → mammoth
+      if (name.endsWith(".docx")) {
         contractText = await extractTextFromDocx(buffer);
         extractionMethod = "docx";
-      } else if (fileName.endsWith(".pdf") || file.type === "application/pdf") {
-        // PDF: try text extraction first, fallback to Vision
+      } else if (name.endsWith(".pdf") || file.type === "application/pdf") {
         const pdfText = await extractTextFromPdf(buffer);
         if (pdfText) {
           contractText = pdfText;
           extractionMethod = "pdf-text";
         } else {
-          // Scanned PDF → Claude Vision OCR
           contractText = await extractTextWithVision(buffer, "application/pdf");
           extractionMethod = "pdf-vision";
         }
@@ -146,16 +149,40 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Could not extract text from the document" }, { status: 400 });
     }
 
-    const analysisData = await analyzeContract(contractText);
+    // ── AI Analysis ──
+    const analysisData = await analyzeContract(contractText) as {
+      summary: string;
+      high: unknown[];
+      medium: unknown[];
+      low: unknown[];
+    };
+
+    // ── Save scan to DB ──
+    await serviceClient.from("scans").insert({
+      user_id: user.id,
+      filename,
+      high_count: analysisData.high?.length ?? 0,
+      medium_count: analysisData.medium?.length ?? 0,
+      low_count: analysisData.low?.length ?? 0,
+      summary: analysisData.summary,
+      result: analysisData,
+    });
+
+    // ── Update scan count ──
+    await serviceClient.from("profiles").update({
+      scans_used: profile?.scan_month === currentMonth ? scansUsed + 1 : 1,
+      scan_month: currentMonth,
+    }).eq("id", user.id);
 
     return NextResponse.json({
       ...analysisData,
       scannedAt: new Date().toISOString(),
       extractionMethod,
+      scansUsed: scansUsed + 1,
+      scanLimit: plan === "free" ? FREE_SCAN_LIMIT : null,
     });
   } catch (err: unknown) {
     console.error("Analysis error:", err);
-    const message = err instanceof Error ? err.message : "Analysis failed";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: err instanceof Error ? err.message : "Analysis failed" }, { status: 500 });
   }
 }
