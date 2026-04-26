@@ -1,13 +1,15 @@
 "use client";
 import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import {
   Upload, FileText, AlertCircle, Loader2, CheckCircle,
   FileType, AlertTriangle, Clock, Crown,
-  Search, Receipt, PenTool, Sparkles, Building2
+  Search, Receipt, PenTool, Sparkles, Building2, Lock
 } from "lucide-react";
 import QuoteToContract from "@/components/QuoteToContract";
+import { PLAN_LIMITS, type Plan, type FeatureKey, hasAccess, isOverLimit } from "@/lib/planLimits";
 
 interface ScanRecord {
   id: string;
@@ -20,9 +22,15 @@ interface ScanRecord {
 }
 
 const ACCEPTED_EXT = [".pdf", ".docx"];
-const FREE_LIMIT = 3;
 
-type Feature = "analysis" | "quote" | "vendor" | "esign";
+type Feature = FeatureKey;
+
+interface UsageData {
+  analysis: number;
+  quote: number;
+  vendor: number;
+  esign: number;
+}
 
 export default function Dashboard() {
   const router = useRouter();
@@ -37,8 +45,8 @@ export default function Dashboard() {
 
   // History + plan state
   const [scans, setScans] = useState<ScanRecord[]>([]);
-  const [plan, setPlan] = useState("free");
-  const [scansUsed, setScansUsed] = useState(0);
+  const [plan, setPlan] = useState<Plan>("free");
+  const [usage, setUsage] = useState<UsageData>({ analysis: 0, quote: 0, vendor: 0, esign: 0 });
   const [historyLoading, setHistoryLoading] = useState(true);
 
   useEffect(() => {
@@ -46,8 +54,8 @@ export default function Dashboard() {
       .then((r) => r.json())
       .then((d) => {
         setScans(d.scans ?? []);
-        setPlan(d.plan ?? "free");
-        setScansUsed(d.scansUsed ?? 0);
+        setPlan((d.plan ?? "free") as Plan);
+        setUsage(d.usage ?? { analysis: 0, quote: 0, vendor: 0, esign: 0 });
       })
       .catch(() => {})
       .finally(() => setHistoryLoading(false));
@@ -94,7 +102,7 @@ export default function Dashboard() {
 
       sessionStorage.setItem("redlineai_result", JSON.stringify(data));
       // refresh history count
-      setScansUsed((n) => n + 1);
+      setUsage((u) => ({ ...u, analysis: u.analysis + 1 }));
       router.push("/analysis");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
@@ -103,13 +111,15 @@ export default function Dashboard() {
     }
   };
 
-  const scansLeft = plan === "free" ? Math.max(0, FREE_LIMIT - scansUsed) : null;
+  const analysisLimit = PLAN_LIMITS[plan].analysis;
+  const analysisOver = isOverLimit(plan, "analysis", usage.analysis);
+  const analysisLocked = !hasAccess(plan, "analysis");
 
   const FEATURES: { id: Feature; label: string; icon: typeof FileText; soon: boolean }[] = [
     { id: "analysis", label: "Contract Analysis", icon: FileText, soon: false },
-    { id: "quote", label: "Quote to Contract", icon: Receipt, soon: false },
-    { id: "vendor", label: "Vendor Risk Scan", icon: Building2, soon: true },
-    { id: "esign", label: "E-Signature", icon: PenTool, soon: true },
+    { id: "quote",    label: "Quote to Contract", icon: Receipt,   soon: false },
+    { id: "vendor",   label: "Vendor Risk Scan",  icon: Building2, soon: true },
+    { id: "esign",    label: "E-Signature",       icon: PenTool,   soon: true },
   ];
 
   return (
@@ -123,13 +133,9 @@ export default function Dashboard() {
             <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">Dashboard</h1>
             <p className="text-slate-400 text-sm">All-in-one AI contract toolkit.</p>
           </div>
-          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium border ${plan === "free" ? "bg-slate-800/50 border-slate-700 text-slate-300" : "bg-yellow-900/20 border-yellow-700/50 text-yellow-400"}`}>
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium border ${plan === "free" ? "bg-slate-800/50 border-slate-700 text-slate-300" : plan === "pro" ? "bg-red-900/20 border-red-700/50 text-red-300" : "bg-yellow-900/20 border-yellow-700/50 text-yellow-400"}`}>
             {plan !== "free" && <Crown className="w-3.5 h-3.5" />}
-            {plan === "free" ? (
-              <span>{scansLeft} free scan{scansLeft !== 1 ? "s" : ""} left this month</span>
-            ) : (
-              <span className="capitalize">{plan} Plan — unlimited scans</span>
-            )}
+            <span className="capitalize">{plan} Plan</span>
           </div>
         </div>
 
@@ -138,6 +144,7 @@ export default function Dashboard() {
           <div className="flex gap-2 min-w-max border-b border-[#1e3050]">
             {FEATURES.map(({ id, label, icon: Icon, soon }) => {
               const active = feature === id;
+              const locked = !hasAccess(plan, id);
               return (
                 <button
                   key={id}
@@ -150,6 +157,9 @@ export default function Dashboard() {
                 >
                   <Icon className="w-4 h-4" />
                   {label}
+                  {locked && !soon && (
+                    <Lock className="w-3 h-3 text-slate-500" />
+                  )}
                   {soon && (
                     <span className="ml-1 text-[10px] font-bold uppercase tracking-wider bg-yellow-900/30 text-yellow-400 border border-yellow-700/50 px-1.5 py-0.5 rounded">
                       Soon
@@ -161,22 +171,38 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* ── Plan / usage summary card ── */}
+        <div className="bg-[#162035] border border-[#1e3050] rounded-2xl p-4 mb-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <UsageStat label="Contract Analysis" used={usage.analysis} limit={PLAN_LIMITS[plan].analysis} />
+            <UsageStat label="Quote to Contract" used={usage.quote}    limit={PLAN_LIMITS[plan].quote} />
+            <UsageStat label="Vendor Risk Scan"  used={usage.vendor}   limit={PLAN_LIMITS[plan].vendor} />
+            <UsageStat label="E-Signature"       used={usage.esign}    limit={PLAN_LIMITS[plan].esign} />
+          </div>
+        </div>
+
         {/* ── Tab content ── */}
         {feature === "analysis" && (
           <>
-            {/* Upgrade banner for free users at limit */}
-            {plan === "free" && scansLeft === 0 && (
+            {/* Upgrade banner when over limit */}
+            {analysisOver && (
               <div className="mb-6 bg-yellow-900/20 border border-yellow-700/50 rounded-2xl p-4 flex items-center justify-between gap-4 flex-wrap">
                 <div className="flex items-center gap-3">
                   <Crown className="w-5 h-5 text-yellow-400 shrink-0" />
                   <div>
-                    <p className="text-yellow-300 font-semibold text-sm">You&apos;ve used all 3 free scans this month</p>
-                    <p className="text-yellow-600 text-xs">Upgrade to Pro for unlimited scans — $29/month</p>
+                    <p className="text-yellow-300 font-semibold text-sm">
+                      You&apos;ve used all {analysisLimit} Contract Analysis scans this month
+                    </p>
+                    <p className="text-yellow-600 text-xs">
+                      {plan === "free"
+                        ? "Upgrade to Pro ($49/mo) for 30 scans or Business ($99/mo) for unlimited."
+                        : "Upgrade to Business ($99/mo) for unlimited scans."}
+                    </p>
                   </div>
                 </div>
-                <button className="bg-yellow-500 hover:bg-yellow-400 text-black font-semibold text-sm px-4 py-2 rounded-xl transition-colors">
-                  Upgrade to Pro →
-                </button>
+                <Link href="/#pricing" className="bg-yellow-500 hover:bg-yellow-400 text-black font-semibold text-sm px-4 py-2 rounded-xl transition-colors">
+                  Upgrade →
+                </Link>
               </div>
             )}
 
@@ -239,7 +265,7 @@ export default function Dashboard() {
               </div>
             )}
 
-            <button onClick={handleAnalyze} disabled={loading || (plan === "free" && scansLeft === 0)}
+            <button onClick={handleAnalyze} disabled={loading || analysisOver || analysisLocked}
               className="mt-5 w-full bg-red-600 hover:bg-red-700 disabled:bg-red-900/50 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl text-base sm:text-lg transition-colors flex items-center justify-center gap-3">
               {loading ? <><Loader2 className="w-5 h-5 animate-spin" />{loadingStep}</> : "Analyze Contract →"}
             </button>
@@ -277,7 +303,20 @@ export default function Dashboard() {
           </>
         )}
 
-        {feature === "quote" && <QuoteToContract />}
+        {feature === "quote" && (
+          hasAccess(plan, "quote") ? (
+            <QuoteToContract />
+          ) : (
+            <UpgradeLockPanel
+              icon={Receipt}
+              title="Quote to Contract"
+              tagline="Turn quotes into airtight contracts in seconds"
+              description="Upload a quote and RedlineAI extracts every key term — parties, scope, pricing, schedule — and auto-drafts a complete service agreement you can edit and download."
+              currentPlan={plan}
+              requiredPlan="pro"
+            />
+          )
+        )}
 
         {feature === "vendor" && (
           <ComingSoonPanel
@@ -309,6 +348,79 @@ export default function Dashboard() {
           />
         )}
       </div>
+    </div>
+  );
+}
+
+function UsageStat({ label, used, limit }: { label: string; used: number; limit: number | null }) {
+  const isLocked = limit === 0;
+  const isUnlimited = limit === null;
+  const isOver = !isUnlimited && !isLocked && used >= (limit ?? 0);
+  const pct = isUnlimited || isLocked ? 0 : Math.min(100, Math.round((used / (limit ?? 1)) * 100));
+
+  return (
+    <div className={`rounded-xl p-3 border ${
+      isLocked ? "bg-slate-900/40 border-slate-800" :
+      isOver ? "bg-yellow-900/20 border-yellow-800/50" :
+      "bg-[#0f1a2e] border-[#1e3050]"
+    }`}>
+      <p className={`text-[11px] font-medium uppercase tracking-wider ${
+        isLocked ? "text-slate-600" : "text-slate-500"
+      }`}>{label}</p>
+      <div className="flex items-baseline gap-1 mt-0.5">
+        {isLocked ? (
+          <span className="text-slate-500 text-sm font-medium flex items-center gap-1">
+            <Lock className="w-3 h-3" /> Locked
+          </span>
+        ) : isUnlimited ? (
+          <span className="text-yellow-400 text-sm font-bold">Unlimited</span>
+        ) : (
+          <>
+            <span className={`text-base font-bold ${isOver ? "text-yellow-300" : "text-white"}`}>{used}</span>
+            <span className="text-slate-500 text-xs">/ {limit}</span>
+          </>
+        )}
+      </div>
+      {!isLocked && !isUnlimited && (
+        <div className="mt-2 h-1 bg-[#1e3050] rounded-full overflow-hidden">
+          <div className={`h-full rounded-full ${isOver ? "bg-yellow-500" : "bg-red-600"}`} style={{ width: `${pct}%` }} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function UpgradeLockPanel({
+  icon: Icon, title, tagline, description, currentPlan, requiredPlan,
+}: {
+  icon: typeof FileText;
+  title: string;
+  tagline: string;
+  description: string;
+  currentPlan: Plan;
+  requiredPlan: "pro" | "business";
+}) {
+  const planLabel = requiredPlan === "pro" ? "Pro ($49/mo)" : "Business ($99/mo)";
+  return (
+    <div className="bg-[#162035] border border-[#1e3050] rounded-2xl p-8 sm:p-10 text-center">
+      <div className="inline-flex items-center gap-2 bg-red-900/30 border border-red-700/50 text-red-300 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-6">
+        <Lock className="w-3.5 h-3.5" /> {requiredPlan === "pro" ? "Pro Feature" : "Business Feature"}
+      </div>
+
+      <div className="w-16 h-16 bg-red-900/30 border border-red-800/50 rounded-2xl flex items-center justify-center mx-auto mb-5">
+        <Icon className="w-7 h-7 text-red-400" />
+      </div>
+
+      <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">{title}</h2>
+      <p className="text-red-400 text-sm font-medium mb-4">{tagline}</p>
+      <p className="text-slate-400 text-sm sm:text-base max-w-xl mx-auto mb-8 leading-relaxed">
+        {description}
+      </p>
+
+      <Link href="/#pricing" className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-xl transition-colors">
+        <Crown className="w-4 h-4" /> Upgrade to {planLabel}
+      </Link>
+      <p className="text-slate-500 text-xs mt-4">Currently on the <span className="capitalize text-slate-400">{currentPlan}</span> plan</p>
     </div>
   );
 }

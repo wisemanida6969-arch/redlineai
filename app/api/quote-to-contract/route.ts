@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { PLAN_LIMITS, type Plan } from "@/lib/planLimits";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -190,6 +191,37 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Please sign in to use this feature." }, { status: 401 });
     }
 
+    // ── Plan / limit check ──
+    const service = createServiceClient();
+    const { data: profile } = await service
+      .from("profiles")
+      .select("plan, quote_used, scan_month")
+      .eq("id", user.id)
+      .single();
+
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const sameMonth = profile?.scan_month === currentMonth;
+    const quoteUsed = sameMonth ? (profile?.quote_used ?? 0) : 0;
+    const plan = (profile?.plan ?? "free") as Plan;
+    const limit = PLAN_LIMITS[plan].quote;
+
+    if (limit === 0) {
+      return NextResponse.json({
+        error: "Quote to Contract is a Pro feature. Upgrade to Pro ($49/mo) or Business ($99/mo) to unlock.",
+        limitReached: true,
+      }, { status: 403 });
+    }
+
+    if (limit !== null && quoteUsed >= limit) {
+      const upgradeMsg = plan === "pro"
+        ? "Upgrade to Business for unlimited contracts."
+        : "Limit reached.";
+      return NextResponse.json({
+        error: `You've used all ${limit} Quote to Contract generations this month. ${upgradeMsg}`,
+        limitReached: true,
+      }, { status: 403 });
+    }
+
     // ── Extract text ──
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
@@ -229,12 +261,20 @@ export async function POST(req: NextRequest) {
     // ── Generate contract draft ──
     const contractText = generateContract(extracted);
 
+    // ── Update usage ──
+    await service.from("profiles").update({
+      quote_used: sameMonth ? quoteUsed + 1 : 1,
+      scan_month: currentMonth,
+    }).eq("id", user.id);
+
     return NextResponse.json({
       extracted,
       contract: contractText,
       filename: file.name,
       extractionMethod,
       generatedAt: new Date().toISOString(),
+      quoteUsed: quoteUsed + 1,
+      quoteLimit: limit,
     });
   } catch (err: unknown) {
     console.error("Quote-to-contract error:", err);

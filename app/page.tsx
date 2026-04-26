@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
-import { Shield, Zap, FileText, Download, CheckCircle, AlertTriangle, AlertCircle } from "lucide-react";
+import { Shield, Zap, FileText, Download, CheckCircle, AlertTriangle, AlertCircle, Lock } from "lucide-react";
 
 export default function Home() {
   return (
@@ -36,7 +36,7 @@ export default function Home() {
               See how it works
             </a>
           </div>
-          <p className="text-slate-500 text-sm mt-4">No credit card required · 3 free scans</p>
+          <p className="text-slate-500 text-sm mt-4">No credit card required · 3 free scans/month</p>
         </div>
       </section>
 
@@ -130,18 +130,29 @@ export default function Home() {
               name="Free"
               price="$0"
               period=""
-              desc="For individuals testing the waters"
-              features={["3 contract scans/month", "Risk categorization", "Fix suggestions", "PDF export"]}
+              desc="For individuals trying RedlineAI"
+              features={[
+                "Contract Analysis: 3/month",
+                "Quote to Contract: locked",
+                "Vendor Risk Scan: locked",
+                "E-Signature: locked",
+              ]}
               cta="Get started free"
               href="/dashboard"
               highlighted={false}
             />
             <PricingCard
               name="Pro"
-              price="$29"
+              price="$49"
               period="/month"
               desc="For freelancers and small teams"
-              features={["Unlimited scans", "Priority AI analysis", "Risk history & dashboard", "PDF export", "Email support"]}
+              features={[
+                "Contract Analysis: 30/month",
+                "Quote to Contract: 30/month",
+                "Vendor Risk Scan: 10/month",
+                "E-Signature: locked",
+                "Email support",
+              ]}
               cta="Start Pro"
               href="/dashboard"
               highlighted={true}
@@ -152,7 +163,13 @@ export default function Home() {
               price="$99"
               period="/month"
               desc="For teams reviewing contracts at scale"
-              features={["Everything in Pro", "Team workspace", "API access", "Custom risk rules", "Dedicated support"]}
+              features={[
+                "Contract Analysis: Unlimited",
+                "Quote to Contract: Unlimited",
+                "Vendor Risk Scan: 30/month",
+                "E-Signature: Unlimited",
+                "Priority support",
+              ]}
               cta="Start Business"
               href="/dashboard"
               highlighted={false}
@@ -243,12 +260,19 @@ function PricingCard({
         <p className="text-slate-400 text-sm mt-2">{desc}</p>
       </div>
       <ul className="space-y-2 mb-6 flex-1">
-        {features.map((f) => (
-          <li key={f} className="flex items-center gap-2 text-sm text-slate-300">
-            <CheckCircle className="w-4 h-4 text-green-400 shrink-0" />
-            {f}
-          </li>
-        ))}
+        {features.map((f) => {
+          const isLocked = f.toLowerCase().includes("locked");
+          return (
+            <li key={f} className={`flex items-center gap-2 text-sm ${isLocked ? "text-slate-500" : "text-slate-300"}`}>
+              {isLocked ? (
+                <Lock className="w-4 h-4 text-slate-600 shrink-0" />
+              ) : (
+                <CheckCircle className="w-4 h-4 text-green-400 shrink-0" />
+              )}
+              {f}
+            </li>
+          );
+        })}
       </ul>
       <Link
         href={href}

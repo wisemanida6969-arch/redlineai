@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { PLAN_LIMITS, type Plan } from "@/lib/planLimits";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-const FREE_SCAN_LIMIT = 3;
 
 const SYSTEM_PROMPT = `You are a senior contract lawyer specializing in identifying risky, vague, or one-sided contract clauses. You analyze contracts and provide actionable risk assessments.
 
@@ -99,13 +98,19 @@ export async function POST(req: NextRequest) {
       .eq("id", user.id)
       .single();
 
-    const currentMonth = new Date().toISOString().slice(0, 7); // e.g. "2025-04"
+    const currentMonth = new Date().toISOString().slice(0, 7); // e.g. "2026-04"
     const scansUsed = profile?.scan_month === currentMonth ? (profile?.scans_used ?? 0) : 0;
-    const plan = profile?.plan ?? "free";
+    const plan = (profile?.plan ?? "free") as Plan;
+    const limit = PLAN_LIMITS[plan].analysis;
 
-    if (plan === "free" && scansUsed >= FREE_SCAN_LIMIT) {
+    if (limit !== null && scansUsed >= limit) {
+      const upgradeMsg = plan === "free"
+        ? "Upgrade to Pro for 30 scans/month or Business for unlimited."
+        : plan === "pro"
+          ? "Upgrade to Business for unlimited scans."
+          : "Limit reached.";
       return NextResponse.json({
-        error: `You've used all ${FREE_SCAN_LIMIT} free scans this month. Upgrade to Pro for unlimited scans.`,
+        error: `You've used all ${limit} Contract Analysis scans this month. ${upgradeMsg}`,
         limitReached: true,
       }, { status: 403 });
     }
@@ -179,7 +184,7 @@ export async function POST(req: NextRequest) {
       scannedAt: new Date().toISOString(),
       extractionMethod,
       scansUsed: scansUsed + 1,
-      scanLimit: plan === "free" ? FREE_SCAN_LIMIT : null,
+      scanLimit: limit,
     });
   } catch (err: unknown) {
     console.error("Analysis error:", err);

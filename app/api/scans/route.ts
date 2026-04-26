@@ -16,12 +16,25 @@ export async function GET() {
 
   const { data: profile } = await service
     .from("profiles")
-    .select("plan, scans_used, scan_month")
+    .select("plan, scans_used, scan_month, quote_used, vendor_used, esign_used")
     .eq("id", user.id)
     .single();
 
   const currentMonth = new Date().toISOString().slice(0, 7);
-  const scansUsed = profile?.scan_month === currentMonth ? (profile?.scans_used ?? 0) : 0;
+  const sameMonth = profile?.scan_month === currentMonth;
 
-  return NextResponse.json({ scans: scans ?? [], plan: profile?.plan ?? "free", scansUsed });
+  // If month rolled over, all usage counts reset (we report 0 even if DB still has old values)
+  const usage = {
+    analysis: sameMonth ? (profile?.scans_used  ?? 0) : 0,
+    quote:    sameMonth ? (profile?.quote_used  ?? 0) : 0,
+    vendor:   sameMonth ? (profile?.vendor_used ?? 0) : 0,
+    esign:    sameMonth ? (profile?.esign_used  ?? 0) : 0,
+  };
+
+  return NextResponse.json({
+    scans: scans ?? [],
+    plan: profile?.plan ?? "free",
+    scansUsed: usage.analysis,   // legacy field for backward compat
+    usage,
+  });
 }
