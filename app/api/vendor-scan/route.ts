@@ -48,7 +48,13 @@ Severity rubric:
 - MEDIUM: Mixed reputation, minor concerns, slow growth, some negative reviews
 - LOW: Generally positive signals, stable, no significant red flags found
 
-If you cannot find information for a category, say so honestly and rate it MEDIUM. Be factual — do not fabricate details. Always include source URLs.`;
+If you cannot find information for a category, say so honestly and rate it MEDIUM. Be factual — do not fabricate details. Always include source URLs.
+
+CRITICAL FORMATTING RULES:
+- Do NOT include any <cite> tags, citation markers, or HTML/XML tags inside the JSON string fields.
+- Do NOT include footnote markers like [1], [2], etc.
+- Source URLs go ONLY in the "sources" array — never inline in summaries or items.
+- Output plain readable text only.`;
 
 interface VendorReport {
   vendorName: string;
@@ -60,6 +66,37 @@ interface VendorReport {
   overallSummary: string;
   recommendations: string[];
   sources: string[];
+}
+
+/** Strip <cite index="..."> and </cite> tags from a string. */
+function stripCiteTags(s: string): string {
+  if (!s) return s;
+  return s
+    .replace(/<cite\s[^>]*>/gi, "")
+    .replace(/<\/cite>/gi, "")
+    .replace(/<cite>/gi, "")
+    .trim();
+}
+
+/** Recursively strip cite tags from all string fields in the report. */
+function cleanReport(r: VendorReport): VendorReport {
+  const cleanArr = (arr: string[]) => arr.map(stripCiteTags).filter(Boolean);
+  const cleanSection = (s: { severity: "high" | "medium" | "low"; summary: string; items: string[] }) => ({
+    severity: s.severity,
+    summary: stripCiteTags(s.summary),
+    items: cleanArr(s.items || []),
+  });
+  return {
+    vendorName: stripCiteTags(r.vendorName),
+    overview: stripCiteTags(r.overview),
+    newsRisk: cleanSection(r.newsRisk),
+    financialRisk: cleanSection(r.financialRisk),
+    legalRisk: cleanSection(r.legalRisk),
+    overallScore: r.overallScore,
+    overallSummary: stripCiteTags(r.overallSummary),
+    recommendations: cleanArr(r.recommendations || []),
+    sources: cleanArr(r.sources || []),
+  };
 }
 
 async function scanVendor(vendorName: string): Promise<VendorReport> {
@@ -171,7 +208,8 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Scan ──
-    const report = await scanVendor(vendorName);
+    const rawReport = await scanVendor(vendorName);
+    const report = cleanReport(rawReport);
 
     // ── Update usage ──
     await service.from("profiles").update({
