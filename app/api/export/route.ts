@@ -164,15 +164,16 @@ export async function POST(req: NextRequest) {
     });
 
     const buffer = await Packer.toBuffer(doc);
+    const uint8 = new Uint8Array(buffer);
 
     const filename = `redlineai-report-${new Date(result.scannedAt).toISOString().slice(0, 10)}.docx`;
 
-    return new NextResponse(buffer, {
+    return new NextResponse(uint8, {
       status: 200,
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "Content-Disposition": `attachment; filename="${filename}"`,
-        "Content-Length": String(buffer.length),
+        "Content-Length": String(uint8.byteLength),
       },
     });
   } catch (err: unknown) {

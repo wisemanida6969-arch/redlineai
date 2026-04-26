@@ -31,7 +31,6 @@ const SEVERITY_LABEL: Record<string, string> = {
 /* ================================================================== */
 export async function downloadPDF(result: AnalysisResult, filename = "redlineai-report") {
   const { default: jsPDF } = await import("jspdf");
-  // @ts-expect-error – jspdf-autotable augments jsPDF prototype at runtime
   await import("jspdf-autotable");
 
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
@@ -46,7 +45,7 @@ export async function downloadPDF(result: AnalysisResult, filename = "redlineai-
   const white  = [255,255,255] as [number,number,number];
   const slate  = [100,116,139] as [number,number,number];
   const green  = [22,163,74]   as [number,number,number];
-  const redBg  = [254,226,226] as [number,number,number];
+  // redBg reserved for future use
   const yelBg  = [254,243,199] as [number,number,number];
   const bluBg  = [219,234,254] as [number,number,number];
 

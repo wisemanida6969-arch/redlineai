@@ -223,7 +223,7 @@ function RiskItem({ level, title, text, fix }: { level: "high" | "medium" | "low
 }
 
 function PricingCard({
-  name, price, period, desc, features, cta, href, highlighted, paddleProductId,
+  name, price, period, desc, features, cta, href, highlighted,
 }: {
   name: string; price: string; period: string; desc: string; features: string[];
   cta: string; href: string; highlighted: boolean; paddleProductId?: string;

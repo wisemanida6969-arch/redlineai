@@ -33,9 +33,11 @@ Be thorough but practical. Focus on real risks, not nitpicking.`;
 
 async function extractTextFromPdf(buffer: Buffer): Promise<string | null> {
   try {
-    const pdfParse = (await import("pdf-parse")).default;
+    // pdf-parse v1 — works as a direct function call
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const pdfParse = require("pdf-parse");
     const parsed = await pdfParse(buffer);
-    const text = parsed.text?.trim();
+    const text = (parsed.text as string)?.trim();
     // If fewer than 100 chars, likely a scanned PDF with no embedded text
     return text && text.length > 100 ? text : null;
   } catch {
