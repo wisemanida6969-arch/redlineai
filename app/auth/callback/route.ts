@@ -10,9 +10,17 @@ export async function GET(request: NextRequest) {
     const supabase = createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
+      const host = request.headers.get("host") || "localhost:8080";
+      const isLocal = host.includes("localhost");
+      const protocol = isLocal ? "http" : "https";
+      const baseUrl = `${protocol}://${host}`;
+      return NextResponse.redirect(`${baseUrl}${next}`);
     }
   }
 
-  return NextResponse.redirect(`${origin}/auth/login?error=auth_failed`);
+  const host = request.headers.get("host") || "localhost:8080";
+  const isLocal = host.includes("localhost");
+  const protocol = isLocal ? "http" : "https";
+  const baseUrl = `${protocol}://${host}`;
+  return NextResponse.redirect(`${baseUrl}/auth/login?error=auth_failed`);
 }
