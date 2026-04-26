@@ -100,7 +100,7 @@ export default function PrivacyPage() {
             </section>
 
             <section>
-              <h2 className="text-lg font-semibold text-white mb-3">9. Children's Privacy</h2>
+              <h2 className="text-lg font-semibold text-white mb-3">9. Children&apos;s Privacy</h2>
               <p className="text-slate-400 text-sm">RedlineAI is not intended for use by individuals under the age of 18. We do not knowingly collect personal information from children.</p>
             </section>
 
