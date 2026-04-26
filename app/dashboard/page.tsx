@@ -5,10 +5,11 @@ import Navbar from "@/components/Navbar";
 import {
   Upload, FileText, AlertCircle, Loader2, CheckCircle,
   FileType, AlertTriangle, Clock, Crown,
-  Search, Receipt, PenTool, Sparkles, Building2, Lock
+  Receipt, PenTool, Building2, Lock
 } from "lucide-react";
 import QuoteToContract from "@/components/QuoteToContract";
 import VendorRiskScan from "@/components/VendorRiskScan";
+import ESignature from "@/components/ESignature";
 import UsageCounter from "@/components/UsageCounter";
 import { type Plan, type FeatureKey, hasAccess, isOverLimit } from "@/lib/planLimits";
 
@@ -119,7 +120,7 @@ export default function Dashboard() {
     { id: "analysis", label: "Contract Analysis", icon: FileText,  soon: false },
     { id: "quote",    label: "Quote to Contract", icon: Receipt,   soon: false },
     { id: "vendor",   label: "Vendor Risk Scan",  icon: Building2, soon: false },
-    { id: "esign",    label: "E-Signature",       icon: PenTool,   soon: true },
+    { id: "esign",    label: "E-Signature",       icon: PenTool,   soon: false },
   ];
 
   return (
@@ -299,18 +300,11 @@ export default function Dashboard() {
         {feature === "esign" && (
           <>
             <UsageCounter plan={plan} feature="esign" used={usage.esign} />
-            <ComingSoonPanel
-              icon={PenTool}
-              title="E-Signature"
-              tagline="Send. Sign. Save. All in one place."
-              description="Upload any contract, drop signature fields where you need them, and email it to counterparties. Recipients sign in their browser — no account needed. Get a signed PDF back automatically."
-              features={[
-                "Drag-and-drop signature fields",
-                "Email signing requests with one click",
-                "Track who's signed and who hasn't",
-                "Legally binding signed PDF stored in your dashboard",
-              ]}
-            />
+            {hasAccess(plan, "esign") && (
+              <ESignature
+                onUsed={() => setUsage((u) => ({ ...u, esign: u.esign + 1 }))}
+              />
+            )}
           </>
         )}
       </div>
@@ -318,50 +312,6 @@ export default function Dashboard() {
   );
 }
 
-function ComingSoonPanel({
-  icon: Icon, title, tagline, description, features,
-}: {
-  icon: typeof FileText;
-  title: string;
-  tagline: string;
-  description: string;
-  features: string[];
-}) {
-  return (
-    <div className="bg-[#162035] border border-[#1e3050] rounded-2xl p-8 sm:p-10 text-center">
-      <div className="inline-flex items-center gap-2 bg-yellow-900/20 border border-yellow-700/50 text-yellow-400 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-6">
-        <Sparkles className="w-3.5 h-3.5" /> Coming Soon
-      </div>
-
-      <div className="w-16 h-16 bg-red-900/30 border border-red-800/50 rounded-2xl flex items-center justify-center mx-auto mb-5">
-        <Icon className="w-7 h-7 text-red-400" />
-      </div>
-
-      <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">{title}</h2>
-      <p className="text-red-400 text-sm font-medium mb-4">{tagline}</p>
-      <p className="text-slate-400 text-sm sm:text-base max-w-xl mx-auto mb-8 leading-relaxed">
-        {description}
-      </p>
-
-      <div className="bg-[#0f1a2e] border border-[#1e3050] rounded-2xl p-6 max-w-md mx-auto text-left">
-        <p className="text-white font-semibold text-sm mb-3 flex items-center gap-2">
-          <Search className="w-4 h-4 text-red-400" />
-          What&apos;s coming
-        </p>
-        <ul className="space-y-2">
-          {features.map((f) => (
-            <li key={f} className="flex items-start gap-2 text-sm text-slate-300">
-              <CheckCircle className="w-4 h-4 text-green-400 shrink-0 mt-0.5" />
-              <span>{f}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <p className="text-slate-500 text-xs mt-6">We&apos;ll notify you the moment it&apos;s live.</p>
-    </div>
-  );
-}
 
 function ScanHistoryItem({ scan }: { scan: ScanRecord }) {
   return (
