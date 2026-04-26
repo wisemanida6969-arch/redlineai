@@ -184,9 +184,10 @@ export default function Home() {
             <span className="text-white font-bold">RedlineAI</span>
           </div>
           <p className="text-slate-500 text-sm">© 2025 RedlineAI. All rights reserved.</p>
-          <div className="flex gap-6 text-slate-500 text-sm">
-            <a href="#" className="hover:text-slate-300">Privacy</a>
-            <a href="#" className="hover:text-slate-300">Terms</a>
+          <div className="flex gap-6 text-slate-500 text-sm flex-wrap justify-center">
+            <Link href="/privacy" className="hover:text-slate-300">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-slate-300">Terms of Service</Link>
+            <Link href="/refund" className="hover:text-slate-300">Refund Policy</Link>
           </div>
         </div>
       </footer>

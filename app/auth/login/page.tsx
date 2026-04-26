@@ -80,12 +80,22 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <p className="text-slate-600 text-xs text-center mt-4">
-          By signing in, you agree to our{" "}
-          <Link href="/terms" className="text-slate-500 hover:text-slate-400">Terms</Link>
-          {" "}and{" "}
-          <Link href="/privacy" className="text-slate-500 hover:text-slate-400">Privacy Policy</Link>
-        </p>
+        <div className="mt-6 text-center space-y-2">
+          <p className="text-slate-600 text-xs">
+            By signing in, you agree to our{" "}
+            <Link href="/terms" className="text-slate-500 hover:text-slate-400 underline">Terms of Service</Link>
+            {" "}and{" "}
+            <Link href="/privacy" className="text-slate-500 hover:text-slate-400 underline">Privacy Policy</Link>
+          </p>
+          <div className="flex items-center justify-center gap-4 text-xs text-slate-600">
+            <Link href="/terms" className="hover:text-slate-400">Terms of Service</Link>
+            <span>·</span>
+            <Link href="/privacy" className="hover:text-slate-400">Privacy Policy</Link>
+            <span>·</span>
+            <Link href="/refund" className="hover:text-slate-400">Refund Policy</Link>
+          </div>
+          <p className="text-slate-700 text-xs">Operated by Trytimeback</p>
+        </div>
       </div>
     </div>
   );
