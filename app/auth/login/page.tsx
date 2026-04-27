@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { Shield, Loader2 } from "lucide-react";
+import { Shield, Loader2, AlertTriangle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
@@ -77,6 +77,15 @@ export default function LoginPage() {
 
           <p className="text-slate-500 text-xs text-center mt-6">
             Don&apos;t have an account? Just sign in with Google — we&apos;ll create one automatically.
+          </p>
+        </div>
+
+        {/* AI Disclaimer */}
+        <div className="mt-4 bg-yellow-900/20 border border-yellow-700/40 rounded-xl p-3 flex items-start gap-2">
+          <AlertTriangle className="w-3.5 h-3.5 text-yellow-400 shrink-0 mt-0.5" />
+          <p className="text-yellow-200/90 text-[11px] leading-relaxed">
+            <span className="font-semibold text-yellow-300">RedlineAI uses AI to analyze contracts.</span>{" "}
+            Results are for informational purposes only and may contain errors. Always verify the output and consult a legal professional for important decisions.
           </p>
         </div>
 
