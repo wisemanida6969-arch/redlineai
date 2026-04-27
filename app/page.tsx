@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
+import PaddleCheckout from "@/components/PaddleCheckout";
 import { Shield, Zap, FileText, Download, CheckCircle, AlertTriangle, AlertCircle, Lock } from "lucide-react";
 
 export default function Home() {
@@ -156,7 +157,7 @@ export default function Home() {
               cta="Start Pro"
               href="/dashboard"
               highlighted={true}
-              paddleProductId="pro_monthly"
+              paddlePriceId={process.env.NEXT_PUBLIC_PADDLE_PRO_PRICE_ID}
             />
             <PricingCard
               name="Business"
@@ -173,7 +174,7 @@ export default function Home() {
               cta="Start Business"
               href="/dashboard"
               highlighted={false}
-              paddleProductId="business_monthly"
+              paddlePriceId={process.env.NEXT_PUBLIC_PADDLE_BUSINESS_PRICE_ID}
             />
           </div>
         </div>
@@ -241,11 +242,15 @@ function RiskItem({ level, title, text, fix }: { level: "high" | "medium" | "low
 }
 
 function PricingCard({
-  name, price, period, desc, features, cta, href, highlighted,
+  name, price, period, desc, features, cta, href, highlighted, paddlePriceId,
 }: {
   name: string; price: string; period: string; desc: string; features: string[];
-  cta: string; href: string; highlighted: boolean; paddleProductId?: string;
+  cta: string; href: string; highlighted: boolean; paddlePriceId?: string;
 }) {
+  const buttonClass = `w-full text-center py-3 rounded-xl font-semibold text-sm transition-colors ${
+    highlighted ? "bg-red-600 hover:bg-red-700 text-white" : "border border-[#1e3050] hover:border-slate-500 text-slate-300"
+  }`;
+
   return (
     <div className={`rounded-2xl p-6 border flex flex-col ${highlighted ? "bg-red-900/20 border-red-700/50 ring-1 ring-red-600/30" : "bg-[#162035] border-[#1e3050]"}`}>
       {highlighted && (
@@ -274,12 +279,15 @@ function PricingCard({
           );
         })}
       </ul>
-      <Link
-        href={href}
-        className={`w-full text-center py-3 rounded-xl font-semibold text-sm transition-colors ${highlighted ? "bg-red-600 hover:bg-red-700 text-white" : "border border-[#1e3050] hover:border-slate-500 text-slate-300"}`}
-      >
-        {cta}
-      </Link>
+      {paddlePriceId ? (
+        <PaddleCheckout priceId={paddlePriceId} className={buttonClass}>
+          {cta}
+        </PaddleCheckout>
+      ) : (
+        <Link href={href} className={buttonClass}>
+          {cta}
+        </Link>
+      )}
     </div>
   );
 }

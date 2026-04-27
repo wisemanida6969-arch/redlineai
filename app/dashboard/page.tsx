@@ -134,9 +134,18 @@ export default function Dashboard() {
             <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">Dashboard</h1>
             <p className="text-slate-400 text-sm">All-in-one AI contract toolkit.</p>
           </div>
-          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium border ${plan === "free" ? "bg-slate-800/50 border-slate-700 text-slate-300" : plan === "pro" ? "bg-red-900/20 border-red-700/50 text-red-300" : "bg-yellow-900/20 border-yellow-700/50 text-yellow-400"}`}>
-            {plan !== "free" && <Crown className="w-3.5 h-3.5" />}
-            <span className="capitalize">{plan} Plan</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium border ${plan === "free" ? "bg-slate-800/50 border-slate-700 text-slate-300" : plan === "pro" ? "bg-red-900/20 border-red-700/50 text-red-300" : "bg-yellow-900/20 border-yellow-700/50 text-yellow-400"}`}>
+              {plan !== "free" && <Crown className="w-3.5 h-3.5" />}
+              <span className="capitalize">{plan} Plan</span>
+            </div>
+            {plan === "free" ? (
+              <a href="/#pricing" className="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1.5 rounded-xl transition-colors flex items-center gap-1">
+                <Crown className="w-3 h-3" /> Upgrade
+              </a>
+            ) : (
+              <ManageSubscriptionButton />
+            )}
           </div>
         </div>
 
@@ -312,6 +321,32 @@ export default function Dashboard() {
   );
 }
 
+
+function ManageSubscriptionButton() {
+  const [loading, setLoading] = useState(false);
+  const handleClick = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/paddle/portal", { method: "POST" });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else throw new Error(data.error || "Could not open portal");
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Failed to open subscription portal");
+      setLoading(false);
+    }
+  };
+  return (
+    <button
+      onClick={handleClick}
+      disabled={loading}
+      className="bg-[#162035] hover:bg-[#1e3050] border border-[#1e3050] text-slate-300 text-xs font-medium px-3 py-1.5 rounded-xl transition-colors flex items-center gap-1"
+    >
+      {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <FileText className="w-3 h-3" />}
+      Manage Subscription
+    </button>
+  );
+}
 
 function ScanHistoryItem({ scan }: { scan: ScanRecord }) {
   return (
