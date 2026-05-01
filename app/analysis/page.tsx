@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import { AlertTriangle, AlertCircle, CheckCircle, Copy, Check, Download, ArrowLeft, Shield, FileText, Loader2, ChevronDown } from "lucide-react";
 import { downloadPDF, downloadDOCX, type AnalysisResult } from "@/lib/exportReport";
+import AppFooter from "@/components/AppFooter";
 
 export default function AnalysisPage() {
   const router = useRouter();
@@ -206,6 +207,7 @@ export default function AnalysisPage() {
           )}
         </div>
       </div>
+      <AppFooter />
     </div>
   );
 }

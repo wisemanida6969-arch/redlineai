@@ -11,6 +11,7 @@ import QuoteToContract from "@/components/QuoteToContract";
 import VendorRiskScan from "@/components/VendorRiskScan";
 import ESignature from "@/components/ESignature";
 import UsageCounter from "@/components/UsageCounter";
+import AppFooter from "@/components/AppFooter";
 import { type Plan, type FeatureKey, hasAccess, isOverLimit } from "@/lib/planLimits";
 
 interface ScanRecord {
@@ -317,6 +318,7 @@ export default function Dashboard() {
           </>
         )}
       </div>
+      <AppFooter />
     </div>
   );
 }
