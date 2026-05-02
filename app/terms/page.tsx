@@ -19,6 +19,13 @@ export default function TermsPage() {
 
             <div className="bg-[#1e3050] rounded-xl p-4 border border-[#2a4070]">
               <p className="text-white font-semibold">This service is operated by Pactbug.</p>
+              <p className="text-slate-400 text-sm mt-2">
+                RedlineAI is operated by Pactbug. Payments are processed by{" "}
+                <span className="text-white">Paddle.com Market Limited</span>{" "}
+                acting as our Merchant of Record under the trade name{" "}
+                <span className="text-white">Trytimeback</span>. Your card statement may show
+                &ldquo;Trytimeback&rdquo; or &ldquo;Paddle.net&rdquo; for charges related to RedlineAI.
+              </p>
             </div>
 
             <section>

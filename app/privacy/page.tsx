@@ -20,6 +20,10 @@ export default function PrivacyPage() {
             <div className="bg-[#1e3050] rounded-xl p-4 border border-[#2a4070]">
               <p className="text-white font-semibold">This service is operated by Pactbug.</p>
               <p className="text-slate-300 mt-1 text-sm">We are committed to protecting your privacy. This policy explains what data we collect, how we use it, and your rights.</p>
+              <p className="text-slate-400 text-xs mt-3">
+                Payments are processed by Paddle as our Merchant of Record under the trade name
+                &ldquo;Trytimeback&rdquo;. Billing-related data is handled per Paddle&apos;s privacy policy.
+              </p>
             </div>
 
             <section>

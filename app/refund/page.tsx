@@ -23,6 +23,12 @@ export default function RefundPage() {
                 <a href="mailto:admin@pactbug.com" className="text-red-400 hover:text-red-300">admin@pactbug.com</a>.
               </p>
               <p className="text-slate-300 mt-2">Refund requests after 14 days will be reviewed on a case-by-case basis.</p>
+              <p className="text-slate-400 text-sm mt-3">
+                Note: RedlineAI is operated by Pactbug. Payments are processed by Paddle as our
+                Merchant of Record under the trade name &ldquo;Trytimeback&rdquo;. Your card
+                statement may show &ldquo;Trytimeback&rdquo; or &ldquo;Paddle.net&rdquo; for
+                RedlineAI charges.
+              </p>
             </div>
 
             <section>
