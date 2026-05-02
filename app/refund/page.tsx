@@ -20,7 +20,7 @@ export default function RefundPage() {
             <div className="bg-[#1e3050] rounded-xl p-4 border border-[#2a4070]">
               <p className="text-white font-semibold">We offer a 14-day refund policy in accordance with Paddle&apos;s terms of service.</p>
               <p className="text-slate-300 mt-2">Customers may request a full refund within 14 days of purchase by contacting us at{" "}
-                <a href="mailto:admin@trytimeback.com" className="text-red-400 hover:text-red-300">admin@trytimeback.com</a>.
+                <a href="mailto:admin@pactbug.com" className="text-red-400 hover:text-red-300">admin@pactbug.com</a>.
               </p>
               <p className="text-slate-300 mt-2">Refund requests after 14 days will be reviewed on a case-by-case basis.</p>
             </div>
@@ -28,7 +28,7 @@ export default function RefundPage() {
             <section>
               <h2 className="text-lg font-semibold text-white mb-3">How to Request a Refund</h2>
               <ol className="list-decimal list-inside space-y-2 text-slate-400">
-                <li>Email us at <a href="mailto:admin@trytimeback.com" className="text-red-400 hover:text-red-300">admin@trytimeback.com</a></li>
+                <li>Email us at <a href="mailto:admin@pactbug.com" className="text-red-400 hover:text-red-300">admin@pactbug.com</a></li>
                 <li>Include the email address associated with your account</li>
                 <li>Briefly describe your reason for requesting a refund</li>
                 <li>We will process your request within 3–5 business days</li>
@@ -59,7 +59,7 @@ export default function RefundPage() {
               <h2 className="text-lg font-semibold text-white mb-3">Contact Us</h2>
               <p className="text-slate-400">
                 If you have any questions about our refund policy, please contact us at{" "}
-                <a href="mailto:admin@trytimeback.com" className="text-red-400 hover:text-red-300">admin@trytimeback.com</a>.
+                <a href="mailto:admin@pactbug.com" className="text-red-400 hover:text-red-300">admin@pactbug.com</a>.
               </p>
             </section>
           </div>

@@ -206,7 +206,7 @@ export default function Home() {
             <Link href="/privacy" className="hover:text-slate-300 transition-colors">Privacy Policy</Link>
             <Link href="/refund" className="hover:text-slate-300 transition-colors">Refund Policy</Link>
           </div>
-          <p className="text-slate-600 text-xs">© 2026 RedlineAI. Operated by Trytimeback. All rights reserved.</p>
+          <p className="text-slate-600 text-xs">© 2026 RedlineAI. Operated by Pactbug. All rights reserved.</p>
         </div>
       </footer>
     </div>

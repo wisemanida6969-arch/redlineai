@@ -14,8 +14,8 @@ export const metadata: Metadata = {
     "contract scanner", "vendor risk assessment", "e-signature",
     "Claude AI contracts", "contract automation", "legal AI",
   ],
-  authors: [{ name: "Trytimeback" }],
-  creator: "Trytimeback",
+  authors: [{ name: "Pactbug" }],
+  creator: "Pactbug",
   publisher: "RedlineAI",
   robots: {
     index: true,

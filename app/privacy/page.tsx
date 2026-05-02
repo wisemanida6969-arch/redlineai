@@ -18,7 +18,7 @@ export default function PrivacyPage() {
           <div className="space-y-6 text-slate-300 leading-relaxed">
 
             <div className="bg-[#1e3050] rounded-xl p-4 border border-[#2a4070]">
-              <p className="text-white font-semibold">This service is operated by Trytimeback.</p>
+              <p className="text-white font-semibold">This service is operated by Pactbug.</p>
               <p className="text-slate-300 mt-1 text-sm">We are committed to protecting your privacy. This policy explains what data we collect, how we use it, and your rights.</p>
             </div>
 
@@ -91,7 +91,7 @@ export default function PrivacyPage() {
                 <li>Request deletion of your account and associated data</li>
                 <li>Withdraw consent at any time by deleting your account</li>
               </ul>
-              <p className="text-slate-400 text-sm mt-2">To exercise these rights, contact us at <a href="mailto:admin@trytimeback.com" className="text-red-400 hover:text-red-300">admin@trytimeback.com</a>.</p>
+              <p className="text-slate-400 text-sm mt-2">To exercise these rights, contact us at <a href="mailto:admin@pactbug.com" className="text-red-400 hover:text-red-300">admin@pactbug.com</a>.</p>
             </section>
 
             <section>
@@ -113,7 +113,7 @@ export default function PrivacyPage() {
               <h2 className="text-lg font-semibold text-white mb-3">11. Contact Us</h2>
               <p className="text-slate-400 text-sm">
                 If you have any questions about this Privacy Policy, please contact us at:{" "}
-                <a href="mailto:admin@trytimeback.com" className="text-red-400 hover:text-red-300">admin@trytimeback.com</a>
+                <a href="mailto:admin@pactbug.com" className="text-red-400 hover:text-red-300">admin@pactbug.com</a>
               </p>
             </section>
 

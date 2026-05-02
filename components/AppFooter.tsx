@@ -11,11 +11,11 @@ export default function AppFooter() {
         </div>
 
         <a
-          href="mailto:admin@trytimeback.com"
+          href="mailto:admin@pactbug.com"
           className="flex items-center gap-1.5 text-slate-400 hover:text-white text-sm transition-colors"
         >
           <Mail className="w-3.5 h-3.5" />
-          문의: <span className="text-red-400">admin@trytimeback.com</span>
+          문의: <span className="text-red-400">admin@pactbug.com</span>
         </a>
 
         <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-xs text-slate-500">
@@ -24,7 +24,7 @@ export default function AppFooter() {
           <Link href="/refund"  className="hover:text-slate-300 transition-colors">Refund Policy</Link>
         </div>
 
-        <p className="text-slate-600 text-xs">© 2026 RedlineAI. Operated by Trytimeback.</p>
+        <p className="text-slate-600 text-xs">© 2026 RedlineAI. Operated by Pactbug.</p>
       </div>
     </footer>
   );

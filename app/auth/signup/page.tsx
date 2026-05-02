@@ -118,7 +118,7 @@ export default function SignupPage() {
             <span>·</span>
             <Link href="/refund" className="hover:text-slate-400">Refund Policy</Link>
           </div>
-          <p className="text-slate-700 text-xs">Operated by Trytimeback</p>
+          <p className="text-slate-700 text-xs">Operated by Pactbug</p>
         </div>
       </div>
     </div>

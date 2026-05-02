@@ -18,7 +18,7 @@ export default function TermsPage() {
           <div className="prose prose-invert prose-sm max-w-none space-y-6 text-slate-300 leading-relaxed">
 
             <div className="bg-[#1e3050] rounded-xl p-4 border border-[#2a4070]">
-              <p className="text-white font-semibold">This service is operated by Trytimeback.</p>
+              <p className="text-white font-semibold">This service is operated by Pactbug.</p>
             </div>
 
             <section>
@@ -64,7 +64,7 @@ export default function TermsPage() {
 
             <section>
               <h2 className="text-lg font-semibold text-white mb-2">8. Intellectual Property</h2>
-              <p>The Service, including its design, features, and content, is owned by Trytimeback and is protected by intellectual property laws. You retain ownership of the documents you upload; however, you grant us a limited license to process them for the purpose of providing the Service.</p>
+              <p>The Service, including its design, features, and content, is owned by Pactbug and is protected by intellectual property laws. You retain ownership of the documents you upload; however, you grant us a limited license to process them for the purpose of providing the Service.</p>
             </section>
 
             <section>
@@ -74,7 +74,7 @@ export default function TermsPage() {
 
             <section>
               <h2 className="text-lg font-semibold text-white mb-2">10. Limitation of Liability</h2>
-              <p>To the maximum extent permitted by law, Trytimeback shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Service.</p>
+              <p>To the maximum extent permitted by law, Pactbug shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Service.</p>
             </section>
 
             <section>
@@ -84,7 +84,7 @@ export default function TermsPage() {
 
             <section>
               <h2 className="text-lg font-semibold text-white mb-2">12. Contact</h2>
-              <p>For questions about these Terms, please contact us at <a href="mailto:admin@trytimeback.com" className="text-red-400 hover:text-red-300">admin@trytimeback.com</a>.</p>
+              <p>For questions about these Terms, please contact us at <a href="mailto:admin@pactbug.com" className="text-red-400 hover:text-red-300">admin@pactbug.com</a>.</p>
             </section>
           </div>
         </div>
