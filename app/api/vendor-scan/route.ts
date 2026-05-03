@@ -213,13 +213,17 @@ export async function POST(req: NextRequest) {
     const report = cleanReport(rawReport);
 
     // ── Save scan to history ──
-    const { data: saved } = await service.from("vendor_scans").insert({
+    const { data: saved, error: saveError } = await service.from("vendor_scans").insert({
       user_id: user.id,
       vendor_name: report.vendorName || vendorName,
       overall_score: report.overallScore,
       overview: report.overview,
       result: report,
     }).select("id, created_at").single();
+
+    if (saveError) {
+      console.error("Failed to save vendor scan:", JSON.stringify(saveError, null, 2));
+    }
 
     // ── Update usage ──
     await service.from("profiles").update({
