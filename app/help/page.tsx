@@ -4,8 +4,8 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import AppFooter from "@/components/AppFooter";
 import {
-  Shield, FileText, Receipt, Building2, PenTool, ChevronDown, ChevronRight,
-  Mail, AlertTriangle, CheckCircle, Sparkles, Eye, Calendar, Type, Send, Download,
+  FileText, Receipt, Building2, PenTool, ChevronDown, ChevronRight,
+  Mail, CheckCircle, Sparkles, Eye, Calendar, Type, Send, Download,
   Search, BookOpen
 } from "lucide-react";
 
