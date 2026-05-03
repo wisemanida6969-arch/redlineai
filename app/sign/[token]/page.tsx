@@ -194,15 +194,58 @@ export default function SignPage() {
           </div>
         ) : (
           <>
-            <div className="bg-[#162035] border border-[#1e3050] rounded-2xl p-5 mb-6 flex items-start gap-3">
+            {/* Welcome card */}
+            <div className="bg-[#162035] border border-[#1e3050] rounded-2xl p-5 mb-4 flex items-start gap-3">
               <div className="w-10 h-10 bg-red-900/30 rounded-xl flex items-center justify-center shrink-0">
                 <FileText className="w-5 h-5 text-red-400" />
               </div>
               <div>
-                <h2 className="text-white font-semibold">Review & Sign</h2>
+                <h2 className="text-white font-semibold">Hello {doc.signerName}, please sign this document</h2>
                 <p className="text-slate-400 text-sm">
-                  Review the document below, then draw your signature at the bottom and click <strong className="text-white">Sign Document</strong> to complete.
+                  Follow the 3 steps below to sign &ldquo;<strong className="text-white">{doc.title}</strong>&rdquo;.
                 </p>
+              </div>
+            </div>
+
+            {/* How to sign — step-by-step guide */}
+            <div className="bg-gradient-to-br from-yellow-900/15 to-[#162035] border border-yellow-700/40 rounded-2xl p-5 mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <PenTool className="w-4 h-4 text-yellow-400" />
+                <h3 className="text-yellow-300 font-semibold text-sm uppercase tracking-wider">How to sign</h3>
+              </div>
+              <ol className="space-y-3 text-sm">
+                <li className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 bg-yellow-900/40 border border-yellow-700/50 rounded-full flex items-center justify-center text-yellow-300 font-bold text-xs">1</span>
+                  <div>
+                    <p className="text-white font-medium">Review the document</p>
+                    <p className="text-slate-400 text-xs mt-0.5">Scroll through and read the contract carefully. Yellow blinking boxes show where your signature will appear.</p>
+                  </div>
+                </li>
+                <li className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 bg-yellow-900/40 border border-yellow-700/50 rounded-full flex items-center justify-center text-yellow-300 font-bold text-xs">2</span>
+                  <div>
+                    <p className="text-white font-medium">Draw your signature in the white box at the bottom</p>
+                    <p className="text-slate-400 text-xs mt-0.5">
+                      💻 <strong className="text-slate-300">PC:</strong> Click and drag with your mouse to draw, like writing on paper.<br/>
+                      📱 <strong className="text-slate-300">Mobile:</strong> Use your finger to write directly on the screen.<br/>
+                      ↩️ Made a mistake? Tap <strong className="text-slate-300">Clear</strong> and start over.
+                    </p>
+                  </div>
+                </li>
+                <li className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 bg-yellow-900/40 border border-yellow-700/50 rounded-full flex items-center justify-center text-yellow-300 font-bold text-xs">3</span>
+                  <div>
+                    <p className="text-white font-medium">Click &ldquo;Sign Document&rdquo;</p>
+                    <p className="text-slate-400 text-xs mt-0.5">Your signature will be embedded into the contract automatically. Today&apos;s date and your name are added for you.</p>
+                  </div>
+                </li>
+              </ol>
+
+              <div className="mt-4 pt-4 border-t border-yellow-900/30 flex items-start gap-2 text-xs text-slate-400">
+                <Shield className="w-3.5 h-3.5 text-yellow-400 shrink-0 mt-0.5" />
+                <span>
+                  Your signature is legally binding under U.S. ESIGN Act and EU eIDAS regulations. We record your IP address and timestamp as proof of consent.
+                </span>
               </div>
             </div>
           </>
@@ -246,6 +289,11 @@ export default function SignPage() {
               </button>
             </div>
 
+            <p className="text-slate-500 text-xs mb-2 flex items-center gap-1.5">
+              <PenTool className="w-3 h-3 text-red-400" />
+              Use your <strong className="text-slate-300">mouse</strong> (or <strong className="text-slate-300">finger</strong> on mobile) to draw inside the white box below
+            </p>
+
             <div className="bg-white rounded-xl border-2 border-dashed border-slate-300 overflow-hidden">
               <canvas
                 ref={canvasRef}
@@ -254,7 +302,7 @@ export default function SignPage() {
             </div>
 
             <p className="text-slate-500 text-xs mt-2 flex items-center gap-1.5">
-              <Calendar className="w-3 h-3" /> Today&apos;s date will be added automatically.
+              <Calendar className="w-3 h-3" /> Today&apos;s date and your name will be added automatically.
             </p>
 
             {error && (
