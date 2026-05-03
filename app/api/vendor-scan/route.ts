@@ -211,6 +211,15 @@ export async function POST(req: NextRequest) {
     const rawReport = await scanVendor(vendorName);
     const report = cleanReport(rawReport);
 
+    // ── Save scan to history ──
+    const { data: saved } = await service.from("vendor_scans").insert({
+      user_id: user.id,
+      vendor_name: report.vendorName || vendorName,
+      overall_score: report.overallScore,
+      overview: report.overview,
+      result: report,
+    }).select("id, created_at").single();
+
     // ── Update usage ──
     await service.from("profiles").update({
       vendor_used: sameMonth ? vendorUsed + 1 : 1,
@@ -219,7 +228,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       report,
-      scannedAt: new Date().toISOString(),
+      scannedAt: saved?.created_at || new Date().toISOString(),
+      scanId: saved?.id,
       vendorUsed: vendorUsed + 1,
       vendorLimit: limit,
     });

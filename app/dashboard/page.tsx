@@ -277,7 +277,7 @@ export default function Dashboard() {
               ) : (
                 <div className="space-y-3">
                   {scans.map((scan) => (
-                    <ScanHistoryItem key={scan.id} scan={scan} />
+                    <ScanHistoryItem key={scan.id} scan={scan} router={router} />
                   ))}
                 </div>
               )}
@@ -350,11 +350,35 @@ function ManageSubscriptionButton() {
   );
 }
 
-function ScanHistoryItem({ scan }: { scan: ScanRecord }) {
+function ScanHistoryItem({ scan, router }: { scan: ScanRecord; router: ReturnType<typeof useRouter> }) {
+  const [opening, setOpening] = useState(false);
+
+  const handleOpen = async () => {
+    setOpening(true);
+    try {
+      const res = await fetch(`/api/scans/${scan.id}`);
+      if (!res.ok) throw new Error("Failed to load scan");
+      const data = await res.json();
+      sessionStorage.setItem("redlineai_result", JSON.stringify(data));
+      router.push("/analysis");
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Could not open scan");
+      setOpening(false);
+    }
+  };
+
   return (
-    <div className="bg-[#162035] border border-[#1e3050] rounded-xl p-4 flex items-center gap-4 flex-wrap">
+    <button
+      onClick={handleOpen}
+      disabled={opening}
+      className="w-full text-left bg-[#162035] border border-[#1e3050] hover:border-red-700/50 rounded-xl p-4 flex items-center gap-4 flex-wrap transition-colors disabled:opacity-50"
+    >
       <div className="w-9 h-9 bg-red-900/30 rounded-lg flex items-center justify-center shrink-0">
-        <FileText className="w-4 h-4 text-red-400" />
+        {opening ? (
+          <Loader2 className="w-4 h-4 text-red-400 animate-spin" />
+        ) : (
+          <FileText className="w-4 h-4 text-red-400" />
+        )}
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-white text-sm font-medium truncate">{scan.filename}</p>
@@ -381,7 +405,7 @@ function ScanHistoryItem({ scan }: { scan: ScanRecord }) {
           {new Date(scan.created_at).toLocaleDateString()}
         </span>
       </div>
-    </div>
+    </button>
   );
 }
 

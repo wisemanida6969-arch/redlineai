@@ -1,11 +1,19 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   Search, Loader2, AlertCircle, AlertTriangle, CheckCircle,
   Building2, Newspaper, DollarSign, Scale, Shield, Download,
-  ArrowLeft, Copy, Check, ExternalLink, Sparkles, FileText, ChevronDown
+  ArrowLeft, Copy, Check, ExternalLink, Sparkles, FileText, ChevronDown, Clock
 } from "lucide-react";
 import { downloadVendorPDF, downloadVendorDOCX, type VendorReport } from "@/lib/vendorReportExport";
+
+interface VendorScanRecord {
+  id: string;
+  vendor_name: string;
+  overall_score: "high" | "medium" | "low";
+  overview: string | null;
+  created_at: string;
+}
 
 interface VendorScanResult {
   report: VendorReport;
@@ -32,6 +40,23 @@ export default function VendorRiskScan({ onUsed }: Props = {}) {
   const [dropOpen, setDropOpen] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
 
+  // History
+  const [history, setHistory] = useState<VendorScanRecord[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [openingId, setOpeningId] = useState<string | null>(null);
+
+  const loadHistory = useCallback(async () => {
+    setHistoryLoading(true);
+    try {
+      const res = await fetch("/api/vendor-scans/list");
+      const data = await res.json();
+      setHistory(data.scans ?? []);
+    } catch { /* ignore */ }
+    finally { setHistoryLoading(false); }
+  }, []);
+
+  useEffect(() => { loadHistory(); }, [loadHistory]);
+
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (dropRef.current && !dropRef.current.contains(e.target as Node)) {
@@ -41,6 +66,27 @@ export default function VendorRiskScan({ onUsed }: Props = {}) {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  const openHistoryItem = async (id: string) => {
+    setOpeningId(id);
+    setError("");
+    try {
+      const res = await fetch(`/api/vendor-scans/${id}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to load");
+      setResult({
+        report: data.report,
+        scannedAt: data.scannedAt,
+        vendorUsed: 0,
+        vendorLimit: null,
+      });
+      setView("report");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not open scan");
+    } finally {
+      setOpeningId(null);
+    }
+  };
 
   const handleScan = async () => {
     const name = vendorName.trim();
@@ -62,6 +108,7 @@ export default function VendorRiskScan({ onUsed }: Props = {}) {
       setResult(data);
       setView("report");
       onUsed?.();
+      loadHistory();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
@@ -181,6 +228,31 @@ ${r.recommendations.map((rec, i) => `${i + 1}. ${rec}`).join("\n")}
             </div>
           </div>
         )}
+
+        {/* ── History ── */}
+        <div className="mt-12">
+          <h2 className="text-white font-semibold text-lg mb-4">Recent Vendor Scans</h2>
+          {historyLoading ? (
+            <div className="flex items-center gap-2 text-slate-500 text-sm py-8 justify-center">
+              <Loader2 className="w-4 h-4 animate-spin" /> Loading history…
+            </div>
+          ) : history.length === 0 ? (
+            <div className="bg-[#162035] border border-[#1e3050] rounded-2xl p-8 text-center text-slate-500 text-sm">
+              No vendor scans yet. Run your first scan above!
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {history.map((item) => (
+                <VendorHistoryItem
+                  key={item.id}
+                  item={item}
+                  loading={openingId === item.id}
+                  onClick={() => openHistoryItem(item.id)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     );
   }
@@ -324,6 +396,52 @@ ${r.recommendations.map((rec, i) => `${i + 1}. ${rec}`).join("\n")}
 }
 
 /* ──────────────── Sub-components ──────────────── */
+
+function VendorHistoryItem({
+  item, loading, onClick,
+}: {
+  item: VendorScanRecord;
+  loading: boolean;
+  onClick: () => void;
+}) {
+  const sevConfig = {
+    high:   { color: "text-red-400",    bg: "bg-red-900/30",    label: "HIGH"   },
+    medium: { color: "text-yellow-400", bg: "bg-yellow-900/30", label: "MEDIUM" },
+    low:    { color: "text-blue-400",   bg: "bg-blue-900/30",   label: "LOW"    },
+  };
+  const c = sevConfig[item.overall_score];
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={loading}
+      className="w-full text-left bg-[#162035] border border-[#1e3050] hover:border-red-700/50 rounded-xl p-4 flex items-center gap-4 flex-wrap transition-colors disabled:opacity-50"
+    >
+      <div className="w-9 h-9 bg-red-900/30 rounded-lg flex items-center justify-center shrink-0">
+        {loading ? (
+          <Loader2 className="w-4 h-4 text-red-400 animate-spin" />
+        ) : (
+          <Building2 className="w-4 h-4 text-red-400" />
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-white text-sm font-medium truncate">{item.vendor_name}</p>
+        {item.overview && (
+          <p className="text-slate-500 text-xs truncate mt-0.5">{item.overview.slice(0, 90)}…</p>
+        )}
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${c.bg} ${c.color}`}>
+          {c.label}
+        </span>
+        <span className="hidden sm:flex items-center gap-1 text-xs text-slate-500 ml-1">
+          <Clock className="w-3 h-3" />
+          {new Date(item.created_at).toLocaleDateString()}
+        </span>
+      </div>
+    </button>
+  );
+}
 
 function Hint({ icon: Icon, label }: { icon: typeof Newspaper; label: string }) {
   return (
