@@ -113,6 +113,7 @@ async function scanVendor(vendorName: string): Promise<VendorReport> {
     const response = await client.messages.create({
       model: "claude-sonnet-4-20250514",
       max_tokens: 4096,
+      temperature: 0,
       system: SYSTEM_PROMPT,
       tools: [
         {

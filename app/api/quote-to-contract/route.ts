@@ -43,6 +43,7 @@ async function extractTextWithVision(buffer: Buffer, mimeType: string): Promise<
   const response = await client.messages.create({
     model: "claude-sonnet-4-20250514",
     max_tokens: 4096,
+    temperature: 0,
     messages: [{
       role: "user",
       content: [
@@ -79,6 +80,7 @@ async function extractQuoteData(quoteText: string): Promise<ExtractedQuote> {
   const message = await client.messages.create({
     model: "claude-sonnet-4-20250514",
     max_tokens: 2048,
+    temperature: 0,
     system: EXTRACTION_PROMPT,
     messages: [{ role: "user", content: `Please extract key terms from this quote document:\n\n${truncated}` }],
   });

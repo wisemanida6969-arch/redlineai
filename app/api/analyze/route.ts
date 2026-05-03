@@ -50,6 +50,7 @@ async function extractTextWithVision(buffer: Buffer, mimeType: string): Promise<
   const response = await client.messages.create({
     model: "claude-sonnet-4-20250514",
     max_tokens: 4096,
+    temperature: 0,
     messages: [{
       role: "user",
       content: [
@@ -72,6 +73,7 @@ async function analyzeContract(contractText: string): Promise<object> {
   const message = await client.messages.create({
     model: "claude-sonnet-4-20250514",
     max_tokens: 4096,
+    temperature: 0,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: `Please analyze this contract and return a JSON risk report:\n\n${truncated}` }],
   });
