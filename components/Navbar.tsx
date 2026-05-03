@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Shield, ChevronDown, LogOut, LayoutDashboard, Menu, X } from "lucide-react";
+import { Shield, ChevronDown, LogOut, LayoutDashboard, Menu, X, BookOpen } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
@@ -51,6 +51,9 @@ export default function Navbar() {
 
         {/* Desktop nav */}
         <div className="flex items-center gap-4">
+          <Link href="/help" className="text-slate-400 hover:text-white text-sm transition-colors hidden sm:block">
+            Help
+          </Link>
           <Link href="/#pricing" className="text-slate-400 hover:text-white text-sm transition-colors hidden sm:block">
             Pricing
           </Link>
@@ -76,6 +79,13 @@ export default function Navbar() {
                     className="flex items-center gap-2 px-4 py-3 text-sm text-slate-300 hover:bg-[#1e3050] hover:text-white transition-colors"
                   >
                     <LayoutDashboard className="w-4 h-4" /> Dashboard
+                  </Link>
+                  <Link
+                    href="/help"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-2 px-4 py-3 text-sm text-slate-300 hover:bg-[#1e3050] hover:text-white transition-colors"
+                  >
+                    <BookOpen className="w-4 h-4" /> Help & Guide
                   </Link>
                   <div className="h-px bg-[#1e3050]" />
                   <button
@@ -113,6 +123,13 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="sm:hidden border-t border-[#1e3050] bg-[#0f1a2e]/95 backdrop-blur-sm">
           <div className="px-6 py-4 space-y-1">
+            <Link
+              href="/help"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-2 px-3 py-2.5 text-sm text-slate-300 hover:text-white hover:bg-[#162035] rounded-lg transition-colors"
+            >
+              <BookOpen className="w-4 h-4" /> Help & Guide
+            </Link>
             <Link
               href="/#pricing"
               onClick={() => setMobileOpen(false)}

@@ -133,7 +133,9 @@ export default function Dashboard() {
         <div className="flex items-start justify-between mb-6 flex-wrap gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">Dashboard</h1>
-            <p className="text-slate-400 text-sm">All-in-one AI contract toolkit.</p>
+            <p className="text-slate-400 text-sm">
+              All-in-one AI contract toolkit. <Link href="/help" className="text-red-400 hover:text-red-300">View guide →</Link>
+            </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium border ${plan === "free" ? "bg-slate-800/50 border-slate-700 text-slate-300" : plan === "pro" ? "bg-red-900/20 border-red-700/50 text-red-300" : "bg-yellow-900/20 border-yellow-700/50 text-yellow-400"}`}>
