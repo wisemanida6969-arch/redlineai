@@ -539,15 +539,30 @@ function RequestRow({ req }: { req: SignatureRequest }) {
     }
   };
 
+  const handleRowClick = () => {
+    if (req.status === "signed") {
+      // Open signed PDF in new tab for preview
+      window.open(`/api/esign/${req.id}/download?inline=1`, "_blank");
+    } else if (req.status === "pending") {
+      // Open the public signing page in new tab so owner can preview what signer sees
+      window.open(`/sign/${req.token}`, "_blank");
+    }
+  };
+
   return (
-    <div className="bg-[#162035] border border-[#1e3050] rounded-xl p-4 flex items-center gap-4 flex-wrap">
-      <div className="w-9 h-9 bg-red-900/30 rounded-lg flex items-center justify-center shrink-0">
-        <FileText className="w-4 h-4 text-red-400" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-white text-sm font-medium truncate">{req.title}</p>
-        <p className="text-slate-500 text-xs truncate mt-0.5">{req.signer_name} · {req.signer_email}</p>
-      </div>
+    <div className="bg-[#162035] border border-[#1e3050] hover:border-red-700/50 rounded-xl p-4 flex items-center gap-4 flex-wrap transition-colors">
+      <button
+        onClick={handleRowClick}
+        className="flex items-center gap-3 flex-1 min-w-0 text-left"
+      >
+        <div className="w-9 h-9 bg-red-900/30 rounded-lg flex items-center justify-center shrink-0">
+          <FileText className="w-4 h-4 text-red-400" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-white text-sm font-medium truncate">{req.title}</p>
+          <p className="text-slate-500 text-xs truncate mt-0.5">{req.signer_name} · {req.signer_email}</p>
+        </div>
+      </button>
       <div className="flex items-center gap-2 shrink-0">
         <span className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${c.bg} ${c.color}`}>
           <Icon className="w-3 h-3" /> {c.label}
