@@ -1,10 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
 import { AlertTriangle, X } from "lucide-react";
+import { useT } from "@/lib/i18n/LanguageProvider";
 
 const STORAGE_KEY = "redlineai_disclaimer_dismissed";
 
 export default function DisclaimerBanner() {
+  const { t } = useT();
   const [visible, setVisible] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -27,15 +29,12 @@ export default function DisclaimerBanner() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-2 flex items-center gap-3">
         <AlertTriangle className="w-3.5 h-3.5 text-yellow-300 shrink-0 hidden sm:block" />
         <p className="flex-1 text-yellow-100 text-[11px] sm:text-xs leading-snug">
-          <span className="font-semibold">RedlineAI uses AI to analyze contracts.</span>{" "}
-          <span className="text-yellow-200/90">
-            Results are for informational purposes only and may contain errors.
-            Always verify the output and consult a legal professional for important decisions.
-          </span>
+          <span className="font-semibold">{t("disclaimer.title")}</span>{" "}
+          <span className="text-yellow-200/90">{t("disclaimer.body")}</span>
         </p>
         <button
           onClick={dismiss}
-          aria-label="Dismiss disclaimer"
+          aria-label={t("disclaimer.dismiss")}
           className="shrink-0 p-1 rounded hover:bg-yellow-800/50 transition-colors text-yellow-300 hover:text-white"
         >
           <X className="w-3.5 h-3.5" />

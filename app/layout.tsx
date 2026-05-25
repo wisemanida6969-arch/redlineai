@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import DisclaimerBanner from "@/components/DisclaimerBanner";
+import { LanguageProvider } from "@/lib/i18n/LanguageProvider";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://getredlineai.com"),
@@ -60,8 +61,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased min-h-screen bg-[#0f1a2e] text-slate-200">
-        <DisclaimerBanner />
-        {children}
+        <LanguageProvider>
+          <DisclaimerBanner />
+          {children}
+        </LanguageProvider>
       </body>
     </html>
   );

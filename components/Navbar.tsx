@@ -5,9 +5,12 @@ import { useRouter } from "next/navigation";
 import { Shield, ChevronDown, LogOut, LayoutDashboard, Menu, X, BookOpen } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
+import LanguageToggle from "@/components/LanguageToggle";
+import { useT } from "@/lib/i18n/LanguageProvider";
 
 export default function Navbar() {
   const router = useRouter();
+  const { t } = useT();
   const [user, setUser] = useState<User | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -50,12 +53,13 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop nav */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          <LanguageToggle className="hidden sm:flex" />
           <Link href="/help" className="text-slate-400 hover:text-white text-sm transition-colors hidden sm:block">
-            Help
+            {t("common.help")}
           </Link>
           <Link href="/#pricing" className="text-slate-400 hover:text-white text-sm transition-colors hidden sm:block">
-            Pricing
+            {t("common.pricing")}
           </Link>
 
           {user ? (
@@ -78,21 +82,21 @@ export default function Navbar() {
                     onClick={() => setMenuOpen(false)}
                     className="flex items-center gap-2 px-4 py-3 text-sm text-slate-300 hover:bg-[#1e3050] hover:text-white transition-colors"
                   >
-                    <LayoutDashboard className="w-4 h-4" /> Dashboard
+                    <LayoutDashboard className="w-4 h-4" /> {t("common.dashboard")}
                   </Link>
                   <Link
                     href="/help"
                     onClick={() => setMenuOpen(false)}
                     className="flex items-center gap-2 px-4 py-3 text-sm text-slate-300 hover:bg-[#1e3050] hover:text-white transition-colors"
                   >
-                    <BookOpen className="w-4 h-4" /> Help & Guide
+                    <BookOpen className="w-4 h-4" /> {t("common.helpGuide")}
                   </Link>
                   <div className="h-px bg-[#1e3050]" />
                   <button
                     onClick={handleSignOut}
                     className="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-400 hover:bg-red-900/20 transition-colors"
                   >
-                    <LogOut className="w-4 h-4" /> Sign out
+                    <LogOut className="w-4 h-4" /> {t("common.signOut")}
                   </button>
                 </div>
               )}
@@ -100,10 +104,10 @@ export default function Navbar() {
           ) : (
             <div className="hidden sm:flex items-center gap-2">
               <Link href="/auth/login" className="text-slate-400 hover:text-white text-sm transition-colors px-3 py-2">
-                Sign in
+                {t("common.signIn")}
               </Link>
               <Link href="/auth/signup" className="bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
-                Try Free
+                {t("common.signUp")}
               </Link>
             </div>
           )}
@@ -123,19 +127,22 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="sm:hidden border-t border-[#1e3050] bg-[#0f1a2e]/95 backdrop-blur-sm">
           <div className="px-6 py-4 space-y-1">
+            <div className="px-3 py-2">
+              <LanguageToggle />
+            </div>
             <Link
               href="/help"
               onClick={() => setMobileOpen(false)}
               className="flex items-center gap-2 px-3 py-2.5 text-sm text-slate-300 hover:text-white hover:bg-[#162035] rounded-lg transition-colors"
             >
-              <BookOpen className="w-4 h-4" /> Help & Guide
+              <BookOpen className="w-4 h-4" /> {t("common.helpGuide")}
             </Link>
             <Link
               href="/#pricing"
               onClick={() => setMobileOpen(false)}
               className="flex items-center gap-2 px-3 py-2.5 text-sm text-slate-300 hover:text-white hover:bg-[#162035] rounded-lg transition-colors"
             >
-              Pricing
+              {t("common.pricing")}
             </Link>
 
             {user ? (
@@ -145,14 +152,14 @@ export default function Navbar() {
                   onClick={() => setMobileOpen(false)}
                   className="flex items-center gap-2 px-3 py-2.5 text-sm text-slate-300 hover:text-white hover:bg-[#162035] rounded-lg transition-colors"
                 >
-                  <LayoutDashboard className="w-4 h-4" /> Dashboard
+                  <LayoutDashboard className="w-4 h-4" /> {t("common.dashboard")}
                 </Link>
                 <div className="h-px bg-[#1e3050] my-1" />
                 <button
                   onClick={handleSignOut}
                   className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
                 >
-                  <LogOut className="w-4 h-4" /> Sign out
+                  <LogOut className="w-4 h-4" /> {t("common.signOut")}
                 </button>
               </>
             ) : (
@@ -162,14 +169,14 @@ export default function Navbar() {
                   onClick={() => setMobileOpen(false)}
                   className="flex items-center gap-2 px-3 py-2.5 text-sm text-slate-300 hover:text-white hover:bg-[#162035] rounded-lg transition-colors"
                 >
-                  Sign in
+                  {t("common.signIn")}
                 </Link>
                 <Link
                   href="/auth/signup"
                   onClick={() => setMobileOpen(false)}
                   className="flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
                 >
-                  Try Free
+                  {t("common.signUp")}
                 </Link>
               </>
             )}

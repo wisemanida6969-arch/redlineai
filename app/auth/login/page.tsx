@@ -3,8 +3,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { Shield, Loader2, AlertTriangle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useT } from "@/lib/i18n/LanguageProvider";
+import LanguageToggle from "@/components/LanguageToggle";
 
 export default function LoginPage() {
+  const { t } = useT();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -26,6 +29,9 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-[#0f1a2e] flex items-center justify-center px-4">
+      <div className="absolute top-4 right-4">
+        <LanguageToggle />
+      </div>
       <div className="w-full max-w-md">
         {/* Logo */}
         <Link href="/" className="flex items-center justify-center gap-2 mb-8">
@@ -36,8 +42,8 @@ export default function LoginPage() {
         </Link>
 
         <div className="bg-[#162035] border border-[#1e3050] rounded-2xl p-8">
-          <h1 className="text-2xl font-bold text-white mb-1">Welcome back</h1>
-          <p className="text-slate-400 text-sm mb-8">Sign in to your RedlineAI account</p>
+          <h1 className="text-2xl font-bold text-white mb-1">{t("auth.welcomeBack")}</h1>
+          <p className="text-slate-400 text-sm mb-8">{t("auth.signInSubtitle")}</p>
 
           {error && (
             <div className="mb-4 text-red-400 text-sm bg-red-900/20 border border-red-800/50 rounded-xl px-4 py-3">
@@ -72,11 +78,11 @@ export default function LoginPage() {
                 />
               </svg>
             )}
-            {loading ? "Signing in…" : "Continue with Google"}
+            {loading ? t("auth.signingIn") : t("auth.continueGoogle")}
           </button>
 
           <p className="text-slate-500 text-xs text-center mt-6">
-            Don&apos;t have an account? Just sign in with Google — we&apos;ll create one automatically.
+            {t("auth.noAccount")}
           </p>
         </div>
 
@@ -84,26 +90,26 @@ export default function LoginPage() {
         <div className="mt-4 bg-yellow-900/20 border border-yellow-700/40 rounded-xl p-3 flex items-start gap-2">
           <AlertTriangle className="w-3.5 h-3.5 text-yellow-400 shrink-0 mt-0.5" />
           <p className="text-yellow-200/90 text-[11px] leading-relaxed">
-            <span className="font-semibold text-yellow-300">RedlineAI uses AI to analyze contracts.</span>{" "}
-            Results are for informational purposes only and may contain errors. Always verify the output and consult a legal professional for important decisions.
+            <span className="font-semibold text-yellow-300">{t("disclaimer.title")}</span>{" "}
+            {t("disclaimer.body")}
           </p>
         </div>
 
         <div className="mt-6 text-center space-y-2">
           <p className="text-slate-600 text-xs">
-            By signing in, you agree to our{" "}
-            <Link href="/terms" className="text-slate-500 hover:text-slate-400 underline">Terms of Service</Link>
-            {" "}and{" "}
-            <Link href="/privacy" className="text-slate-500 hover:text-slate-400 underline">Privacy Policy</Link>
+            {t("auth.agreeTerms")}{" "}
+            <Link href="/terms" className="text-slate-500 hover:text-slate-400 underline">{t("auth.termsOfService")}</Link>
+            {" "}{t("auth.and")}{" "}
+            <Link href="/privacy" className="text-slate-500 hover:text-slate-400 underline">{t("auth.privacyPolicy")}</Link>
           </p>
           <div className="flex items-center justify-center gap-4 text-xs text-slate-600">
-            <Link href="/terms" className="hover:text-slate-400">Terms of Service</Link>
+            <Link href="/terms"   className="hover:text-slate-400">{t("auth.termsOfService")}</Link>
             <span>·</span>
-            <Link href="/privacy" className="hover:text-slate-400">Privacy Policy</Link>
+            <Link href="/privacy" className="hover:text-slate-400">{t("auth.privacyPolicy")}</Link>
             <span>·</span>
-            <Link href="/refund" className="hover:text-slate-400">Refund Policy</Link>
+            <Link href="/refund"  className="hover:text-slate-400">{t("auth.refundPolicy")}</Link>
           </div>
-          <p className="text-slate-700 text-xs">Operated by Pactbug</p>
+          <p className="text-slate-700 text-xs">{t("common.operatedBy")}</p>
         </div>
       </div>
     </div>

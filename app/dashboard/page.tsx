@@ -13,6 +13,7 @@ import VendorRiskScan from "@/components/VendorRiskScan";
 import ESignature from "@/components/ESignature";
 import UsageCounter from "@/components/UsageCounter";
 import AppFooter from "@/components/AppFooter";
+import { useT } from "@/lib/i18n/LanguageProvider";
 import { type Plan, type FeatureKey, hasAccess, isOverLimit } from "@/lib/planLimits";
 
 interface ScanRecord {
@@ -38,6 +39,7 @@ interface UsageData {
 
 export default function Dashboard() {
   const router = useRouter();
+  const { t } = useT();
   const [feature, setFeature] = useState<Feature>("analysis");
   const [mode, setMode] = useState<"upload" | "paste">("upload");
   const [file, setFile] = useState<File | null>(null);
@@ -86,12 +88,12 @@ export default function Dashboard() {
     setLoading(true); setError("");
 
     try {
-      setLoadingStep("Extracting text…");
+      setLoadingStep(t("dashboard.extracting"));
       const formData = new FormData();
       if (mode === "upload" && file) formData.append("file", file);
       else formData.append("text", text);
 
-      setLoadingStep("Analyzing clauses with Claude AI…");
+      setLoadingStep(t("dashboard.analyzing"));
       const res = await fetch("/api/analyze", { method: "POST", body: formData });
       const data = await res.json();
 
@@ -119,10 +121,10 @@ export default function Dashboard() {
   const analysisLocked = !hasAccess(plan, "analysis");
 
   const FEATURES: { id: Feature; label: string; icon: typeof FileText; soon: boolean }[] = [
-    { id: "analysis", label: "Contract Analysis", icon: FileText,  soon: false },
-    { id: "quote",    label: "Quote to Contract", icon: Receipt,   soon: false },
-    { id: "vendor",   label: "Vendor Risk Scan",  icon: Building2, soon: false },
-    { id: "esign",    label: "E-Signature",       icon: PenTool,   soon: false },
+    { id: "analysis", label: t("dashboard.tabAnalysis"), icon: FileText,  soon: false },
+    { id: "quote",    label: t("dashboard.tabQuote"),    icon: Receipt,   soon: false },
+    { id: "vendor",   label: t("dashboard.tabVendor"),   icon: Building2, soon: false },
+    { id: "esign",    label: t("dashboard.tabEsign"),    icon: PenTool,   soon: false },
   ];
 
   return (
@@ -133,9 +135,9 @@ export default function Dashboard() {
         {/* Header + plan badge */}
         <div className="flex items-start justify-between mb-6 flex-wrap gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">Dashboard</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">{t("dashboard.title")}</h1>
             <p className="text-slate-400 text-sm">
-              All-in-one AI contract toolkit. <Link href="/help" className="text-red-400 hover:text-red-300">View guide →</Link>
+              {t("dashboard.subtitle")} <Link href="/help" className="text-red-400 hover:text-red-300">{t("dashboard.viewGuide")}</Link>
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
@@ -145,10 +147,10 @@ export default function Dashboard() {
             </div>
             {plan === "free" ? (
               <a href="/#pricing" className="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1.5 rounded-xl transition-colors flex items-center gap-1">
-                <Crown className="w-3 h-3" /> Upgrade
+                <Crown className="w-3 h-3" /> {t("common.upgrade")}
               </a>
             ) : (
-              <ManageSubscriptionButton />
+              <ManageSubscriptionButton label={t("dashboard.manageSub")} />
             )}
           </div>
         </div>
@@ -196,7 +198,7 @@ export default function Dashboard() {
               {(["upload", "paste"] as const).map((m) => (
                 <button key={m} onClick={() => setMode(m)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${mode === m ? "bg-red-600 text-white" : "text-slate-400 hover:text-white"}`}>
-                  {m === "upload" ? <><Upload className="w-4 h-4" /> Upload File</> : <><FileText className="w-4 h-4" /> Paste Text</>}
+                  {m === "upload" ? <><Upload className="w-4 h-4" /> {t("dashboard.uploadFile")}</> : <><FileText className="w-4 h-4" /> {t("dashboard.pasteText")}</>}
                 </button>
               ))}
             </div>
@@ -221,26 +223,26 @@ export default function Dashboard() {
                   ) : (
                     <>
                       <Upload className="w-12 h-12 text-slate-500 mx-auto mb-3" />
-                      <p className="text-white font-medium mb-1">Drop your file here</p>
-                      <p className="text-slate-400 text-sm mb-4">or click to browse</p>
+                      <p className="text-white font-medium mb-1">{t("dashboard.dropFile")}</p>
+                      <p className="text-slate-400 text-sm mb-4">{t("dashboard.clickToBrowse")}</p>
                       <div className="flex items-center justify-center gap-3">
                         <FormatBadge label="PDF" desc="Text & scanned" />
                         <FormatBadge label="DOCX" desc="Word documents" />
                       </div>
-                      <p className="text-slate-500 text-xs mt-3">Max 20MB</p>
+                      <p className="text-slate-500 text-xs mt-3">{t("dashboard.maxSize")}</p>
                     </>
                   )}
                 </div>
                 {file?.name.endsWith(".pdf") && (
                   <div className="mt-3 flex items-start gap-2 text-slate-400 text-xs bg-[#162035] border border-[#1e3050] rounded-xl px-4 py-3">
                     <FileType className="w-3.5 h-3.5 mt-0.5 shrink-0 text-blue-400" />
-                    <span><span className="text-blue-400 font-medium">Scanned PDF?</span> RedlineAI uses Claude Vision to read it automatically.</span>
+                    <span><span className="text-blue-400 font-medium">{t("dashboard.scannedPdf")}</span> {t("dashboard.scannedPdfDesc")}</span>
                   </div>
                 )}
               </>
             ) : (
               <textarea value={text} onChange={(e) => setText(e.target.value)}
-                placeholder="Paste your contract text here…"
+                placeholder={t("dashboard.pasteContract")}
                 className="w-full h-56 bg-[#162035] border border-[#1e3050] rounded-2xl p-4 text-slate-200 placeholder-slate-500 text-sm resize-none focus:outline-none focus:border-red-700/50" />
             )}
 
@@ -252,13 +254,13 @@ export default function Dashboard() {
 
             <button onClick={handleAnalyze} disabled={loading || analysisOver || analysisLocked}
               className="mt-5 w-full bg-red-600 hover:bg-red-700 disabled:bg-red-900/50 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl text-base sm:text-lg transition-colors flex items-center justify-center gap-3">
-              {loading ? <><Loader2 className="w-5 h-5 animate-spin" />{loadingStep}</> : "Analyze Contract →"}
+              {loading ? <><Loader2 className="w-5 h-5 animate-spin" />{loadingStep}</> : t("dashboard.analyze")}
             </button>
 
             {loading && (
               <div className="mt-4 bg-[#162035] border border-[#1e3050] rounded-xl p-4">
                 <div className="flex justify-between text-xs text-slate-500 mb-2">
-                  <span>Claude AI is reviewing every clause…</span><span>~15–30s</span>
+                  <span>{t("dashboard.aiReviewing")}</span><span>{t("dashboard.estimated")}</span>
                 </div>
                 <div className="h-1.5 bg-[#1e3050] rounded-full overflow-hidden">
                   <div className="h-full bg-red-600 rounded-full animate-pulse w-2/3" />
@@ -268,14 +270,14 @@ export default function Dashboard() {
 
             {/* ── Scan History ── */}
             <div className="mt-12">
-              <h2 className="text-white font-semibold text-lg mb-4">Recent Scans</h2>
+              <h2 className="text-white font-semibold text-lg mb-4">{t("dashboard.recentScans")}</h2>
               {historyLoading ? (
                 <div className="flex items-center gap-2 text-slate-500 text-sm py-8 justify-center">
-                  <Loader2 className="w-4 h-4 animate-spin" /> Loading history…
+                  <Loader2 className="w-4 h-4 animate-spin" /> {t("dashboard.loadingHistory")}
                 </div>
               ) : scans.length === 0 ? (
                 <div className="bg-[#162035] border border-[#1e3050] rounded-2xl p-8 text-center text-slate-500 text-sm">
-                  No scans yet. Upload your first contract above!
+                  {t("dashboard.noScans")}
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -327,7 +329,7 @@ export default function Dashboard() {
 }
 
 
-function ManageSubscriptionButton() {
+function ManageSubscriptionButton({ label }: { label: string }) {
   const [loading, setLoading] = useState(false);
   const handleClick = async () => {
     setLoading(true);
@@ -348,7 +350,7 @@ function ManageSubscriptionButton() {
       className="bg-[#162035] hover:bg-[#1e3050] border border-[#1e3050] text-slate-300 text-xs font-medium px-3 py-1.5 rounded-xl transition-colors flex items-center gap-1"
     >
       {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <FileText className="w-3 h-3" />}
-      Manage Subscription
+      {label}
     </button>
   );
 }
