@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
 import { Crown, AlertCircle, Lock, Infinity as InfinityIcon, TrendingDown } from "lucide-react";
-import { PLAN_LIMITS, FEATURE_LABELS, type Plan, type FeatureKey } from "@/lib/planLimits";
+import { PLAN_LIMITS, type Plan, type FeatureKey } from "@/lib/planLimits";
+import { useT } from "@/lib/i18n/LanguageProvider";
 
 interface Props {
   plan: Plan;
@@ -10,16 +11,26 @@ interface Props {
 }
 
 export default function UsageCounter({ plan, feature, used }: Props) {
+  const { t, lang } = useT();
   const limit = PLAN_LIMITS[plan][feature];
-  const label = FEATURE_LABELS[feature];
+  const featureKeyMap: Record<FeatureKey, string> = {
+    analysis: "dashboard.tabAnalysis",
+    quote:    "dashboard.tabQuote",
+    vendor:   "dashboard.tabVendor",
+    esign:    "dashboard.tabEsign",
+  };
+  const label = t(featureKeyMap[feature]);
 
-  const monthName = new Date().toLocaleDateString("en-US", { month: "long" });
+  const locale = lang === "ko" ? "ko-KR" : "en-US";
+  const monthName = new Date().toLocaleDateString(locale, { month: "long" });
   const resetDate = new Date();
   resetDate.setMonth(resetDate.getMonth() + 1, 1);
-  const resetLabel = resetDate.toLocaleDateString("en-US", { month: "long", day: "numeric" });
+  const resetLabel = resetDate.toLocaleDateString(locale, { month: "long", day: "numeric" });
 
   /* ───── LOCKED ───── */
   if (limit === 0) {
+    const planLabel = t(`common.${plan}`);
+    const lockMsg = lang === "ko" ? `${label}은(는) ${planLabel} 플랜에서 잠겨 있습니다` : `${label} is locked on the ${plan} plan`;
     return (
       <div className="mb-6 bg-gradient-to-r from-red-900/20 to-[#162035] border-2 border-red-700/50 rounded-2xl p-5 flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-3">
@@ -27,15 +38,15 @@ export default function UsageCounter({ plan, feature, used }: Props) {
             <Lock className="w-5 h-5 text-red-400" />
           </div>
           <div>
-            <p className="text-white font-semibold">{label} is locked on the {plan} plan</p>
-            <p className="text-slate-400 text-sm">Upgrade to unlock this feature.</p>
+            <p className="text-white font-semibold">{lockMsg}</p>
+            <p className="text-slate-400 text-sm">{t("usage.upgradeToUnlock")}</p>
           </div>
         </div>
         <Link
           href="/#pricing"
           className="bg-red-600 hover:bg-red-700 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors flex items-center gap-2"
         >
-          <Crown className="w-4 h-4" /> Upgrade
+          <Crown className="w-4 h-4" /> {t("common.upgrade")}
         </Link>
       </div>
     );
@@ -43,14 +54,15 @@ export default function UsageCounter({ plan, feature, used }: Props) {
 
   /* ───── UNLIMITED ───── */
   if (limit === null) {
+    const unlimitedMsg = lang === "ko" ? `${label}: 무제한 사용` : `${label}: Unlimited usage`;
     return (
       <div className="mb-6 bg-gradient-to-r from-yellow-900/20 to-[#162035] border border-yellow-700/50 rounded-2xl p-4 flex items-center gap-3">
         <div className="w-10 h-10 bg-yellow-900/40 rounded-xl flex items-center justify-center shrink-0">
           <InfinityIcon className="w-5 h-5 text-yellow-400" />
         </div>
         <div>
-          <p className="text-yellow-300 font-semibold text-sm">{label}: Unlimited usage</p>
-          <p className="text-slate-400 text-xs">You&apos;re on the Business plan — no monthly cap.</p>
+          <p className="text-yellow-300 font-semibold text-sm">{unlimitedMsg}</p>
+          <p className="text-slate-400 text-xs">{t("usage.businessNoCap")}</p>
         </div>
       </div>
     );
@@ -113,14 +125,14 @@ export default function UsageCounter({ plan, feature, used }: Props) {
               <span className={`font-bold ${colorNumber}`}>
                 {remaining}/{limit}
               </span>{" "}
-              <span className="text-slate-400 font-normal">remaining this month</span>
+              <span className="text-slate-400 font-normal">{t("usage.remaining")}</span>
             </p>
             <p className="text-slate-500 text-xs mt-0.5">
               {empty
-                ? `Limit reached. Resets on ${resetLabel}.`
+                ? (lang === "ko" ? `한도 도달. 갱신일: ${resetLabel}.` : `Limit reached. Resets on ${resetLabel}.`)
                 : warning
-                  ? `Only ${remaining} left — upgrade for more.`
-                  : `Used ${used} of ${limit} this ${monthName}. Resets on ${resetLabel}.`}
+                  ? (lang === "ko" ? `${remaining}회 남음 — 업그레이드로 더 사용하세요.` : `Only ${remaining} left — upgrade for more.`)
+                  : (lang === "ko" ? `${monthName}에 ${limit}회 중 ${used}회 사용. 갱신일: ${resetLabel}.` : `Used ${used} of ${limit} this ${monthName}. Resets on ${resetLabel}.`)}
             </p>
           </div>
         </div>
@@ -130,7 +142,7 @@ export default function UsageCounter({ plan, feature, used }: Props) {
             href="/#pricing"
             className="bg-red-600 hover:bg-red-700 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors flex items-center gap-2 shrink-0"
           >
-            <Crown className="w-4 h-4" /> Upgrade
+            <Crown className="w-4 h-4" /> {t("common.upgrade")}
           </Link>
         )}
 
@@ -139,7 +151,7 @@ export default function UsageCounter({ plan, feature, used }: Props) {
             href="/#pricing"
             className="bg-yellow-500 hover:bg-yellow-400 text-black font-semibold text-sm px-4 py-2 rounded-xl transition-colors flex items-center gap-2 shrink-0"
           >
-            <Crown className="w-4 h-4" /> Upgrade
+            <Crown className="w-4 h-4" /> {t("common.upgrade")}
           </Link>
         )}
       </div>

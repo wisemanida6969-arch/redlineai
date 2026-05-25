@@ -355,6 +355,37 @@ export const translations = {
     downloadSignedPdf: { en: "Signed contract · .pdf", ko: "서명된 계약서 · .pdf" },
     downloadSignedDocx:{ en: "Editable · .docx", ko: "편집 가능 · .docx" },
   },
+
+  /* ── Analysis Page ── */
+  analysis: {
+    riskReport:     { en: "Risk Report", ko: "리스크 리포트" },
+    issuesFound:    { en: "issues found", ko: "개 이슈 발견" },
+    issueFound:     { en: "issue found", ko: "개 이슈 발견" },
+    scanAnother:    { en: "Scan another contract", ko: "다른 계약서 스캔" },
+    downloadReport: { en: "Download Report", ko: "리포트 다운로드" },
+    export:         { en: "Export", ko: "내보내기" },
+    generatingPdf:  { en: "Generating PDF…", ko: "PDF 생성 중…" },
+    generatingDocx: { en: "Generating DOCX…", ko: "DOCX 생성 중…" },
+    downloadPdf:    { en: "Download PDF", ko: "PDF 다운로드" },
+    downloadWord:   { en: "Download Word", ko: "Word 다운로드" },
+    styledReport:   { en: "Styled report · .pdf", ko: "스타일 리포트 · .pdf" },
+    editableDoc:    { en: "Editable document · .docx", ko: "편집 가능 문서 · .docx" },
+    aiSummary:      { en: "AI Summary", ko: "AI 요약" },
+    noIssues:       { en: "No issues in this category", ko: "이 카테고리에는 이슈가 없습니다" },
+    originalClause: { en: "Original clause", ko: "원문 조항" },
+    whyRisky:       { en: "Why it's risky", ko: "왜 위험한가" },
+    suggestedFix:   { en: "Suggested fix", ko: "수정 제안" },
+    copied:         { en: "Copied!", ko: "복사됨!" },
+    copy:           { en: "Copy", ko: "복사" },
+    downloadFailed: { en: "Download failed", ko: "다운로드 실패" },
+    highRisk:       { en: "High Risk", ko: "높은 리스크" },
+    mediumRisk:     { en: "Medium Risk", ko: "중간 리스크" },
+    lowRisk:        { en: "Low Risk", ko: "낮은 리스크" },
+    tabAll:         { en: "all", ko: "전체" },
+    tabHigh:        { en: "high", ko: "높음" },
+    tabMedium:      { en: "medium", ko: "중간" },
+    tabLow:         { en: "low", ko: "낮음" },
+  },
 };
 
 /** Helper: get translated string by dotted key (e.g. "common.signIn") */

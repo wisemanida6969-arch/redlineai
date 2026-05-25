@@ -5,8 +5,10 @@ import Navbar from "@/components/Navbar";
 import { AlertTriangle, AlertCircle, CheckCircle, Copy, Check, Download, ArrowLeft, Shield, FileText, Loader2, ChevronDown } from "lucide-react";
 import { downloadPDF, downloadDOCX, type AnalysisResult } from "@/lib/exportReport";
 import AppFooter from "@/components/AppFooter";
+import { useT } from "@/lib/i18n/LanguageProvider";
 
 export default function AnalysisPage() {
+  const { t, lang } = useT();
   const router = useRouter();
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [activeTab, setActiveTab] = useState<"all" | "high" | "medium" | "low">("all");
@@ -53,7 +55,7 @@ export default function AnalysisPage() {
       }
     } catch (err) {
       console.error("Export error:", err);
-      setExportError(`Download failed: ${err instanceof Error ? err.message : String(err)}`);
+      setExportError(`${t("analysis.downloadFailed")}: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setExporting(null);
     }
@@ -81,13 +83,14 @@ export default function AnalysisPage() {
               onClick={() => router.push("/dashboard")}
               className="flex items-center gap-1 text-slate-400 hover:text-white text-sm mb-3 transition-colors"
             >
-              <ArrowLeft className="w-4 h-4" /> Scan another contract
+              <ArrowLeft className="w-4 h-4" /> {t("analysis.scanAnother")}
             </button>
             {/* Mobile: text-2xl, desktop: text-3xl */}
-            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">Risk Report</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">{t("analysis.riskReport")}</h1>
             <p className="text-slate-400 text-sm">
-              {totalIssues} issue{totalIssues !== 1 ? "s" : ""} found ·{" "}
-              {new Date(result.scannedAt).toLocaleString()}
+              {lang === "ko"
+                ? `${totalIssues}개 이슈 발견 · ${new Date(result.scannedAt).toLocaleString()}`
+                : `${totalIssues} issue${totalIssues !== 1 ? "s" : ""} found · ${new Date(result.scannedAt).toLocaleString()}`}
             </p>
           </div>
 
@@ -105,13 +108,13 @@ export default function AnalysisPage() {
               )}
               {/* Mobile: show short label; desktop: show full label */}
               {exporting === "pdf"
-                ? "Generating PDF…"
+                ? t("analysis.generatingPdf")
                 : exporting === "docx"
-                ? "Generating DOCX…"
+                ? t("analysis.generatingDocx")
                 : (
                   <>
-                    <span className="hidden sm:inline">Download Report</span>
-                    <span className="sm:hidden">Export</span>
+                    <span className="hidden sm:inline">{t("analysis.downloadReport")}</span>
+                    <span className="sm:hidden">{t("analysis.export")}</span>
                   </>
                 )}
               {!exporting && <ChevronDown className={`w-3.5 h-3.5 transition-transform ${dropOpen ? "rotate-180" : ""}`} />}
@@ -127,8 +130,8 @@ export default function AnalysisPage() {
                     <FileText className="w-3.5 h-3.5 text-red-400" />
                   </div>
                   <div className="text-left">
-                    <div className="font-medium">Download PDF</div>
-                    <div className="text-xs text-slate-500">Styled report · .pdf</div>
+                    <div className="font-medium">{t("analysis.downloadPdf")}</div>
+                    <div className="text-xs text-slate-500">{t("analysis.styledReport")}</div>
                   </div>
                 </button>
                 <div className="h-px bg-[#1e3050]" />
@@ -140,8 +143,8 @@ export default function AnalysisPage() {
                     <FileText className="w-3.5 h-3.5 text-blue-400" />
                   </div>
                   <div className="text-left">
-                    <div className="font-medium">Download Word</div>
-                    <div className="text-xs text-slate-500">Editable document · .docx</div>
+                    <div className="font-medium">{t("analysis.downloadWord")}</div>
+                    <div className="text-xs text-slate-500">{t("analysis.editableDoc")}</div>
                   </div>
                 </button>
               </div>
@@ -159,16 +162,16 @@ export default function AnalysisPage() {
 
         {/* Score cards */}
         <div className="grid grid-cols-3 gap-4 mb-8">
-          <ScoreCard count={result.high.length}   level="high" />
-          <ScoreCard count={result.medium.length} level="medium" />
-          <ScoreCard count={result.low.length}    level="low" />
+          <ScoreCard count={result.high.length}   level="high" t={t} />
+          <ScoreCard count={result.medium.length} level="medium" t={t} />
+          <ScoreCard count={result.low.length}    level="low" t={t} />
         </div>
 
         {/* Summary */}
         <div className="bg-[#162035] border border-[#1e3050] rounded-2xl p-5 mb-8">
           <div className="flex items-center gap-2 mb-3">
             <Shield className="w-4 h-4 text-red-400" />
-            <span className="text-white font-semibold text-sm">AI Summary</span>
+            <span className="text-white font-semibold text-sm">{t("analysis.aiSummary")}</span>
           </div>
           <p className="text-slate-300 text-sm leading-relaxed">{result.summary}</p>
         </div>
@@ -178,13 +181,14 @@ export default function AnalysisPage() {
           <div className="flex gap-1 bg-[#162035] p-1 rounded-xl border border-[#1e3050] w-fit min-w-max">
             {(["all", "high", "medium", "low"] as const).map((tab) => {
               const count = tab === "all" ? totalIssues : result[tab].length;
+              const label = tab === "all" ? t("analysis.tabAll") : tab === "high" ? t("analysis.tabHigh") : tab === "medium" ? t("analysis.tabMedium") : t("analysis.tabLow");
               return (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium capitalize transition-colors ${activeTab === tab ? "bg-red-600 text-white" : "text-slate-400 hover:text-white"}`}
                 >
-                  {tab} {count > 0 && <span className="ml-1 opacity-70">({count})</span>}
+                  {label} {count > 0 && <span className="ml-1 opacity-70">({count})</span>}
                 </button>
               );
             })}
@@ -194,7 +198,7 @@ export default function AnalysisPage() {
         {/* Clauses */}
         <div className="space-y-4">
           {filtered.length === 0 ? (
-            <div className="text-center py-12 text-slate-500">No issues in this category</div>
+            <div className="text-center py-12 text-slate-500">{t("analysis.noIssues")}</div>
           ) : (
             filtered.map((clause) => (
               <ClauseCard
@@ -202,6 +206,7 @@ export default function AnalysisPage() {
                 clause={clause}
                 copied={copied === clause.id}
                 onCopy={() => copyFix(clause.id, clause.fix)}
+                t={t}
               />
             ))
           )}
@@ -212,11 +217,11 @@ export default function AnalysisPage() {
   );
 }
 
-function ScoreCard({ count, level }: { count: number; level: "high" | "medium" | "low" }) {
+function ScoreCard({ count, level, t }: { count: number; level: "high" | "medium" | "low"; t: (k: string) => string }) {
   const config = {
-    high:   { label: "High Risk",   bg: "bg-red-900/20",    border: "border-red-800/50",    text: "text-red-400",    icon: AlertTriangle },
-    medium: { label: "Medium Risk", bg: "bg-yellow-900/20", border: "border-yellow-800/50", text: "text-yellow-400", icon: AlertCircle  },
-    low:    { label: "Low Risk",    bg: "bg-blue-900/20",   border: "border-blue-800/50",   text: "text-blue-400",   icon: CheckCircle  },
+    high:   { label: t("analysis.highRisk"),   bg: "bg-red-900/20",    border: "border-red-800/50",    text: "text-red-400",    icon: AlertTriangle },
+    medium: { label: t("analysis.mediumRisk"), bg: "bg-yellow-900/20", border: "border-yellow-800/50", text: "text-yellow-400", icon: AlertCircle  },
+    low:    { label: t("analysis.lowRisk"),    bg: "bg-blue-900/20",   border: "border-blue-800/50",   text: "text-blue-400",   icon: CheckCircle  },
   };
   const c = config[level];
   const Icon = c.icon;
@@ -230,10 +235,11 @@ function ScoreCard({ count, level }: { count: number; level: "high" | "medium" |
   );
 }
 
-function ClauseCard({ clause, copied, onCopy }: {
+function ClauseCard({ clause, copied, onCopy, t }: {
   clause: { id: string; severity: "high"|"medium"|"low"; title: string; original: string; problem: string; fix: string };
   copied: boolean;
   onCopy: () => void;
+  t: (k: string) => string;
 }) {
   const [expanded, setExpanded] = useState(true);
   const config = {
@@ -261,24 +267,24 @@ function ClauseCard({ clause, copied, onCopy }: {
         <div className="px-5 pb-5 space-y-3">
           {clause.original && (
             <div className="bg-[#0f1a2e]/60 rounded-xl p-3">
-              <p className="text-slate-500 text-xs font-semibold uppercase mb-1">Original clause</p>
+              <p className="text-slate-500 text-xs font-semibold uppercase mb-1">{t("analysis.originalClause")}</p>
               <p className="text-slate-300 text-sm italic">&ldquo;{clause.original}&rdquo;</p>
             </div>
           )}
           <div>
-            <p className="text-slate-500 text-xs font-semibold uppercase mb-1">Why it&apos;s risky</p>
+            <p className="text-slate-500 text-xs font-semibold uppercase mb-1">{t("analysis.whyRisky")}</p>
             <p className="text-slate-300 text-sm">{clause.problem}</p>
           </div>
           <div className="bg-green-900/15 border border-green-800/30 rounded-xl p-3">
             <div className="flex items-center justify-between mb-1">
-              <p className="text-green-400 text-xs font-semibold uppercase">Suggested fix</p>
+              <p className="text-green-400 text-xs font-semibold uppercase">{t("analysis.suggestedFix")}</p>
               <button
                 onClick={onCopy}
                 className="flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors"
               >
                 {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
                 {/* Icon only on mobile, icon + text on desktop */}
-                <span className="hidden sm:inline">{copied ? "Copied!" : "Copy"}</span>
+                <span className="hidden sm:inline">{copied ? t("analysis.copied") : t("analysis.copy")}</span>
               </button>
             </div>
             <p className="text-green-300 text-sm">{clause.fix}</p>
