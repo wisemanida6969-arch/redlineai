@@ -6,6 +6,7 @@ import {
   ArrowLeft, Copy, Check, ExternalLink, Sparkles, FileText, ChevronDown, Clock
 } from "lucide-react";
 import { downloadVendorPDF, downloadVendorDOCX, type VendorReport } from "@/lib/vendorReportExport";
+import { useT } from "@/lib/i18n/LanguageProvider";
 
 interface VendorScanRecord {
   id: string;
@@ -29,6 +30,7 @@ interface Props {
 type View = "input" | "report";
 
 export default function VendorRiskScan({ onUsed }: Props = {}) {
+  const { lang } = useT();
   const [view, setView] = useState<View>("input");
   const [vendorName, setVendorName] = useState("");
   const [loading, setLoading] = useState(false);
@@ -90,16 +92,16 @@ export default function VendorRiskScan({ onUsed }: Props = {}) {
 
   const handleScan = async () => {
     const name = vendorName.trim();
-    if (!name) return setError("Please enter a vendor or company name.");
+    if (!name) return setError(lang === "ko" ? "공급업체 또는 회사명을 입력해주세요." : "Please enter a vendor or company name.");
     setLoading(true);
     setError("");
 
     try {
-      setLoadingStep("Searching news, financials, and legal records…");
+      setLoadingStep(lang === "ko" ? "뉴스·재무·법적 기록 검색 중…" : "Searching news, financials, and legal records…");
       const res = await fetch("/api/vendor-scan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ vendorName: name }),
+        body: JSON.stringify({ vendorName: name, lang }),
       });
       const data = await res.json();
 

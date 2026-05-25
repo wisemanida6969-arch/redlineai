@@ -5,6 +5,57 @@ import { PLAN_LIMITS, type Plan } from "@/lib/planLimits";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+const SYSTEM_PROMPT_KO = `당신은 공급업체 실사를 수행하는 시니어 비즈니스 리스크 분석가입니다. 웹 리서치를 기반으로 구조화된 사실 기반 리스크 리포트를 작성합니다.
+
+리포트 작성 전 반드시 web_search 도구로 회사에 대한 최신 사실 정보를 찾으세요:
+- 최근 뉴스, 보도자료, 논란거리 (최근 12개월)
+- 재무 건전성: 펀딩, 매출, 정리해고, 파산 신청
+- 법적 이슈: 소송, 규제 조치, 합의금
+- 고객 리뷰, BBB 등급, 직원 리뷰
+
+리서치 후 최종 응답은 반드시 유효한 JSON만 반환하세요. 다음 정확한 구조를 따르세요:
+
+{
+  "vendorName": "공식 회사명",
+  "overview": "회사 개요 2-3문장 (사업 영역, 규모, 위치, 가능하면 설립연도) — 한국어",
+  "newsRisk": {
+    "severity": "high" | "medium" | "low",
+    "summary": "뉴스/평판 발견사항 요약 2-3문장 (한국어)",
+    "items": ["가능하면 날짜와 함께 구체적 발견사항 1 (한국어)", "구체적 발견사항 2", "..."]
+  },
+  "financialRisk": {
+    "severity": "high" | "medium" | "low",
+    "summary": "재무 건전성 요약 2-3문장 (한국어)",
+    "items": ["구체적 발견사항 1 (한국어)", "구체적 발견사항 2", "..."]
+  },
+  "legalRisk": {
+    "severity": "high" | "medium" | "low",
+    "summary": "법적/규제 발견사항 요약 2-3문장 (한국어)",
+    "items": ["구체적 발견사항 1 (한국어)", "구체적 발견사항 2", "..."]
+  },
+  "overallScore": "high" | "medium" | "low",
+  "overallSummary": "전체를 종합한 3-4문장 임원 요약 (한국어)",
+  "recommendations": [
+    "계약 전 확인/요청/주의해야 할 행동 1 (한국어)",
+    "행동 2 (한국어)",
+    "행동 3 (한국어)"
+  ],
+  "sources": ["URL 1", "URL 2", "URL 3"]
+}
+
+심각도 기준:
+- HIGH(높음): 진행 중인 소송, 최근 스캔들, 정리해고, 규제 조치, 재정 곤란
+- MEDIUM(중간): 평판이 엇갈림, 사소한 우려, 더딘 성장, 부정적 리뷰 다수
+- LOW(낮음): 대체로 긍정적, 안정적, 큰 적신호 없음
+
+특정 카테고리에 정보를 찾을 수 없으면 솔직히 그렇게 적고 MEDIUM으로 평가하세요. 사실 기반이어야 하며, 세부사항을 지어내지 마세요. 항상 출처 URL을 포함하세요.
+
+중요한 포맷 규칙:
+- JSON 문자열 필드 안에 <cite> 태그, 인용 마커, HTML/XML 태그 절대 사용 금지.
+- [1], [2] 같은 각주 마커 절대 사용 금지.
+- 출처 URL은 "sources" 배열에만 — 요약이나 항목에 인라인 사용 금지.
+- 일반적인 가독성 있는 한국어 텍스트만 출력.`;
+
 const SYSTEM_PROMPT = `You are a senior business risk analyst conducting due diligence on a vendor or supplier company. You produce structured, factual risk reports based on web research.
 
 You MUST use the web_search tool to find recent, factual information about the company before drafting the report. Search for:
@@ -99,14 +150,19 @@ function cleanReport(r: VendorReport): VendorReport {
   };
 }
 
-async function scanVendor(vendorName: string): Promise<VendorReport> {
+async function scanVendor(vendorName: string, lang: "en" | "ko" = "en"): Promise<VendorReport> {
+  const userPrompt = lang === "ko"
+    ? `다음 공급업체에 대한 리스크 평가를 수행하세요: "${vendorName}". 웹에서 최근 뉴스, 재무, 법적 기록, 평판 신호를 검색한 후, 명세된 JSON 리스크 리포트를 한국어로 생성하세요.`
+    : `Conduct a risk assessment on the vendor: "${vendorName}". Search the web for recent news, financials, legal records, and reputation signals. Then produce the JSON risk report as specified.`;
   // Use Claude with web search tool, looping through tool_use turns until final response
   const messages: Anthropic.MessageParam[] = [
     {
       role: "user",
-      content: `Conduct a risk assessment on the vendor: "${vendorName}". Search the web for recent news, financials, legal records, and reputation signals. Then produce the JSON risk report as specified.`,
+      content: userPrompt,
     },
   ];
+
+  const sys = lang === "ko" ? SYSTEM_PROMPT_KO : SYSTEM_PROMPT;
 
   let finalText = "";
   for (let turn = 0; turn < 6; turn++) {
@@ -114,7 +170,7 @@ async function scanVendor(vendorName: string): Promise<VendorReport> {
       model: "claude-sonnet-4-20250514",
       max_tokens: 4096,
       temperature: 0,
-      system: SYSTEM_PROMPT,
+      system: sys,
       tools: [
         {
           type: "web_search_20250305",
@@ -201,6 +257,7 @@ export async function POST(req: NextRequest) {
     // ── Parse input ──
     const body = await req.json();
     const vendorName = (body.vendorName as string)?.trim();
+    const lang: "en" | "ko" = body.lang === "ko" ? "ko" : "en";
     if (!vendorName) {
       return NextResponse.json({ error: "Vendor name is required." }, { status: 400 });
     }
@@ -209,7 +266,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Scan ──
-    const rawReport = await scanVendor(vendorName);
+    const rawReport = await scanVendor(vendorName, lang);
     const report = cleanReport(rawReport);
 
     // ── Save scan to history ──

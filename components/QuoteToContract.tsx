@@ -6,6 +6,7 @@ import {
   User, DollarSign, Calendar, Briefcase, Sparkles
 } from "lucide-react";
 import { downloadContractPDF, type ExtractedQuote } from "@/lib/contractExport";
+import { useT } from "@/lib/i18n/LanguageProvider";
 
 interface QuoteResult {
   extracted: ExtractedQuote;
@@ -22,6 +23,7 @@ interface QuoteToContractProps {
 }
 
 export default function QuoteToContract({ onUsed }: QuoteToContractProps = {}) {
+  const { lang } = useT();
   const [view, setView] = useState<View>("upload");
   const [file, setFile] = useState<File | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -52,11 +54,12 @@ export default function QuoteToContract({ onUsed }: QuoteToContractProps = {}) {
     setError("");
 
     try {
-      setLoadingStep("Extracting text from quote…");
+      setLoadingStep(lang === "ko" ? "견적서에서 텍스트 추출 중…" : "Extracting text from quote…");
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("lang", lang);
 
-      setLoadingStep("Analyzing quote with Claude AI…");
+      setLoadingStep(lang === "ko" ? "Claude AI로 견적서 분석 중…" : "Analyzing quote with Claude AI…");
       const res = await fetch("/api/quote-to-contract", { method: "POST", body: formData });
       const data = await res.json();
 

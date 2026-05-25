@@ -39,7 +39,7 @@ interface UsageData {
 
 export default function Dashboard() {
   const router = useRouter();
-  const { t } = useT();
+  const { t, lang } = useT();
   const [feature, setFeature] = useState<Feature>("analysis");
   const [mode, setMode] = useState<"upload" | "paste">("upload");
   const [file, setFile] = useState<File | null>(null);
@@ -92,6 +92,7 @@ export default function Dashboard() {
       const formData = new FormData();
       if (mode === "upload" && file) formData.append("file", file);
       else formData.append("text", text);
+      formData.append("lang", lang);
 
       setLoadingStep(t("dashboard.analyzing"));
       const res = await fetch("/api/analyze", { method: "POST", body: formData });
