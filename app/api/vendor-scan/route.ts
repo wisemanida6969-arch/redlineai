@@ -150,10 +150,30 @@ function cleanReport(r: VendorReport): VendorReport {
   };
 }
 
-async function scanVendor(vendorName: string, lang: "en" | "ko" = "en"): Promise<VendorReport> {
+interface ScanHints {
+  country?: string;
+  website?: string;
+  industry?: string;
+}
+
+async function scanVendor(vendorName: string, lang: "en" | "ko" = "en", hints: ScanHints = {}): Promise<VendorReport> {
+  /* Build a disambiguation hint block */
+  const hintsListKo: string[] = [];
+  const hintsListEn: string[] = [];
+  if (hints.country?.trim())  { hintsListKo.push(`국가: ${hints.country.trim()}`);     hintsListEn.push(`Country: ${hints.country.trim()}`); }
+  if (hints.website?.trim())  { hintsListKo.push(`웹사이트: ${hints.website.trim()}`); hintsListEn.push(`Website: ${hints.website.trim()}`); }
+  if (hints.industry?.trim()) { hintsListKo.push(`업종: ${hints.industry.trim()}`);   hintsListEn.push(`Industry: ${hints.industry.trim()}`); }
+
+  const hintBlockKo = hintsListKo.length
+    ? `\n\n[정확한 회사 식별을 위한 추가 정보]\n${hintsListKo.join("\n")}\n위 정보와 일치하는 회사로 한정하여 분석하세요. 동명의 다른 회사는 제외하세요.`
+    : "";
+  const hintBlockEn = hintsListEn.length
+    ? `\n\n[Additional details for disambiguation]\n${hintsListEn.join("\n")}\nFocus your analysis on the company matching the above. Exclude other companies with similar names.`
+    : "";
+
   const userPrompt = lang === "ko"
-    ? `다음 공급업체에 대한 리스크 평가를 수행하세요: "${vendorName}". 웹에서 최근 뉴스, 재무, 법적 기록, 평판 신호를 검색한 후, 명세된 JSON 리스크 리포트를 한국어로 생성하세요.`
-    : `Conduct a risk assessment on the vendor: "${vendorName}". Search the web for recent news, financials, legal records, and reputation signals. Then produce the JSON risk report as specified.`;
+    ? `다음 공급업체에 대한 리스크 평가를 수행하세요: "${vendorName}".${hintBlockKo}\n\n웹에서 최근 뉴스, 재무, 법적 기록, 평판 신호를 검색한 후, 명세된 JSON 리스크 리포트를 한국어로 생성하세요.`
+    : `Conduct a risk assessment on the vendor: "${vendorName}".${hintBlockEn}\n\nSearch the web for recent news, financials, legal records, and reputation signals. Then produce the JSON risk report as specified.`;
   // Use Claude with web search tool, looping through tool_use turns until final response
   const messages: Anthropic.MessageParam[] = [
     {
@@ -258,6 +278,11 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const vendorName = (body.vendorName as string)?.trim();
     const lang: "en" | "ko" = body.lang === "ko" ? "ko" : "en";
+    const hints: ScanHints = {
+      country:  typeof body.country  === "string" ? body.country  : undefined,
+      website:  typeof body.website  === "string" ? body.website  : undefined,
+      industry: typeof body.industry === "string" ? body.industry : undefined,
+    };
     if (!vendorName) {
       return NextResponse.json({ error: "Vendor name is required." }, { status: 400 });
     }
@@ -266,7 +291,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Scan ──
-    const rawReport = await scanVendor(vendorName, lang);
+    const rawReport = await scanVendor(vendorName, lang, hints);
     const report = cleanReport(rawReport);
 
     // ── Save scan to history ──

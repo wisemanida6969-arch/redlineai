@@ -300,6 +300,17 @@ export const translations = {
     /* History */
     recentVendor:   { en: "Recent Vendor Scans", ko: "최근 공급업체 스캔" },
     noVendor:       { en: "No vendor scans yet. Run your first scan above!", ko: "아직 공급업체 스캔이 없습니다. 위에서 첫 스캔을 실행하세요!" },
+
+    /* Disambiguation hints */
+    optionalHints:  { en: "Optional details (helps narrow down if multiple companies share the name)", ko: "선택 입력 (동명회사 구분에 도움)" },
+    country:        { en: "Country",     ko: "국가" },
+    countryPlaceholder: { en: "e.g., USA, Korea, Japan, India", ko: "예: 한국, 미국, 일본, 인도" },
+    website:        { en: "Website",     ko: "웹사이트" },
+    websitePlaceholder: { en: "e.g., samsung.com, apple.com", ko: "예: samsung.com, apple.com" },
+    industry:       { en: "Industry",    ko: "업종" },
+    industryPlaceholder: { en: "e.g., Software, Manufacturing, Logistics", ko: "예: 소프트웨어, 제조, 물류" },
+    showHints:      { en: "+ Add details", ko: "+ 상세 정보 추가" },
+    hideHints:      { en: "− Hide details", ko: "− 상세 정보 숨기기" },
   },
 
   /* ── E-Signature ── */

@@ -32,6 +32,12 @@ type View = "input" | "report";
 export default function VendorRiskScan({ onUsed }: Props = {}) {
   const { t, lang } = useT();
   const [view, setView] = useState<View>("input");
+
+  // Disambiguation hints
+  const [showHints, setShowHints] = useState(false);
+  const [country, setCountry] = useState("");
+  const [website, setWebsite] = useState("");
+  const [industry, setIndustry] = useState("");
   const [vendorName, setVendorName] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState("");
@@ -101,7 +107,13 @@ export default function VendorRiskScan({ onUsed }: Props = {}) {
       const res = await fetch("/api/vendor-scan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ vendorName: name, lang }),
+        body: JSON.stringify({
+          vendorName: name,
+          lang,
+          country:  country.trim()  || undefined,
+          website:  website.trim()  || undefined,
+          industry: industry.trim() || undefined,
+        }),
       });
       const data = await res.json();
 
@@ -204,6 +216,56 @@ ${r.recommendations.map((rec, i) => `${i + 1}. ${rec}`).join("\n")}
             <Hint icon={Scale}      label={t("vendor.hintLegal")} />
             <Hint icon={Shield}     label={t("vendor.hintReputation")} />
           </div>
+
+          {/* Disambiguation hints — collapsible */}
+          <button
+            type="button"
+            onClick={() => setShowHints((v) => !v)}
+            className="mt-4 text-xs text-slate-400 hover:text-red-400 transition-colors"
+          >
+            {showHints ? t("vendor.hideHints") : t("vendor.showHints")}
+          </button>
+
+          {showHints && (
+            <div className="mt-3 space-y-3 bg-[#0f1a2e] border border-[#1e3050] rounded-xl p-4">
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                {t("vendor.optionalHints")}
+              </p>
+              <div>
+                <label className="text-slate-300 text-xs font-medium block mb-1">{t("vendor.country")}</label>
+                <input
+                  type="text"
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                  placeholder={t("vendor.countryPlaceholder")}
+                  disabled={loading}
+                  className="w-full bg-[#162035] border border-[#1e3050] rounded-lg px-3 py-2 text-slate-200 placeholder-slate-500 text-sm focus:outline-none focus:border-red-700/50 disabled:opacity-50"
+                />
+              </div>
+              <div>
+                <label className="text-slate-300 text-xs font-medium block mb-1">{t("vendor.website")}</label>
+                <input
+                  type="text"
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                  placeholder={t("vendor.websitePlaceholder")}
+                  disabled={loading}
+                  className="w-full bg-[#162035] border border-[#1e3050] rounded-lg px-3 py-2 text-slate-200 placeholder-slate-500 text-sm focus:outline-none focus:border-red-700/50 disabled:opacity-50"
+                />
+              </div>
+              <div>
+                <label className="text-slate-300 text-xs font-medium block mb-1">{t("vendor.industry")}</label>
+                <input
+                  type="text"
+                  value={industry}
+                  onChange={(e) => setIndustry(e.target.value)}
+                  placeholder={t("vendor.industryPlaceholder")}
+                  disabled={loading}
+                  className="w-full bg-[#162035] border border-[#1e3050] rounded-lg px-3 py-2 text-slate-200 placeholder-slate-500 text-sm focus:outline-none focus:border-red-700/50 disabled:opacity-50"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {error && (
