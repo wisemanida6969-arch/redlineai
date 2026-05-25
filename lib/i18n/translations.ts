@@ -218,6 +218,143 @@ export const translations = {
   footer: {
     inquiries:    { en: "Contact:",          ko: "문의:" },
   },
+
+  /* ── Quote to Contract ── */
+  quote: {
+    title:        { en: "Quote to Contract", ko: "견적서 → 계약서" },
+    intro:        { en: "Upload a quote or proposal — RedlineAI extracts the key terms and generates a complete service agreement you can edit and download as PDF.", ko: "견적서 또는 제안서를 업로드하면 RedlineAI가 핵심 조건을 추출해 편집 가능한 완전한 용역 계약서를 생성하고 PDF로 다운로드할 수 있습니다." },
+    dropQuote:    { en: "Drop your quote here", ko: "견적서를 여기에 끌어다 놓으세요" },
+    clickBrowse:  { en: "or click to browse", ko: "또는 클릭해서 선택" },
+    pdfOrDocx:    { en: "PDF or DOCX · Max 20MB", ko: "PDF 또는 DOCX · 최대 20MB" },
+    generate:     { en: "Generate Contract", ko: "계약서 생성하기" },
+    readingQuote: { en: "Claude AI is reading your quote…", ko: "Claude AI가 견적서를 읽는 중…" },
+    estimated:    { en: "~15–30s", ko: "약 15~30초" },
+
+    /* Review */
+    quoteAnalyzed:    { en: "Quote analyzed successfully!", ko: "견적서 분석 완료!" },
+    reviewBelow:      { en: "Review and edit the extracted terms below, then generate your contract.", ko: "아래에서 추출된 조건을 검토·수정한 후 계약서를 생성하세요." },
+    reviewTerms:      { en: "Review extracted terms", ko: "추출된 조건 검토" },
+    uploadDifferent:  { en: "Upload a different quote", ko: "다른 견적서 업로드" },
+    provider:         { en: "Provider (Seller / Vendor)", ko: "공급자 (판매자)" },
+    client:           { en: "Client (Buyer)", ko: "고객 (구매자)" },
+    companyName:      { en: "Company Name", ko: "회사명" },
+    contactPerson:    { en: "Contact Person", ko: "담당자" },
+    address:          { en: "Address", ko: "주소" },
+    scopeOfWork:      { en: "Scope of Work", ko: "업무 범위" },
+    serviceDescQ:     { en: "Service / Product Description", ko: "서비스/제품 설명" },
+    payment:          { en: "Payment", ko: "결제" },
+    totalAmount:      { en: "Total Amount", ko: "총 금액" },
+    paymentTerms:     { en: "Payment Terms", ko: "결제 조건" },
+    deliveryTerm:     { en: "Delivery / Term", ko: "납기/계약 기간" },
+    deliveryDate:     { en: "Delivery Date or Duration", ko: "납기일 또는 계약 기간" },
+    additionalTerms:  { en: "Additional Terms (Optional)", ko: "추가 조항 (선택)" },
+    additionalTermsPlaceholder: { en: "Any extra terms, warranties, or conditions…", ko: "기타 조건, 보증 사항 등…" },
+    previewContract:  { en: "Preview Contract", ko: "계약서 미리보기" },
+
+    /* Preview */
+    editTerms:        { en: "Edit terms", ko: "조건 수정" },
+    downloadPdf:      { en: "Download PDF", ko: "PDF 다운로드" },
+    generatingPdf:    { en: "Generating PDF…", ko: "PDF 생성 중…" },
+    contractPreview:  { en: "Service Agreement Preview", ko: "용역 계약서 미리보기" },
+    pdfReady:         { en: "A4 · PDF Ready", ko: "A4 · PDF 준비됨" },
+    legalNotice:      { en: "⚠️ This is a template draft. Have a lawyer review before signing important contracts.", ko: "⚠️ 이것은 템플릿 초안입니다. 중요한 계약 서명 전 변호사 검토를 받으세요." },
+  },
+
+  /* ── Vendor Risk Scan ── */
+  vendor: {
+    title:        { en: "Vendor Risk Scan", ko: "공급업체 리스크 스캔" },
+    intro:        { en: "Type any vendor or supplier name. Claude AI searches the web for news, lawsuits, financial signals, and reputation risks — then delivers a complete due-diligence report.", ko: "공급업체명을 입력하세요. Claude AI가 뉴스·소송·재무·평판 정보를 웹에서 검색해 완전한 실사 리포트를 제공합니다." },
+    vendorName:   { en: "Vendor / Company Name", ko: "공급업체/회사명" },
+    placeholder:  { en: "e.g., Acme Corp, Stripe, OpenAI, John's Plumbing LLC", ko: "예: Acme Corp, Stripe, OpenAI, 김배관 주식회사" },
+    runScan:      { en: "Run Risk Scan", ko: "리스크 스캔 실행" },
+    scanning:     { en: "Scanning…", ko: "스캔 중…" },
+    researching:  { en: "Claude is researching the web…", ko: "Claude가 웹에서 조사 중…" },
+    estimated:    { en: "~30–60s", ko: "약 30~60초" },
+    enterName:    { en: "Please enter a vendor or company name.", ko: "공급업체 또는 회사명을 입력해주세요." },
+
+    hintNews:        { en: "News", ko: "뉴스" },
+    hintFinancials:  { en: "Financials", ko: "재무" },
+    hintLegal:       { en: "Legal", ko: "법적 이슈" },
+    hintReputation:  { en: "Reputation", ko: "평판" },
+
+    /* Report */
+    scanAnother:     { en: "Scan another vendor", ko: "다른 공급업체 스캔" },
+    copySummary:     { en: "Copy Summary", ko: "요약 복사" },
+    copied:          { en: "Copied!", ko: "복사됨!" },
+    downloadReport:  { en: "Download Report", ko: "리포트 다운로드" },
+    company:         { en: "Company", ko: "회사" },
+    overall:         { en: "Overall", ko: "종합" },
+    highRisk:        { en: "High Risk", ko: "높은 리스크" },
+    mediumRisk:      { en: "Medium Risk", ko: "중간 리스크" },
+    lowRisk:         { en: "Low Risk", ko: "낮은 리스크" },
+    executiveSummary:{ en: "Executive Summary", ko: "임원 요약" },
+    newsReputation:  { en: "News & Reputation Risk", ko: "뉴스 & 평판 리스크" },
+    financialRisk:   { en: "Financial Risk", ko: "재무 리스크" },
+    legalRisk:       { en: "Legal Risk", ko: "법적 리스크" },
+    keyFindings:     { en: "Key findings", ko: "주요 발견사항" },
+    riskBadge:       { en: "risk", ko: "리스크" },
+    recommendations: { en: "Recommendations", ko: "권장사항" },
+    sources:         { en: "Sources", ko: "출처" },
+    disclaimer:      { en: "⚠️ AI-generated due-diligence summary. Verify critical findings before making business decisions.", ko: "⚠️ AI가 생성한 실사 요약입니다. 비즈니스 의사 결정 전에 중요한 발견사항을 검증하세요." },
+
+    /* History */
+    recentVendor:   { en: "Recent Vendor Scans", ko: "최근 공급업체 스캔" },
+    noVendor:       { en: "No vendor scans yet. Run your first scan above!", ko: "아직 공급업체 스캔이 없습니다. 위에서 첫 스캔을 실행하세요!" },
+  },
+
+  /* ── E-Signature ── */
+  esign: {
+    title:         { en: "E-Signature", ko: "전자서명" },
+    intro:         { en: "Upload a contract, place signature fields, and send it for legally-tracked e-signing. Get a signed PDF back automatically.", ko: "계약서를 업로드하고 서명 필드를 배치한 후 법적으로 추적되는 전자서명을 위해 발송하세요. 서명된 PDF를 자동으로 받습니다." },
+    createNew:     { en: "Create New Signing Request", ko: "새 서명 요청 만들기" },
+    recentReq:     { en: "Recent Requests", ko: "최근 요청" },
+    noRequests:    { en: "No signing requests yet. Create your first above.", ko: "아직 서명 요청이 없습니다. 위에서 첫 요청을 만들어보세요." },
+
+    /* Steps */
+    step1Title:    { en: "Step 1 of 3 · Upload Contract", ko: "1/3 단계 · 계약서 업로드" },
+    dropPdf:       { en: "Drop your PDF here", ko: "PDF를 여기에 끌어다 놓으세요" },
+    clickBrowse:   { en: "or click to browse · Max 20MB · PDF only", ko: "또는 클릭해서 선택 · 최대 20MB · PDF만" },
+    rendering:     { en: "Rendering PDF preview…", ko: "PDF 미리보기 생성 중…" },
+
+    step2Title:    { en: "Step 2 of 3 · Place Signature Fields", ko: "2/3 단계 · 서명 필드 배치" },
+    step2Sub:      { en: "Click on the document where you want each field to appear.", ko: "문서에서 각 필드를 표시할 위치를 클릭하세요." },
+    signature:     { en: "Signature", ko: "서명" },
+    nameField:     { en: "Name", ko: "이름" },
+    dateField:     { en: "Date", ko: "날짜" },
+    fieldsPlaced:  { en: "fields placed", ko: "필드 배치됨" },
+    clickToAdd:    { en: "Click to add", ko: "클릭해서 추가" },
+    pageOf:        { en: "of", ko: "/" },
+    pageLabel:     { en: "Page", ko: "페이지" },
+    nextAddSigner: { en: "Next: Add Signer →", ko: "다음: 서명자 추가 →" },
+
+    step3Title:    { en: "Step 3 of 3 · Add Recipient", ko: "3/3 단계 · 수신자 추가" },
+    document:      { en: "Document", ko: "문서" },
+    fieldsPlacedShort:{ en: "fields placed", ko: "개 필드 배치됨" },
+    docTitle:      { en: "Document Title", ko: "문서 제목" },
+    signerName:    { en: "Signer Name", ko: "서명자 이름" },
+    signerEmail:   { en: "Signer Email", ko: "서명자 이메일" },
+    send:          { en: "Send Signing Request", ko: "서명 요청 발송" },
+    sending:       { en: "Sending…", ko: "발송 중…" },
+    nameEmailReq:  { en: "Signer name and email are required.", ko: "서명자 이름과 이메일이 필요합니다." },
+
+    /* Sent */
+    sent:              { en: "Sent!", ko: "발송 완료!" },
+    sentDesc:          { en: "We emailed a signing link to", ko: "다음 주소로 서명 링크를 발송했습니다:" },
+    sentDesc2:         { en: "They'll receive a unique URL to review and sign the document.", ko: "수신자는 문서를 검토하고 서명할 수 있는 고유 URL을 받게 됩니다." },
+    signingLink:       { en: "Signing link (you can share this manually too)", ko: "서명 링크 (수동으로 공유할 수도 있습니다)" },
+    done:              { en: "Done", ko: "완료" },
+
+    /* Status */
+    awaitingSignature: { en: "Awaiting signature", ko: "서명 대기 중" },
+    signed:            { en: "Signed", ko: "서명 완료" },
+    expired:           { en: "Expired", ko: "만료됨" },
+    cancelled:         { en: "Cancelled", ko: "취소됨" },
+    download:          { en: "Download", ko: "다운로드" },
+    downloadingPdf:    { en: "PDF…", ko: "PDF…" },
+    downloadingDocx:   { en: "Word…", ko: "Word…" },
+    downloadSignedPdf: { en: "Signed contract · .pdf", ko: "서명된 계약서 · .pdf" },
+    downloadSignedDocx:{ en: "Editable · .docx", ko: "편집 가능 · .docx" },
+  },
 };
 
 /** Helper: get translated string by dotted key (e.g. "common.signIn") */
