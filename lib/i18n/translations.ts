@@ -229,6 +229,8 @@ export const translations = {
     assistant:       { en: "AI Agent", ko: "AI 에이전트" },
     copy:            { en: "Copy", ko: "복사" },
     copied:          { en: "Copied!", ko: "복사됨!" },
+    sendEmail:       { en: "Send as email", ko: "이메일로 보내기" },
+    emailHint:       { en: "Opens your default email app with subject and body pre-filled.", ko: "기본 이메일 앱이 열리며 제목과 본문이 자동으로 입력됩니다." },
 
     /* Errors */
     failedSend:      { en: "Failed to send message", ko: "메시지 전송 실패" },

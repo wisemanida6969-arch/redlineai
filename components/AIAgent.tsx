@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Bot, Send, Loader2, Paperclip, X, Plus, MessageSquare,
-  AlertCircle, User, Copy, Check, Trash2, FileText, Sparkles
+  AlertCircle, User, Copy, Check, Trash2, FileText, Sparkles, Mail
 } from "lucide-react";
 import { useT } from "@/lib/i18n/LanguageProvider";
 
@@ -347,6 +347,7 @@ export default function AIAgent({ onUsed }: Props = {}) {
                     copiedLabel={t("agent.copied")}
                     copied={copiedMessageIdx === idx}
                     onCopy={() => copyMessage(idx, m.content)}
+                    t={t}
                   />
                 ))}
                 {sending && (
@@ -423,10 +424,65 @@ export default function AIAgent({ onUsed }: Props = {}) {
   );
 }
 
+/* ──────────────── Email parsing helper ──────────────── */
+
+interface ParsedEmail {
+  to?: string;
+  subject: string;
+  body: string;
+}
+
+/**
+ * Detect whether an AI message contains a draft email and parse it into
+ * { to, subject, body }. Supports both English ("Subject:") and Korean
+ * ("제목:") headers. Returns null if no email-like block is found.
+ */
+function parseEmail(content: string): ParsedEmail | null {
+  if (!content) return null;
+
+  // Look for a Subject / 제목 line (case-insensitive)
+  const subjectMatch = content.match(/^[ \t]*(Subject|제목)[ \t]*[:：][ \t]*(.+)$/im);
+  if (!subjectMatch) return null;
+
+  const subject = subjectMatch[2].trim().slice(0, 200);
+  const subjectLineIdx = content.indexOf(subjectMatch[0]);
+
+  // Optional "To: ..." or "받는사람: ..." line near top
+  let to: string | undefined;
+  const toMatch = content.slice(0, subjectLineIdx + 200).match(
+    /^[ \t]*(To|받는사람|수신자|받는\s*사람)[ \t]*[:：][ \t]*([^\n\r]+)/im
+  );
+  if (toMatch) {
+    const candidate = toMatch[2].trim();
+    // Extract first email address if present
+    const emailMatch = candidate.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+    if (emailMatch) to = emailMatch[0];
+  }
+
+  // Body = everything AFTER the subject line
+  const afterSubject = content.slice(subjectLineIdx + subjectMatch[0].length).trim();
+
+  if (!afterSubject || afterSubject.length < 10) return null;
+
+  return { to, subject, body: afterSubject };
+}
+
+function openMailto(email: ParsedEmail) {
+  const params = new URLSearchParams();
+  params.set("subject", email.subject);
+  params.set("body", email.body);
+  const recipient = email.to ? encodeURIComponent(email.to) : "";
+  // Manually build query string because URLSearchParams uses + for spaces;
+  // some mail clients prefer %20 in the body.
+  const query = `subject=${encodeURIComponent(email.subject)}&body=${encodeURIComponent(email.body)}`;
+  const url = `mailto:${recipient}?${query}`;
+  window.location.href = url;
+}
+
 /* ──────────────── Message bubble ──────────────── */
 
 function MessageBubble({
-  msg, youLabel, assistantLabel, copyLabel, copiedLabel, copied, onCopy,
+  msg, youLabel, assistantLabel, copyLabel, copiedLabel, copied, onCopy, t,
 }: {
   msg: Message;
   youLabel: string;
@@ -435,8 +491,10 @@ function MessageBubble({
   copiedLabel: string;
   copied: boolean;
   onCopy: () => void;
+  t: (key: string) => string;
 }) {
   const isUser = msg.role === "user";
+  const email = !isUser ? parseEmail(msg.content) : null;
 
   return (
     <div className={`flex gap-3 ${isUser ? "" : ""}`}>
@@ -460,13 +518,26 @@ function MessageBubble({
         </div>
 
         {!isUser && (
-          <button
-            onClick={onCopy}
-            className="mt-2 text-slate-500 hover:text-white text-xs inline-flex items-center gap-1 transition-colors"
-          >
-            {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
-            {copied ? copiedLabel : copyLabel}
-          </button>
+          <div className="mt-3 flex items-center gap-3 flex-wrap">
+            <button
+              onClick={onCopy}
+              className="text-slate-500 hover:text-white text-xs inline-flex items-center gap-1 transition-colors"
+            >
+              {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
+              {copied ? copiedLabel : copyLabel}
+            </button>
+
+            {email && (
+              <button
+                onClick={() => openMailto(email)}
+                title={t("agent.emailHint")}
+                className="text-red-400 hover:text-red-300 text-xs inline-flex items-center gap-1.5 font-medium bg-red-900/20 hover:bg-red-900/40 border border-red-800/40 rounded-md px-2.5 py-1 transition-colors"
+              >
+                <Mail className="w-3 h-3" />
+                {t("agent.sendEmail")}
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>
