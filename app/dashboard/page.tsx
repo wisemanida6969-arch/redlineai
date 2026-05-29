@@ -6,11 +6,12 @@ import Navbar from "@/components/Navbar";
 import {
   Upload, FileText, AlertCircle, Loader2, CheckCircle,
   FileType, AlertTriangle, Clock, Crown,
-  Receipt, PenTool, Building2, Lock
+  Receipt, PenTool, Building2, Lock, Bot
 } from "lucide-react";
 import QuoteToContract from "@/components/QuoteToContract";
 import VendorRiskScan from "@/components/VendorRiskScan";
 import ESignature from "@/components/ESignature";
+import AIAgent from "@/components/AIAgent";
 import UsageCounter from "@/components/UsageCounter";
 import AppFooter from "@/components/AppFooter";
 import { useT } from "@/lib/i18n/LanguageProvider";
@@ -35,6 +36,7 @@ interface UsageData {
   quote: number;
   vendor: number;
   esign: number;
+  agent: number;
 }
 
 export default function Dashboard() {
@@ -52,7 +54,7 @@ export default function Dashboard() {
   // History + plan state
   const [scans, setScans] = useState<ScanRecord[]>([]);
   const [plan, setPlan] = useState<Plan>("free");
-  const [usage, setUsage] = useState<UsageData>({ analysis: 0, quote: 0, vendor: 0, esign: 0 });
+  const [usage, setUsage] = useState<UsageData>({ analysis: 0, quote: 0, vendor: 0, esign: 0, agent: 0 });
   const [historyLoading, setHistoryLoading] = useState(true);
 
   useEffect(() => {
@@ -61,7 +63,7 @@ export default function Dashboard() {
       .then((d) => {
         setScans(d.scans ?? []);
         setPlan((d.plan ?? "free") as Plan);
-        setUsage(d.usage ?? { analysis: 0, quote: 0, vendor: 0, esign: 0 });
+        setUsage(d.usage ?? { analysis: 0, quote: 0, vendor: 0, esign: 0, agent: 0 });
       })
       .catch(() => {})
       .finally(() => setHistoryLoading(false));
@@ -126,6 +128,7 @@ export default function Dashboard() {
     { id: "quote",    label: t("dashboard.tabQuote"),    icon: Receipt,   soon: false },
     { id: "vendor",   label: t("dashboard.tabVendor"),   icon: Building2, soon: false },
     { id: "esign",    label: t("dashboard.tabEsign"),    icon: PenTool,   soon: false },
+    { id: "agent",    label: t("dashboard.tabAgent"),    icon: Bot,       soon: false },
   ];
 
   return (
@@ -319,6 +322,17 @@ export default function Dashboard() {
             {hasAccess(plan, "esign") && (
               <ESignature
                 onUsed={() => setUsage((u) => ({ ...u, esign: u.esign + 1 }))}
+              />
+            )}
+          </>
+        )}
+
+        {feature === "agent" && (
+          <>
+            <UsageCounter plan={plan} feature="agent" used={usage.agent} />
+            {hasAccess(plan, "agent") && (
+              <AIAgent
+                onUsed={() => setUsage((u) => ({ ...u, agent: u.agent + 1 }))}
               />
             )}
           </>

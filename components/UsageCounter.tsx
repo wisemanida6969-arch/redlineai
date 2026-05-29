@@ -18,6 +18,7 @@ export default function UsageCounter({ plan, feature, used }: Props) {
     quote:    "dashboard.tabQuote",
     vendor:   "dashboard.tabVendor",
     esign:    "dashboard.tabEsign",
+    agent:    "dashboard.tabAgent",
   };
   const label = t(featureKeyMap[feature]);
 

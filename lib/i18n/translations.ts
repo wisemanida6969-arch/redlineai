@@ -191,6 +191,54 @@ export const translations = {
     /* Plan badge */
     freePlanLeft:     { en: "free scans left this month", ko: "이번 달 남은 무료 횟수" },
     upgradeNow:       { en: "Upgrade", ko: "업그레이드" },
+
+    /* New 5th tab */
+    tabAgent:         { en: "AI Agent", ko: "AI 에이전트" },
+  },
+
+  /* ── AI Agent ── */
+  agent: {
+    title:           { en: "AI Agent", ko: "AI 에이전트" },
+    intro:           { en: "Chat with your AI legal assistant. Draft negotiation emails, get quick answers on contracts and business law, and explore alternative clause wording — optionally with your own contract attached for context.", ko: "AI 법률 어시스턴트와 대화하세요. 협상 이메일 초안 작성, 계약·비즈니스 법률 질문, 조항 수정 대안 탐색까지 — 필요하면 계약서를 첨부해 맥락 기반 답변을 받을 수 있습니다." },
+
+    /* Conversation list */
+    newChat:         { en: "+ New conversation", ko: "+ 새 대화" },
+    yourChats:       { en: "Your conversations", ko: "내 대화 목록" },
+    noChats:         { en: "No conversations yet. Start a new one!", ko: "아직 대화가 없습니다. 새 대화를 시작하세요!" },
+
+    /* Empty / welcome screen */
+    welcomeTitle:    { en: "Hi! How can I help you today?", ko: "안녕하세요! 무엇을 도와드릴까요?" },
+    welcomeSub:      { en: "I can draft negotiation emails, answer contract questions, suggest clause changes, and more.", ko: "협상 이메일 작성, 계약 질문 답변, 조항 수정 제안 등을 도와드립니다." },
+    suggested:       { en: "Suggested prompts", ko: "추천 질문" },
+    prompt1:         { en: "Draft a polite email asking to reduce a contract's penalty clause to 50%.", ko: "계약서의 위약금 조항을 50%로 줄여달라는 정중한 이메일을 작성해줘." },
+    prompt2:         { en: "What's the difference between a unilateral NDA and a mutual NDA?", ko: "일방 NDA와 상호 NDA의 차이가 뭐야?" },
+    prompt3:         { en: "Explain what 'liquidated damages' means in plain language.", ko: "'손해배상예정액'이 무슨 뜻인지 쉬운 말로 설명해줘." },
+    prompt4:         { en: "Review my attached contract and list the top 3 clauses I should negotiate.", ko: "첨부한 계약서를 검토해서 협상해야 할 상위 3개 조항을 알려줘." },
+
+    /* Composer */
+    placeholder:     { en: "Ask anything about contracts, draft a negotiation email…", ko: "계약 관련 무엇이든 물어보거나 협상 이메일을 요청하세요…" },
+    send:            { en: "Send", ko: "전송" },
+    sending:         { en: "Sending…", ko: "전송 중…" },
+    thinking:        { en: "Thinking…", ko: "생각 중…" },
+    attachContract:  { en: "Attach contract (optional)", ko: "계약서 첨부 (선택)" },
+    contractAttached:{ en: "Contract attached:", ko: "첨부된 계약서:" },
+    removeContract:  { en: "Remove", ko: "제거" },
+
+    /* Messages */
+    you:             { en: "You", ko: "나" },
+    assistant:       { en: "AI Agent", ko: "AI 에이전트" },
+    copy:            { en: "Copy", ko: "복사" },
+    copied:          { en: "Copied!", ko: "복사됨!" },
+
+    /* Errors */
+    failedSend:      { en: "Failed to send message", ko: "메시지 전송 실패" },
+    onlyPdfDocx:     { en: "Please attach a PDF or DOCX file.", ko: "PDF 또는 DOCX 파일만 첨부 가능합니다." },
+    tooLarge:        { en: "File too large. Max 10MB.", ko: "파일이 너무 큽니다. 최대 10MB." },
+    extracting:      { en: "Reading contract…", ko: "계약서 분석 중…" },
+
+    /* Delete */
+    deleteChat:      { en: "Delete conversation", ko: "대화 삭제" },
+    deleteConfirm:   { en: "Delete this conversation? This cannot be undone.", ko: "이 대화를 삭제할까요? 되돌릴 수 없습니다." },
   },
 
   /* ── Usage Counter ── */
@@ -303,6 +351,8 @@ export const translations = {
 
     /* Disambiguation hints */
     optionalHints:  { en: "Optional details (helps narrow down if multiple companies share the name)", ko: "선택 입력 (동명회사 구분에 도움)" },
+    /* placeholder reserved */
+    placeholderEnd: { en: "", ko: "" },
     country:        { en: "Country",     ko: "국가" },
     countryPlaceholder: { en: "e.g., USA, Korea, Japan, India", ko: "예: 한국, 미국, 일본, 인도" },
     website:        { en: "Website",     ko: "웹사이트" },

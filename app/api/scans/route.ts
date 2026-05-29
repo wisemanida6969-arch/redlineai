@@ -16,7 +16,7 @@ export async function GET() {
 
   const { data: profile } = await service
     .from("profiles")
-    .select("plan, scans_used, scan_month, quote_used, vendor_used, esign_used")
+    .select("plan, scans_used, scan_month, quote_used, vendor_used, esign_used, agent_used")
     .eq("id", user.id)
     .single();
 
@@ -29,6 +29,7 @@ export async function GET() {
     quote:    sameMonth ? (profile?.quote_used  ?? 0) : 0,
     vendor:   sameMonth ? (profile?.vendor_used ?? 0) : 0,
     esign:    sameMonth ? (profile?.esign_used  ?? 0) : 0,
+    agent:    sameMonth ? (profile?.agent_used  ?? 0) : 0,
   };
 
   return NextResponse.json({
