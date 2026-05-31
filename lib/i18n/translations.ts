@@ -272,10 +272,17 @@ export const translations = {
   /* ── Quote to Contract ── */
   quote: {
     title:        { en: "Quote to Contract", ko: "견적서 → 계약서" },
-    intro:        { en: "Upload a quote or proposal — RedlineAI extracts the key terms and generates a complete service agreement you can edit and download as PDF.", ko: "견적서 또는 제안서를 업로드하면 RedlineAI가 핵심 조건을 추출해 편집 가능한 완전한 용역 계약서를 생성하고 PDF로 다운로드할 수 있습니다." },
-    dropQuote:    { en: "Drop your quote here", ko: "견적서를 여기에 끌어다 놓으세요" },
+    intro:        { en: "Upload a quote, paste a chat conversation, or screenshot — RedlineAI extracts key terms and generates a complete service agreement.", ko: "견적서 업로드, 카톡/슬랙 대화 붙여넣기, 또는 스크린샷 — RedlineAI가 핵심 조건을 추출해 완전한 용역 계약서를 생성합니다." },
+    dropQuote:    { en: "Drop your file here", ko: "파일을 여기에 끌어다 놓으세요" },
     clickBrowse:  { en: "or click to browse", ko: "또는 클릭해서 선택" },
-    pdfOrDocx:    { en: "PDF or DOCX · Max 20MB", ko: "PDF 또는 DOCX · 최대 20MB" },
+    pdfOrDocx:    { en: "PDF, DOCX, PNG, JPG, TXT · Max 20MB", ko: "PDF, DOCX, PNG, JPG, TXT · 최대 20MB" },
+
+    /* Modes */
+    modeFile:        { en: "Upload File",   ko: "파일 업로드" },
+    modeChat:        { en: "Paste Chat",    ko: "대화 붙여넣기" },
+    chatHint:        { en: "Paste a conversation from KakaoTalk, Slack, Discord, WhatsApp, email, etc.", ko: "카톡, 슬랙, 디스코드, 왓츠앱, 이메일 등의 대화를 붙여넣으세요." },
+    chatPlaceholder: { en: "[Kim] Can you do the design work?\n[Hong] Yes, when do you need it?\n[Kim] July 1 ~ September 30, 3 months, 5 million won, 50% upfront\n[Hong] Sounds good!", ko: "[김부장] 디자인 작업 가능하세요?\n[홍길동] 네, 일정 어떻게 되나요?\n[김부장] 7월 1일~9월 30일 3개월, 500만원, 50% 선금\n[홍길동] 좋습니다!" },
+    fileHintScreenshot: { en: "📸 Chat screenshot? Just drop the image — Claude Vision will read it automatically.", ko: "📸 카톡 스크린샷? 이미지를 그대로 끌어다 놓으세요 — Claude Vision이 자동으로 읽습니다." },
     generate:     { en: "Generate Contract", ko: "계약서 생성하기" },
     readingQuote: { en: "Claude AI is reading your quote…", ko: "Claude AI가 견적서를 읽는 중…" },
     estimated:    { en: "~15–30s", ko: "약 15~30초" },

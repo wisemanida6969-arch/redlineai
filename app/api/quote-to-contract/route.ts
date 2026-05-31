@@ -5,45 +5,53 @@ import { PLAN_LIMITS, type Plan } from "@/lib/planLimits";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-const EXTRACTION_PROMPT_EN = `You are a contract drafting assistant. Extract key business terms from the provided quote/proposal document.
+const EXTRACTION_PROMPT_EN = `You are a contract drafting assistant. Extract key business terms from the provided content.
+
+The content may be a formal quote/proposal document OR an informal chat/messenger conversation (KakaoTalk, Slack, Discord, WhatsApp, email thread, etc.). In all cases, your job is to identify what the parties agreed to and extract the contract terms.
 
 Your response MUST be valid JSON only — no markdown, no explanation outside the JSON.
 
 Return this exact structure:
 {
-  "providerName": "The company providing the service/product (the seller/vendor)",
+  "providerName": "The party providing the service/product (the seller/vendor/freelancer)",
   "providerContact": "Contact person at provider (if mentioned, else empty string)",
   "providerAddress": "Provider address (if mentioned, else empty string)",
-  "clientName": "The company receiving the service/product (the buyer/client)",
+  "clientName": "The party receiving the service/product (the buyer/client)",
   "clientContact": "Contact person at client (if mentioned, else empty string)",
   "clientAddress": "Client address (if mentioned, else empty string)",
   "serviceDescription": "Detailed description of services/products being provided. Be thorough — list all deliverables, scope items, and what's included.",
-  "totalAmount": "Total payment amount with currency (e.g., '$10,000 USD' or '5,000 EUR')",
+  "totalAmount": "Total payment amount with currency (e.g., '$10,000 USD' or '5,000 EUR' or '5,000,000 KRW')",
   "paymentTerms": "Payment schedule and terms (e.g., '50% upfront, 50% on delivery' or 'Net 30 days')",
   "deliveryDate": "Delivery date or contract duration (e.g., '60 days from signing' or 'By Dec 31, 2026')",
   "additionalTerms": "Any other important terms mentioned (warranties, special conditions, etc., or empty string)"
 }
 
-If a field is not mentioned in the document, use a sensible placeholder like "[To be specified]" — do NOT fabricate information.`;
+For chat conversations: infer the parties' roles from context (who's offering vs receiving), and look for casual agreements that imply contract terms. Names in chats may be nicknames or titles — use what's available.
 
-const EXTRACTION_PROMPT_KO = `당신은 계약서 작성 도우미입니다. 제공된 견적서/제안서에서 핵심 비즈니스 조건을 추출합니다.
+If a field is not mentioned, use a sensible placeholder like "[To be specified]" — do NOT fabricate information.`;
+
+const EXTRACTION_PROMPT_KO = `당신은 계약서 작성 도우미입니다. 제공된 내용에서 핵심 비즈니스 조건을 추출합니다.
+
+제공되는 내용은 정식 견적서/제안서일 수도 있고, **카톡·슬랙·디스코드·왓츠앱·이메일 같은 메신저 대화**일 수도 있습니다. 어떤 경우든 양 당사자가 합의한 내용을 식별해 계약 조건으로 추출하는 것이 목표입니다.
 
 응답은 반드시 유효한 JSON만 반환해야 합니다 — 마크다운이나 JSON 외부 설명은 금지입니다.
 
-다음 정확한 구조로 반환하세요. 모든 필드를 한국어로 작성하되, 회사명/주소/이름은 원본 언어를 유지하세요:
+다음 정확한 구조로 반환하세요. 모든 필드를 한국어로 작성하되, 회사명/사람이름/주소는 원본 언어를 유지하세요:
 {
-  "providerName": "서비스/제품 제공 회사명 (판매자/공급자) - 원문 그대로",
+  "providerName": "서비스/제품 제공자 (판매자/공급자/프리랜서) - 원문 그대로",
   "providerContact": "제공자측 담당자명 (있으면, 없으면 빈 문자열)",
   "providerAddress": "제공자 주소 (있으면, 없으면 빈 문자열)",
-  "clientName": "서비스/제품 수령 회사명 (구매자/고객) - 원문 그대로",
+  "clientName": "서비스/제품 수령자 (구매자/고객) - 원문 그대로",
   "clientContact": "고객측 담당자명",
   "clientAddress": "고객 주소",
   "serviceDescription": "제공되는 서비스/제품의 상세 설명 (한국어). 모든 산출물, 범위, 포함 항목을 빠짐없이 나열하세요.",
-  "totalAmount": "총 결제 금액 (통화 포함, 예: '10,000,000원' 또는 '$10,000 USD')",
+  "totalAmount": "총 결제 금액 (통화 포함, 예: '500만원', '10,000,000원' 또는 '$10,000 USD')",
   "paymentTerms": "결제 일정 및 조건 한국어로 (예: '계약 시 50%, 납품 시 50%' 또는 '월말 결제 30일')",
   "deliveryDate": "납기일 또는 계약 기간 한국어로 (예: '서명일로부터 60일' 또는 '2026년 12월 31일까지')",
   "additionalTerms": "기타 중요 조건 (보증, 특별 조건 등, 없으면 빈 문자열)"
 }
+
+**카톡/메신저 대화의 경우:** 맥락에서 누가 의뢰자이고 누가 수행자인지 파악하세요. 닉네임이나 직책으로 표시될 수 있으니 가용한 정보를 활용하세요. "OK", "좋아요", "그렇게 하시죠" 같은 비공식 합의도 정식 계약 조건으로 해석하세요.
 
 문서에 명시되지 않은 필드는 "[지정 필요]" 같은 한국어 placeholder를 사용하세요 — 정보를 지어내지 마세요.`;
 
@@ -59,6 +67,33 @@ async function extractTextFromPdf(buffer: Buffer): Promise<string | null> {
   } catch {
     return null;
   }
+}
+
+/**
+ * Read text from a chat/conversation screenshot using Claude Vision.
+ * Designed for KakaoTalk/Slack/Discord/WhatsApp/Email screenshots.
+ * Multiple images allowed (long conversations).
+ */
+async function extractTextFromImages(buffers: Array<{ buffer: Buffer; mime: string }>, lang: "en" | "ko"): Promise<string> {
+  const instruction = lang === "ko"
+    ? "이 스크린샷(들)에 담긴 메신저/대화 내용 전체를 그대로 텍스트로 추출하세요. 화자(보낸 사람) 이름과 시간이 보이면 함께 적으세요. 형식 예시: '[김부장 오후 2:13] 메시지 내용'. 요약하지 말고 전체를 그대로 전사하세요. 여러 이미지면 시간순으로 이어붙이세요."
+    : "Transcribe ALL messenger/chat content from these screenshot(s) exactly as it appears. Include speaker names and timestamps if visible. Format example: '[Kim 2:13 PM] message content'. Do NOT summarize — transcribe verbatim. If multiple images, concatenate in chronological order.";
+
+  const imgBlocks = buffers.map((b) => ({
+    type: "image" as const,
+    source: { type: "base64" as const, media_type: b.mime as "image/png" | "image/jpeg" | "image/webp" | "image/gif", data: b.buffer.toString("base64") },
+  }));
+
+  const response = await client.messages.create({
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 4096,
+    temperature: 0,
+    messages: [{
+      role: "user",
+      content: [...imgBlocks, { type: "text", text: instruction }],
+    }],
+  });
+  return response.content[0].type === "text" ? response.content[0].text : "";
 }
 
 async function extractTextWithVision(buffer: Buffer, mimeType: string): Promise<string> {
@@ -346,39 +381,80 @@ export async function POST(req: NextRequest) {
       }, { status: 403 });
     }
 
-    // ── Extract text ──
+    // ── Parse input ──
     const formData = await req.formData();
-    const file = formData.get("file") as File | null;
     const langField = formData.get("lang");
     const lang: "en" | "ko" = langField === "ko" ? "ko" : "en";
+    const pastedText = formData.get("text") as string | null;
+    const files = formData.getAll("file") as File[];
+    const sourceFilename = formData.get("filename") as string | null;
 
-    if (!file) {
-      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
-    }
-
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const name = file.name.toLowerCase();
     let quoteText = "";
     let extractionMethod = "";
+    let originalFilename = "";
 
-    if (name.endsWith(".docx")) {
-      quoteText = await extractTextFromDocx(buffer);
-      extractionMethod = "docx";
-    } else if (name.endsWith(".pdf") || file.type === "application/pdf") {
-      const pdfText = await extractTextFromPdf(buffer);
-      if (pdfText) {
-        quoteText = pdfText;
-        extractionMethod = "pdf-text";
-      } else {
-        quoteText = await extractTextWithVision(buffer, "application/pdf");
-        extractionMethod = "pdf-vision";
+    /* (a) Pasted chat / quote text */
+    if (pastedText && pastedText.trim().length > 5) {
+      quoteText = pastedText.trim();
+      extractionMethod = "paste";
+      originalFilename = sourceFilename || "Pasted text";
+    }
+    /* (b) File(s) */
+    else if (files.length > 0 && files[0] && files[0].size > 0) {
+      const firstFile = files[0];
+      originalFilename = firstFile.name;
+      const name = firstFile.name.toLowerCase();
+      const isImageFirst = firstFile.type.startsWith("image/") || /\.(png|jpe?g|webp|gif)$/i.test(name);
+
+      /* Multiple images → OCR all together (chat screenshots case) */
+      if (isImageFirst) {
+        const imageBuffers: Array<{ buffer: Buffer; mime: string }> = [];
+        for (const f of files) {
+          if (!f || f.size === 0) continue;
+          const isImg = f.type.startsWith("image/") || /\.(png|jpe?g|webp|gif)$/i.test(f.name);
+          if (!isImg) continue;
+          if (f.size > 10 * 1024 * 1024) {
+            return NextResponse.json({ error: "Each image must be under 10MB." }, { status: 400 });
+          }
+          const mime = f.type || (f.name.toLowerCase().endsWith(".png") ? "image/png" : "image/jpeg");
+          imageBuffers.push({ buffer: Buffer.from(await f.arrayBuffer()), mime });
+        }
+        if (imageBuffers.length === 0) {
+          return NextResponse.json({ error: "No valid images found." }, { status: 400 });
+        }
+        quoteText = await extractTextFromImages(imageBuffers.slice(0, 6), lang);
+        extractionMethod = "image-vision";
       }
-    } else {
-      return NextResponse.json({ error: "Unsupported file type. Upload a PDF or DOCX." }, { status: 400 });
+      /* Single non-image file */
+      else {
+        const buffer = Buffer.from(await firstFile.arrayBuffer());
+        if (name.endsWith(".txt")) {
+          quoteText = buffer.toString("utf-8");
+          extractionMethod = "txt";
+        } else if (name.endsWith(".docx")) {
+          quoteText = await extractTextFromDocx(buffer);
+          extractionMethod = "docx";
+        } else if (name.endsWith(".pdf") || firstFile.type === "application/pdf") {
+          const pdfText = await extractTextFromPdf(buffer);
+          if (pdfText) {
+            quoteText = pdfText;
+            extractionMethod = "pdf-text";
+          } else {
+            quoteText = await extractTextWithVision(buffer, "application/pdf");
+            extractionMethod = "pdf-vision";
+          }
+        } else {
+          return NextResponse.json({ error: "Unsupported file type. Upload a PDF, DOCX, TXT, or PNG/JPG image." }, { status: 400 });
+        }
+      }
+    }
+    /* (c) Nothing provided */
+    else {
+      return NextResponse.json({ error: "No file or text provided." }, { status: 400 });
     }
 
     if (!quoteText.trim()) {
-      return NextResponse.json({ error: "Could not extract text from the document" }, { status: 400 });
+      return NextResponse.json({ error: "Could not extract any text from your input. Make sure screenshots are clear or paste more content." }, { status: 400 });
     }
 
     // ── Extract structured data ──
@@ -396,7 +472,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       extracted,
       contract: contractText,
-      filename: file.name,
+      filename: originalFilename,
       extractionMethod,
       generatedAt: new Date().toISOString(),
       quoteUsed: quoteUsed + 1,

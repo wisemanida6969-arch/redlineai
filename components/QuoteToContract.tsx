@@ -3,7 +3,7 @@ import { useState, useCallback } from "react";
 import {
   Upload, FileText, AlertCircle, Loader2, CheckCircle,
   Download, Receipt, Edit3, Eye, ArrowLeft, Building2,
-  User, DollarSign, Calendar, Briefcase, Sparkles
+  User, DollarSign, Calendar, Briefcase, Sparkles, FileType
 } from "lucide-react";
 import { downloadContractPDF, type ExtractedQuote } from "@/lib/contractExport";
 import { useT } from "@/lib/i18n/LanguageProvider";
@@ -25,7 +25,9 @@ interface QuoteToContractProps {
 export default function QuoteToContract({ onUsed }: QuoteToContractProps = {}) {
   const { t, lang } = useT();
   const [view, setView] = useState<View>("upload");
-  const [file, setFile] = useState<File | null>(null);
+  const [mode, setMode] = useState<"file" | "chat">("file");
+  const [files, setFiles] = useState<File[]>([]);
+  const [chatText, setChatText] = useState("");
   const [dragging, setDragging] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState("");
@@ -35,31 +37,53 @@ export default function QuoteToContract({ onUsed }: QuoteToContractProps = {}) {
   const [downloading, setDownloading] = useState(false);
 
   const validateFile = (f: File) => {
-    const valid = f.name.toLowerCase().endsWith(".pdf") || f.name.toLowerCase().endsWith(".docx");
-    if (!valid) { setError("Please upload a PDF or DOCX file."); return false; }
-    if (f.size > 20 * 1024 * 1024) { setError("File too large. Max 20MB."); return false; }
+    const name = f.name.toLowerCase();
+    const valid =
+      name.endsWith(".pdf") || name.endsWith(".docx") || name.endsWith(".txt") ||
+      name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".webp");
+    if (!valid) { setError(lang === "ko" ? "PDF, DOCX, TXT, PNG, JPG 파일만 가능합니다." : "Please upload a PDF, DOCX, TXT, PNG, or JPG file."); return false; }
+    if (f.size > 20 * 1024 * 1024) { setError(lang === "ko" ? "파일이 너무 큽니다. 최대 20MB." : "File too large. Max 20MB."); return false; }
     return true;
+  };
+
+  const addFiles = (newFiles: File[]) => {
+    const valid = newFiles.filter(validateFile);
+    if (valid.length) {
+      setFiles((prev) => [...prev, ...valid].slice(0, 6));
+      setError("");
+    }
   };
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setDragging(false);
-    const f = e.dataTransfer.files[0];
-    if (f && validateFile(f)) { setFile(f); setError(""); }
+    const dropped = Array.from(e.dataTransfer.files);
+    if (dropped.length) addFiles(dropped);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const removeFile = (idx: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== idx));
+  };
+
   const handleGenerate = async () => {
-    if (!file) return setError("Please upload a quote first.");
+    if (mode === "file" && files.length === 0) return setError(lang === "ko" ? "파일을 업로드해 주세요." : "Please upload a file first.");
+    if (mode === "chat" && chatText.trim().length < 10) return setError(lang === "ko" ? "대화 내용을 충분히 붙여넣어 주세요." : "Please paste enough chat content.");
     setLoading(true);
     setError("");
 
     try {
-      setLoadingStep(lang === "ko" ? "견적서에서 텍스트 추출 중…" : "Extracting text from quote…");
+      setLoadingStep(lang === "ko" ? "내용 분석 중…" : "Extracting content…");
       const formData = new FormData();
-      formData.append("file", file);
+      if (mode === "file") {
+        for (const f of files) formData.append("file", f);
+      } else {
+        formData.append("text", chatText);
+        formData.append("filename", lang === "ko" ? "대화 내용" : "Pasted conversation");
+      }
       formData.append("lang", lang);
 
-      setLoadingStep(lang === "ko" ? "Claude AI로 견적서 분석 중…" : "Analyzing quote with Claude AI…");
+      setLoadingStep(lang === "ko" ? "Claude AI로 분석 중…" : "Analyzing with Claude AI…");
       const res = await fetch("/api/quote-to-contract", { method: "POST", body: formData });
       const data = await res.json();
 
@@ -103,7 +127,8 @@ export default function QuoteToContract({ onUsed }: QuoteToContractProps = {}) {
 
   const reset = () => {
     setView("upload");
-    setFile(null);
+    setFiles([]);
+    setChatText("");
     setResult(null);
     setEditedData(null);
     setError("");
@@ -111,6 +136,7 @@ export default function QuoteToContract({ onUsed }: QuoteToContractProps = {}) {
 
   /* ─────────────── UPLOAD VIEW ─────────────── */
   if (view === "upload") {
+    const canSubmit = mode === "file" ? files.length > 0 : chatText.trim().length >= 10;
     return (
       <div>
         <div className="bg-gradient-to-br from-red-900/20 to-[#162035] border border-[#1e3050] rounded-2xl p-5 mb-6 flex items-start gap-3">
@@ -123,35 +149,89 @@ export default function QuoteToContract({ onUsed }: QuoteToContractProps = {}) {
           </div>
         </div>
 
-        <div
-          onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-          onDragLeave={() => setDragging(false)}
-          onDrop={handleDrop}
-          onClick={() => document.getElementById("quote-file-input")?.click()}
-          className={`border-2 border-dashed rounded-2xl p-8 sm:p-12 text-center cursor-pointer transition-colors ${dragging ? "border-red-500 bg-red-900/10" : file ? "border-green-600 bg-green-900/10" : "border-[#1e3050] hover:border-red-700/50 bg-[#162035]"}`}
-        >
-          <input
-            id="quote-file-input"
-            type="file"
-            accept=".pdf,.docx"
-            onChange={(e) => { const f = e.target.files?.[0]; if (f && validateFile(f)) { setFile(f); setError(""); } }}
-            className="hidden"
-          />
-          {file ? (
-            <>
-              <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-3" />
-              <p className="text-green-400 font-medium">{file.name}</p>
-              <p className="text-slate-500 text-sm mt-1">{(file.size / 1024).toFixed(1)} KB · Click to change</p>
-            </>
-          ) : (
-            <>
-              <Upload className="w-12 h-12 text-slate-500 mx-auto mb-3" />
-              <p className="text-white font-medium mb-1">{t("quote.dropQuote")}</p>
-              <p className="text-slate-400 text-sm mb-4">{t("quote.clickBrowse")}</p>
-              <p className="text-slate-500 text-xs">{t("quote.pdfOrDocx")}</p>
-            </>
-          )}
+        {/* Mode tabs */}
+        <div className="flex gap-1 bg-[#162035] p-1 rounded-xl border border-[#1e3050] mb-4 w-fit">
+          <button
+            onClick={() => { setMode("file"); setError(""); }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${mode === "file" ? "bg-red-600 text-white" : "text-slate-400 hover:text-white"}`}
+          >
+            <Upload className="w-4 h-4" /> {t("quote.modeFile")}
+          </button>
+          <button
+            onClick={() => { setMode("chat"); setError(""); }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${mode === "chat" ? "bg-red-600 text-white" : "text-slate-400 hover:text-white"}`}
+          >
+            <FileText className="w-4 h-4" /> {t("quote.modeChat")}
+          </button>
         </div>
+
+        {/* FILE MODE */}
+        {mode === "file" && (
+          <>
+            <div
+              onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+              onDragLeave={() => setDragging(false)}
+              onDrop={handleDrop}
+              onClick={() => document.getElementById("quote-file-input")?.click()}
+              className={`border-2 border-dashed rounded-2xl p-8 sm:p-10 text-center cursor-pointer transition-colors ${dragging ? "border-red-500 bg-red-900/10" : files.length > 0 ? "border-green-600 bg-green-900/10" : "border-[#1e3050] hover:border-red-700/50 bg-[#162035]"}`}
+            >
+              <input
+                id="quote-file-input"
+                type="file"
+                accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp"
+                multiple
+                onChange={(e) => { const arr = e.target.files ? Array.from(e.target.files) : []; if (arr.length) addFiles(arr); e.target.value = ""; }}
+                className="hidden"
+              />
+              {files.length > 0 ? (
+                <>
+                  <CheckCircle className="w-10 h-10 text-green-400 mx-auto mb-2" />
+                  <p className="text-green-400 font-medium text-sm">{files.length} {lang === "ko" ? "개 파일 선택됨" : files.length === 1 ? "file selected" : "files selected"}</p>
+                  <p className="text-slate-500 text-xs mt-1">{lang === "ko" ? "클릭해서 더 추가" : "Click to add more"}</p>
+                </>
+              ) : (
+                <>
+                  <Upload className="w-10 h-10 text-slate-500 mx-auto mb-2" />
+                  <p className="text-white font-medium mb-1">{t("quote.dropQuote")}</p>
+                  <p className="text-slate-400 text-sm mb-3">{t("quote.clickBrowse")}</p>
+                  <p className="text-slate-500 text-xs">{t("quote.pdfOrDocx")}</p>
+                </>
+              )}
+            </div>
+
+            {/* File list */}
+            {files.length > 0 && (
+              <div className="mt-3 space-y-1.5">
+                {files.map((f, i) => (
+                  <div key={i} className="flex items-center gap-2 bg-[#162035] border border-[#1e3050] rounded-lg px-3 py-2 text-xs">
+                    <FileText className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                    <span className="text-slate-300 truncate flex-1">{f.name}</span>
+                    <span className="text-slate-500 shrink-0">{(f.size / 1024).toFixed(1)} KB</span>
+                    <button onClick={() => removeFile(i)} className="text-slate-500 hover:text-red-400 transition-colors shrink-0">✕</button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-3 flex items-start gap-2 text-slate-400 text-xs bg-[#162035] border border-[#1e3050] rounded-xl px-4 py-3">
+              <FileType className="w-3.5 h-3.5 mt-0.5 shrink-0 text-blue-400" />
+              <span>{t("quote.fileHintScreenshot")}</span>
+            </div>
+          </>
+        )}
+
+        {/* CHAT MODE */}
+        {mode === "chat" && (
+          <>
+            <p className="text-slate-400 text-sm mb-2">{t("quote.chatHint")}</p>
+            <textarea
+              value={chatText}
+              onChange={(e) => setChatText(e.target.value)}
+              placeholder={t("quote.chatPlaceholder")}
+              className="w-full h-64 bg-[#162035] border border-[#1e3050] rounded-2xl p-4 text-slate-200 placeholder-slate-500 text-sm resize-y focus:outline-none focus:border-red-700/50 font-mono"
+            />
+          </>
+        )}
 
         {error && (
           <div className="mt-4 flex items-center gap-2 text-red-400 text-sm bg-red-900/20 border border-red-800/50 rounded-xl px-4 py-3">
@@ -161,7 +241,7 @@ export default function QuoteToContract({ onUsed }: QuoteToContractProps = {}) {
 
         <button
           onClick={handleGenerate}
-          disabled={loading || !file}
+          disabled={loading || !canSubmit}
           className="mt-5 w-full bg-red-600 hover:bg-red-700 disabled:bg-red-900/50 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl text-base sm:text-lg transition-colors flex items-center justify-center gap-3"
         >
           {loading ? <><Loader2 className="w-5 h-5 animate-spin" />{loadingStep}</> : <><Sparkles className="w-5 h-5" /> {t("quote.generate")}</>}
