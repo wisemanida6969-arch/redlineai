@@ -2,7 +2,7 @@
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import PaddleCheckout from "@/components/PaddleCheckout";
-import { Shield, Zap, FileText, Download, CheckCircle, AlertTriangle, AlertCircle, Lock } from "lucide-react";
+import { Shield, Zap, FileText, CheckCircle, AlertTriangle, AlertCircle, Lock, Bot, MessageSquare, Building2, PenTool } from "lucide-react";
 import { useT } from "@/lib/i18n/LanguageProvider";
 
 export default function Home() {
@@ -111,10 +111,12 @@ export default function Home() {
           <h2 className="text-3xl font-bold text-white text-center mb-12">{t("landing.featuresTitle")}</h2>
           <div className="grid md:grid-cols-2 gap-6">
             {[
-              { icon: AlertTriangle, title: t("landing.f1Title"), desc: t("landing.f1Desc") },
-              { icon: FileText,      title: t("landing.f2Title"), desc: t("landing.f2Desc") },
-              { icon: Download,      title: t("landing.f3Title"), desc: t("landing.f3Desc") },
-              { icon: CheckCircle,   title: t("landing.f4Title"), desc: t("landing.f4Desc") },
+              { icon: AlertTriangle,  title: t("landing.f1Title"), desc: t("landing.f1Desc") },
+              { icon: FileText,       title: t("landing.f2Title"), desc: t("landing.f2Desc") },
+              { icon: Bot,            title: t("landing.f3Title"), desc: t("landing.f3Desc") },
+              { icon: MessageSquare,  title: t("landing.f4Title"), desc: t("landing.f4Desc") },
+              { icon: Building2,      title: t("landing.f5Title"), desc: t("landing.f5Desc") },
+              { icon: PenTool,        title: t("landing.f6Title"), desc: t("landing.f6Desc") },
             ].map(({ icon: Icon, title, desc }) => (
               <div key={title} className="flex gap-4 bg-[#162035] border border-[#1e3050] rounded-xl p-5">
                 <div className="w-10 h-10 bg-red-900/30 rounded-lg flex items-center justify-center shrink-0">
@@ -143,9 +145,11 @@ export default function Home() {
               desc={t("landing.planFreeDesc")}
               features={[
                 `${t("landing.featContractAnalysis")}: 3${t("landing.featPerMonth")}`,
+                `${t("landing.featAIAgent")}: 10 ${t("landing.featChatMessages")}${t("landing.featPerMonth")}`,
                 `${t("landing.featQuoteToContract")}: ${t("landing.featLocked")}`,
                 `${t("landing.featVendorRiskScan")}: ${t("landing.featLocked")}`,
                 `${t("landing.featESignature")}: ${t("landing.featLocked")}`,
+                t("landing.featAllLangs"),
               ]}
               cta={t("landing.ctaFree")}
               href="/dashboard"
@@ -159,8 +163,11 @@ export default function Home() {
               features={[
                 `${t("landing.featContractAnalysis")}: 30${t("landing.featPerMonth")}`,
                 `${t("landing.featQuoteToContract")}: 30${t("landing.featPerMonth")}`,
+                `${t("landing.featAIAgent")}: 100 ${t("landing.featChatMessages")}${t("landing.featPerMonth")}`,
                 `${t("landing.featVendorRiskScan")}: 10${t("landing.featPerMonth")}`,
                 `${t("landing.featESignature")}: ${t("landing.featLocked")}`,
+                t("landing.featChatScreenshot"),
+                t("landing.featAllLangs"),
                 t("landing.featEmailSupport"),
               ]}
               cta={t("landing.ctaPro")}
@@ -177,8 +184,11 @@ export default function Home() {
               features={[
                 `${t("landing.featContractAnalysis")}: ${t("landing.featUnlimited")}`,
                 `${t("landing.featQuoteToContract")}: ${t("landing.featUnlimited")}`,
+                `${t("landing.featAIAgent")}: ${t("landing.featUnlimited")}`,
                 `${t("landing.featVendorRiskScan")}: 30${t("landing.featPerMonth")}`,
                 `${t("landing.featESignature")}: ${t("landing.featUnlimited")}`,
+                t("landing.featChatScreenshot"),
+                t("landing.featAllLangs"),
                 t("landing.featPrioritySupport"),
               ]}
               cta={t("landing.ctaBusiness")}

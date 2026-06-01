@@ -81,10 +81,14 @@ export const translations = {
     f1Desc:  { en: "Every issue categorized as High, Medium, or Low severity so you know what to prioritize.", ko: "모든 이슈를 높음/중간/낮음으로 분류해 우선순위를 한눈에 파악합니다." },
     f2Title: { en: "Fix suggestions",  ko: "수정 제안" },
     f2Desc:  { en: "Each flagged clause comes with a professionally rewritten version you can copy instantly.", ko: "지적된 조항마다 바로 복사해 사용할 수 있는 전문가 수준의 수정안을 제공합니다." },
-    f3Title: { en: "PDF export", ko: "PDF 내보내기" },
-    f3Desc:  { en: "Download a clean, branded risk report to share with your team or lawyer.", ko: "팀이나 변호사에게 공유할 수 있는 깔끔한 리스크 리포트를 다운로드하세요." },
-    f4Title: { en: "PDF & text upload", ko: "PDF 및 텍스트 업로드" },
-    f4Desc:  { en: "Upload a PDF or paste raw contract text — we handle both formats seamlessly.", ko: "PDF 업로드와 텍스트 붙여넣기를 모두 매끄럽게 지원합니다." },
+    f3Title: { en: "AI Legal Agent", ko: "AI 법률 에이전트" },
+    f3Desc:  { en: "Chat with AI to draft negotiation emails, ask legal questions, and explore clause alternatives — all in one place.", ko: "AI와 대화하며 협상 이메일 작성, 법률 질문, 조항 대안 탐색까지 한 곳에서 처리하세요." },
+    f4Title: { en: "Chat → Contract", ko: "메신저 → 계약서" },
+    f4Desc:  { en: "Drop a KakaoTalk / Slack / WhatsApp screenshot or paste a chat — AI extracts the agreement and drafts a full contract.", ko: "카톡 / 슬랙 / 왓츠앱 스크린샷을 올리거나 대화를 붙여넣으면 AI가 합의 내용을 추출해 정식 계약서를 생성합니다." },
+    f5Title: { en: "Vendor Risk Scan", ko: "공급업체 리스크 스캔" },
+    f5Desc:  { en: "Type any vendor name — AI searches news, lawsuits, and financials to deliver a due-diligence report.", ko: "공급업체명만 입력하면 AI가 뉴스·소송·재무를 검색해 실사 리포트를 제공합니다." },
+    f6Title: { en: "E-Signature", ko: "전자서명" },
+    f6Desc:  { en: "Upload a contract, place fields, send for signing — receive a legally binding signed PDF back.", ko: "계약서 업로드, 서명란 배치, 발송 — 법적 효력 있는 서명 PDF를 자동으로 받습니다." },
 
     /* Pricing */
     pricingTitle: { en: "Simple, transparent pricing", ko: "투명하고 단순한 가격" },
@@ -102,14 +106,18 @@ export const translations = {
 
     /* Features list (per plan) */
     featContractAnalysis:  { en: "Contract Analysis",  ko: "계약서 분석" },
-    featQuoteToContract:   { en: "Quote to Contract",  ko: "견적서 → 계약서" },
+    featQuoteToContract:   { en: "Quote / Chat to Contract",  ko: "견적서 / 대화 → 계약서" },
     featVendorRiskScan:    { en: "Vendor Risk Scan",   ko: "공급업체 리스크 스캔" },
     featESignature:        { en: "E-Signature",        ko: "전자서명" },
+    featAIAgent:           { en: "AI Legal Agent (chat)", ko: "AI 법률 에이전트 (채팅)" },
+    featChatMessages:      { en: "messages",           ko: "메시지" },
     featPerMonth:          { en: "/month",             ko: "/월" },
     featLocked:            { en: "locked",             ko: "잠김" },
     featUnlimited:         { en: "Unlimited",          ko: "무제한" },
     featEmailSupport:      { en: "Email support",      ko: "이메일 지원" },
     featPrioritySupport:   { en: "Priority support",   ko: "우선 지원" },
+    featAllLangs:          { en: "Korean + English",   ko: "한국어 + 영어" },
+    featChatScreenshot:    { en: "KakaoTalk / Slack / WhatsApp screenshot OCR", ko: "카톡 / 슬랙 / 왓츠앱 스크린샷 OCR" },
 
     /* CTA */
     ctaSectionTitle: { en: "Ready to protect yourself?", ko: "자신을 보호할 준비가 되셨나요?" },
