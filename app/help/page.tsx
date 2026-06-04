@@ -226,6 +226,17 @@ export default function HelpPage() {
           </Step>
         </Section>
 
+        {/* Sign recommendation */}
+        <div className="mt-8 bg-gradient-to-br from-yellow-900/10 to-[#162035] border border-yellow-700/30 rounded-2xl p-6">
+          <h3 className="text-white font-bold text-base mb-2">{t("landing.signNeededTitle")}</h3>
+          <p className="text-slate-300 text-sm leading-relaxed mb-3">{t("landing.signNeededBody")}</p>
+          <div className="flex flex-wrap gap-2">
+            <a href="https://www.docusign.com/" target="_blank" rel="noopener noreferrer" className="text-yellow-300 hover:text-yellow-200 text-xs font-medium bg-yellow-900/20 hover:bg-yellow-900/40 border border-yellow-700/40 rounded-md px-3 py-1.5 transition-colors">DocuSign →</a>
+            <a href="https://sign.dropbox.com/" target="_blank" rel="noopener noreferrer" className="text-yellow-300 hover:text-yellow-200 text-xs font-medium bg-yellow-900/20 hover:bg-yellow-900/40 border border-yellow-700/40 rounded-md px-3 py-1.5 transition-colors">Dropbox Sign →</a>
+            <a href="https://www.modusign.co.kr/" target="_blank" rel="noopener noreferrer" className="text-yellow-300 hover:text-yellow-200 text-xs font-medium bg-yellow-900/20 hover:bg-yellow-900/40 border border-yellow-700/40 rounded-md px-3 py-1.5 transition-colors">모두싸인 →</a>
+            <a href="https://www.eformsign.com/" target="_blank" rel="noopener noreferrer" className="text-yellow-300 hover:text-yellow-200 text-xs font-medium bg-yellow-900/20 hover:bg-yellow-900/40 border border-yellow-700/40 rounded-md px-3 py-1.5 transition-colors">이폼사인 →</a>
+          </div>
+        </div>
 
         {/* Footer CTA */}
         <div className="bg-gradient-to-br from-red-900/20 to-[#162035] border border-[#1e3050] rounded-2xl p-6 mt-10 text-center">

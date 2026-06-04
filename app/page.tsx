@@ -2,7 +2,7 @@
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import PaddleCheckout from "@/components/PaddleCheckout";
-import { Shield, Zap, FileText, CheckCircle, AlertTriangle, AlertCircle, Lock, Bot, MessageSquare, Building2 } from "lucide-react";
+import { Shield, Zap, FileText, CheckCircle, AlertTriangle, AlertCircle, Lock, Bot, MessageSquare, Building2, PenTool } from "lucide-react";
 import { useT } from "@/lib/i18n/LanguageProvider";
 
 export default function Home() {
@@ -128,6 +128,9 @@ export default function Home() {
               </div>
             ))}
           </div>
+
+          {/* Sign recommendation card (E-Signature replacement notice) */}
+          <SignRecommendationCard t={t} />
         </div>
       </section>
 
@@ -250,6 +253,48 @@ function RiskItem({ level, levelLabel, title, text, fix, fixLabel }: { level: "h
           <div className="bg-green-900/20 border border-green-800/30 rounded-lg p-2">
             <span className="text-green-400 text-xs font-semibold">{fixLabel} </span>
             <span className="text-green-300 text-xs">{fix}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SignRecommendationCard({ t }: { t: (key: string) => string }) {
+  return (
+    <div className="mt-10 bg-gradient-to-br from-yellow-900/10 to-[#162035] border border-yellow-700/30 rounded-2xl p-6 sm:p-8">
+      <div className="flex items-start gap-4">
+        <div className="w-10 h-10 bg-yellow-900/40 rounded-lg flex items-center justify-center shrink-0">
+          <PenTool className="w-5 h-5 text-yellow-300" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider bg-yellow-900/40 text-yellow-300 border border-yellow-700/40 rounded px-2 py-0.5 mb-2">
+            <CheckCircle className="w-3 h-3" />
+            {t("landing.signNeededTag")}
+          </div>
+          <h3 className="text-white font-bold text-lg sm:text-xl mb-2">
+            {t("landing.signNeededTitle")}
+          </h3>
+          <p className="text-slate-300 text-sm leading-relaxed mb-4">
+            {t("landing.signNeededBody")}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <a href="https://www.docusign.com/" target="_blank" rel="noopener noreferrer"
+               className="text-yellow-300 hover:text-yellow-200 text-xs font-medium bg-yellow-900/20 hover:bg-yellow-900/40 border border-yellow-700/40 rounded-md px-3 py-1.5 transition-colors">
+              {t("landing.signNeededLinkDocusign")}
+            </a>
+            <a href="https://sign.dropbox.com/" target="_blank" rel="noopener noreferrer"
+               className="text-yellow-300 hover:text-yellow-200 text-xs font-medium bg-yellow-900/20 hover:bg-yellow-900/40 border border-yellow-700/40 rounded-md px-3 py-1.5 transition-colors">
+              {t("landing.signNeededLinkDropbox")}
+            </a>
+            <a href="https://www.modusign.co.kr/" target="_blank" rel="noopener noreferrer"
+               className="text-yellow-300 hover:text-yellow-200 text-xs font-medium bg-yellow-900/20 hover:bg-yellow-900/40 border border-yellow-700/40 rounded-md px-3 py-1.5 transition-colors">
+              {t("landing.signNeededLinkModoosign")}
+            </a>
+            <a href="https://www.eformsign.com/" target="_blank" rel="noopener noreferrer"
+               className="text-yellow-300 hover:text-yellow-200 text-xs font-medium bg-yellow-900/20 hover:bg-yellow-900/40 border border-yellow-700/40 rounded-md px-3 py-1.5 transition-colors">
+              {t("landing.signNeededLinkEformsign")}
+            </a>
           </div>
         </div>
       </div>

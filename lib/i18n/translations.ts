@@ -87,8 +87,17 @@ export const translations = {
     f4Desc:  { en: "Drop a KakaoTalk / Slack / WhatsApp screenshot or paste a chat — AI extracts the agreement and drafts a full contract.", ko: "카톡 / 슬랙 / 왓츠앱 스크린샷을 올리거나 대화를 붙여넣으면 AI가 합의 내용을 추출해 정식 계약서를 생성합니다." },
     f5Title: { en: "Vendor Risk Scan", ko: "공급업체 리스크 스캔" },
     f5Desc:  { en: "Type any vendor name — AI searches news, lawsuits, and financials to deliver a due-diligence report.", ko: "공급업체명만 입력하면 AI가 뉴스·소송·재무를 검색해 실사 리포트를 제공합니다." },
-    f6Title: { en: "E-Signature", ko: "전자서명" },
-    f6Desc:  { en: "Upload a contract, place fields, send for signing — receive a legally binding signed PDF back.", ko: "계약서 업로드, 서명란 배치, 발송 — 법적 효력 있는 서명 PDF를 자동으로 받습니다." },
+
+    /* Sign recommendation card */
+    signNeededTag:   { en: "After analysis", ko: "분석 이후" },
+    signNeededTitle: { en: "Need to sign your contract?", ko: "계약서에 서명이 필요하신가요?" },
+    signNeededBody:  {
+      en: "RedlineAI focuses on analyzing and improving your contracts. For legally binding e-signatures, we recommend trusted services like DocuSign or Dropbox Sign. Once your contract is reviewed and ready, you can sign it securely there.",
+      ko: "RedlineAI는 계약서 분석과 개선에 집중하는 도구입니다. 법적 효력이 있는 전자서명은 모두싸인, 이폼사인 같은 검증된 서비스 이용을 권장드립니다. 검토와 수정이 끝난 계약서를 해당 서비스에서 안전하게 서명하실 수 있습니다." },
+    signNeededLinkDocusign:    { en: "DocuSign →", ko: "DocuSign →" },
+    signNeededLinkDropbox:     { en: "Dropbox Sign →", ko: "Dropbox Sign →" },
+    signNeededLinkModoosign:   { en: "모두싸인 →", ko: "모두싸인 →" },
+    signNeededLinkEformsign:   { en: "이폼사인 →", ko: "이폼사인 →" },
 
     /* Pricing */
     pricingTitle: { en: "Simple, transparent pricing", ko: "투명하고 단순한 가격" },
