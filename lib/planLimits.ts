@@ -3,13 +3,13 @@
 /* ------------------------------------------------------------------ */
 
 export type Plan = "free" | "pro" | "business";
-export type FeatureKey = "analysis" | "quote" | "vendor" | "esign" | "agent";
+export type FeatureKey = "analysis" | "quote" | "vendor" | "agent";
 
 /** null = unlimited, 0 = locked, number = monthly limit */
 export const PLAN_LIMITS: Record<Plan, Record<FeatureKey, number | null>> = {
-  free:     { analysis: 3,    quote: 0,    vendor: 0,  esign: 0,    agent: 10   },
-  pro:      { analysis: 30,   quote: 30,   vendor: 10, esign: 0,    agent: 100  },
-  business: { analysis: null, quote: null, vendor: 30, esign: null, agent: null },
+  free:     { analysis: 3,    quote: 0,    vendor: 0,  agent: 10   },
+  pro:      { analysis: 30,   quote: 30,   vendor: 10, agent: 100  },
+  business: { analysis: null, quote: null, vendor: 30, agent: null },
 };
 
 export const PLAN_PRICES = {
@@ -22,7 +22,6 @@ export const FEATURE_LABELS: Record<FeatureKey, string> = {
   analysis: "Contract Analysis",
   quote:    "Quote to Contract",
   vendor:   "Vendor Risk Scan",
-  esign:    "E-Signature",
   agent:    "AI Agent",
 };
 

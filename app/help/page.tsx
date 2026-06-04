@@ -5,12 +5,12 @@ import Navbar from "@/components/Navbar";
 import AppFooter from "@/components/AppFooter";
 import { useT } from "@/lib/i18n/LanguageProvider";
 import {
-  FileText, Receipt, Building2, PenTool, ChevronDown, ChevronRight,
-  Mail, CheckCircle, Sparkles, Eye, Calendar, Type, Send, Download,
+  FileText, Receipt, Building2, ChevronDown, ChevronRight,
+  Mail, Sparkles, Eye, Download,
   Search, BookOpen
 } from "lucide-react";
 
-type FeatureKey = "analysis" | "quote" | "vendor" | "esign";
+type FeatureKey = "analysis" | "quote" | "vendor";
 
 export default function HelpPage() {
   const { t, lang } = useT();
@@ -19,9 +19,8 @@ export default function HelpPage() {
 
   const features: { id: FeatureKey; label: string; icon: typeof FileText; tagline: string }[] = [
     { id: "analysis", label: ko ? "계약서 분석" : "Contract Analysis", icon: FileText, tagline: ko ? "AI로 위험 조항 찾기" : "Spot risky clauses with AI" },
-    { id: "quote",    label: ko ? "견적서 → 계약서" : "Quote to Contract", icon: Receipt, tagline: ko ? "견적서를 즉시 계약서로" : "Turn quotes into contracts instantly" },
+    { id: "quote",    label: ko ? "견적서 → 계약서" : "Quote to Contract", icon: Receipt, tagline: ko ? "견적서·대화를 즉시 계약서로" : "Turn quotes & chats into contracts" },
     { id: "vendor",   label: ko ? "공급업체 리스크 스캔" : "Vendor Risk Scan",  icon: Building2, tagline: ko ? "회사 실사 자동화" : "Due-diligence on any company" },
-    { id: "esign",    label: ko ? "전자서명" : "E-Signature",       icon: PenTool, tagline: ko ? "디지털 서명용 문서 전송" : "Send documents for digital signing" },
   ];
 
   return (
@@ -227,93 +226,6 @@ export default function HelpPage() {
           </Step>
         </Section>
 
-        {/* ── E-Signature ── */}
-        <Section
-          isOpen={open === "esign"}
-          onToggle={() => setOpen(open === "esign" ? null : "esign")}
-          icon={PenTool}
-          title={ko ? "전자서명" : "E-Signature"}
-          tagline={ko ? "PDF를 디지털 서명용으로 발송 → 서명된 PDF 자동 수령" : "Send PDFs for digital signing → Get signed PDF back automatically"}
-        >
-          <Step n={1} title={ko ? "전자서명 탭 열기" : "Open E-Signature tab"}>
-            {ko ? <><strong className="text-white">전자서명</strong> 탭을 클릭하세요.</> : <>Click the <strong className="text-white">E-Signature</strong> tab.</>}
-            <p className="text-yellow-400 text-xs mt-1">{ko ? "⚠️ Business 플랜 전용 (Free / Pro에서는 잠김)" : "⚠️ Business plan only (locked on Free / Pro)"}</p>
-          </Step>
-          <Step n={2} title={ko ? "'새 서명 요청 만들기' 클릭" : "Click 'Create New Signing Request'"} icon={Send}>
-            {ko ? "서명받을 PDF를 업로드하세요 (최대 20MB)." : "Then upload the PDF you want signed (max 20MB)."}
-          </Step>
-          <Step n={3} title={ko ? "문서에 서명 필드 배치" : "Place signature fields on the document"}>
-            <p className="text-slate-400 text-sm mt-1">
-              {ko ? <>필드 유형을 선택한 다음, <strong className="text-white">PDF의 원하는 위치를 클릭</strong>하세요:</> : <>Choose a field type, then <strong className="text-white">click anywhere on the PDF</strong> to drop it:</>}
-            </p>
-            <div className="grid grid-cols-3 gap-2 mt-2">
-              <FieldType color="red" label={ko ? "서명" : "Signature"} desc={ko ? "서명 이미지" : "The signature image"} />
-              <FieldType color="blue" label={ko ? "이름" : "Name"} desc={ko ? "서명자 이름 자동 입력" : "Auto-filled with signer name"} />
-              <FieldType color="purple" label={ko ? "날짜" : "Date"} desc={ko ? "오늘 날짜 자동 입력" : "Auto-filled with today"} />
-            </div>
-            <p className="text-slate-500 text-xs mt-2">{ko ? "배치된 필드에 마우스 오버 → ❌로 제거. 페이지당 여러 개 배치 가능." : "Hover over any placed field → ❌ to remove. You can place multiple fields per page."}</p>
-          </Step>
-          <Step n={4} title={ko ? "서명자 이름과 이메일 입력" : "Add the signer's name and email"}>
-            {ko ? "수신자의 이름과 이메일 주소를 입력하세요. 고유한 서명 링크가 발송됩니다." : "Type the recipient's full name and email address. They'll receive a unique signing link."}
-          </Step>
-          <Step n={5} title={ko ? "'서명 요청 발송' 클릭" : "Click 'Send Signing Request'"} icon={Mail}>
-            {ko ? "서명자에게 브랜드 이메일 링크가 발송됩니다:" : "We email a branded link to the signer:"}
-            <div className="bg-[#0f1a2e] rounded-lg p-3 mt-2 text-xs text-slate-400">
-              {ko ? <>
-                <p><strong className="text-white">발신자:</strong> RedlineAI &lt;noreply@getredlineai.com&gt;</p>
-                <p><strong className="text-white">제목:</strong> {`{귀하의 이름}님이 서명을 요청합니다...`}</p>
-                <p><strong className="text-white">버튼:</strong> 문서 검토 및 서명 →</p>
-              </> : <>
-                <p><strong className="text-white">From:</strong> RedlineAI &lt;noreply@getredlineai.com&gt;</p>
-                <p><strong className="text-white">Subject:</strong> {`{Your name} requests your signature on...`}</p>
-                <p><strong className="text-white">Button:</strong> Review &amp; Sign Document →</p>
-              </>}
-            </div>
-          </Step>
-          <Step n={6} title={ko ? "서명자에게 보이는 화면" : "What the signer sees"} icon={Eye}>
-            <p className="text-slate-400 text-sm mt-1">{ko ? "링크 클릭 시 3단계 안내 페이지가 나타납니다:" : "When they click the link, they get a guided 3-step page:"}</p>
-            <ul className="list-disc list-inside space-y-1 text-slate-400 text-sm mt-2">
-              {ko ? <>
-                <li><strong className="text-slate-300">검토</strong> — 문서 확인 (노란색으로 깜빡이는 필드가 있는 PDF 미리보기)</li>
-                <li><strong className="text-slate-300">서명 그리기</strong> — PC에서는 마우스, 모바일에서는 손가락</li>
-                <li><strong className="text-slate-300">클릭</strong> — &ldquo;문서 서명&rdquo; → 완료!</li>
-              </> : <>
-                <li><strong className="text-slate-300">Review</strong> the document (PDF preview with yellow blinking fields)</li>
-                <li><strong className="text-slate-300">Draw</strong> their signature (mouse on PC, finger on mobile)</li>
-                <li><strong className="text-slate-300">Click</strong> &ldquo;Sign Document&rdquo; — done!</li>
-              </>}
-            </ul>
-            <p className="text-slate-500 text-xs mt-2">
-              {ko ? <>💡 그린 서명이 배치된 <strong className="text-slate-300">모든 서명 필드</strong>에 자동으로 삽입됩니다 (DocuSign과 동일).</> : <>💡 The same signature drawing is automatically embedded at <strong className="text-slate-300">all signature fields</strong> you placed (just like DocuSign).</>}
-            </p>
-          </Step>
-          <Step n={7} title={ko ? "서명 완료 알림 받기" : "Get notified when signed"} icon={CheckCircle}>
-            {ko ? "문서가 서명되는 즉시 이메일을 받게 됩니다. 완료된 PDF는 대시보드에 저장됩니다." : "You receive an email the moment the document is signed. The completed PDF is saved to your dashboard."}
-          </Step>
-          <Step n={8} title={ko ? "서명된 계약서 다운로드" : "Download the signed contract"} icon={Download}>
-            {ko ? <><strong className="text-white">최근 요청</strong>으로 이동 → 서명된 항목 클릭:</> : <>Go to <strong className="text-white">Recent Requests</strong> → click the signed item:</>}
-            <ul className="list-disc list-inside space-y-1 text-slate-400 text-sm mt-1">
-              {ko ? <>
-                <li><strong className="text-slate-300">행 클릭</strong> → 브라우저에서 서명된 PDF 미리보기</li>
-                <li><strong className="text-slate-300">다운로드</strong> 버튼 → PDF 또는 Word 형식</li>
-                <li>Word는 편집 가능, PDF는 법적 원본입니다</li>
-              </> : <>
-                <li><strong className="text-slate-300">Click the row</strong> → preview signed PDF in browser</li>
-                <li><strong className="text-slate-300">Download</strong> button → PDF or Word format</li>
-                <li>Word version is editable; PDF is the legal copy</li>
-              </>}
-            </ul>
-          </Step>
-          <Step n={9} title={ko ? "감사 추적 (Audit trail)" : "Audit trail"}>
-            {ko ? "서명된 모든 문서에는 하단에 동의 증거가 포함됩니다:" : "Every signed document includes proof of consent at the bottom:"}
-            <div className="bg-[#0f1a2e] rounded-lg p-3 mt-2 text-xs text-slate-400 italic">
-              {ko ? "John Doe (john@company.com)가 서명함 · 2026년 4월 26일 · IP 1.2.3.4" : "Signed by John Doe (john@company.com) · April 26, 2026 · IP 1.2.3.4"}
-            </div>
-            <p className="text-slate-500 text-xs mt-2">
-              {ko ? "미국 ESIGN Act 및 EU eIDAS 규정에 따라 법적 효력을 갖습니다." : "Legally binding under U.S. ESIGN Act and EU eIDAS regulations."}
-            </p>
-          </Step>
-        </Section>
 
         {/* Footer CTA */}
         <div className="bg-gradient-to-br from-red-900/20 to-[#162035] border border-[#1e3050] rounded-2xl p-6 mt-10 text-center">
@@ -427,19 +339,3 @@ function InfoCard({ icon: Icon, label }: { icon: typeof FileText; label: string 
   );
 }
 
-function FieldType({ color, label, desc }: { color: "red" | "blue" | "purple"; label: string; desc: string }) {
-  const colors = {
-    red:    "bg-red-500/20 border-red-500/50",
-    blue:   "bg-blue-500/20 border-blue-500/50",
-    purple: "bg-purple-500/20 border-purple-500/50",
-  };
-  const icons = { red: PenTool, blue: Type, purple: Calendar };
-  const Icon = icons[color];
-  return (
-    <div className={`${colors[color]} border-2 border-dashed rounded-lg p-2 text-center`}>
-      <Icon className="w-3.5 h-3.5 text-white mx-auto mb-1 opacity-80" />
-      <p className="text-white text-xs font-bold">{label}</p>
-      <p className="text-slate-300 text-[9px] mt-0.5 opacity-80">{desc}</p>
-    </div>
-  );
-}
