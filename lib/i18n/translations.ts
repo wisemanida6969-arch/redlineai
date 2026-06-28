@@ -133,6 +133,8 @@ export const translations = {
     featPrioritySupport:   { en: "Priority support",   ko: "우선 지원" },
     featAllLangs:          { en: "Korean + English",   ko: "한국어 + 영어" },
     featChatScreenshot:    { en: "KakaoTalk / Slack screenshot OCR", ko: "카톡 / 슬랙 스크린샷 OCR" },
+    featPrecedentSearch:   { en: "Court precedent search & list", ko: "법원 판례 검색·목록" },
+    featPrecedentHolding:  { en: "Precedent holdings (issue & ruling)", ko: "판례 판결요지 열람" },
 
     /* CTA */
     ctaSectionTitle: { en: "Ready to contract safely?", ko: "안전하게 계약할 준비가 되셨나요?" },

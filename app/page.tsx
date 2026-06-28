@@ -160,6 +160,8 @@ export default function Home() {
                 `${t("landing.featStandardLibrary")}: ${t("landing.featUnlimited")}`,
                 `${t("landing.featContractAnalysis")}: 3${t("landing.featPerMonth")}`,
                 `${t("landing.featAIAgent")}: 10 ${t("landing.featChatMessages")}${t("landing.featPerMonth")}`,
+                t("landing.featPrecedentSearch"),
+                `${t("landing.featPrecedentHolding")}: ${t("landing.featLocked")}`,
                 `${t("landing.featQuoteToContract")}: ${t("landing.featLocked")}`,
                 t("landing.featAllLangs"),
               ]}
@@ -177,6 +179,7 @@ export default function Home() {
                 `${t("landing.featContractAnalysis")}: 30${t("landing.featPerMonth")}`,
                 `${t("landing.featQuoteToContract")}: 30${t("landing.featPerMonth")}`,
                 `${t("landing.featAIAgent")}: 100 ${t("landing.featChatMessages")}${t("landing.featPerMonth")}`,
+                t("landing.featPrecedentHolding"),
                 t("landing.featChatScreenshot"),
                 t("landing.featEmailSupport"),
               ]}
@@ -196,6 +199,7 @@ export default function Home() {
                 `${t("landing.featContractAnalysis")}: ${t("landing.featUnlimited")}`,
                 `${t("landing.featQuoteToContract")}: ${t("landing.featUnlimited")}`,
                 `${t("landing.featAIAgent")}: ${t("landing.featUnlimited")}`,
+                t("landing.featPrecedentHolding"),
                 `${t("landing.featVendorRiskScan")}: 30${t("landing.featPerMonth")}`,
                 t("landing.featPrioritySupport"),
               ]}
