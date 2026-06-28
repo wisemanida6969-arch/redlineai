@@ -2,8 +2,37 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { PLAN_LIMITS, type Plan } from "@/lib/planLimits";
+import { getCategory, getContractType } from "@/lib/standardContracts";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+/** Resolved standard-contract context for "compare against the standard" mode. */
+interface StandardCtx {
+  categoryKo: string; categoryEn: string;
+  typeKo: string;     typeEn: string;
+  partiesKo: string;  partiesEn: string;
+}
+
+/** Extra system-prompt guidance that turns analysis into a standard-comparison review. */
+function standardNote(lang: "en" | "ko", s: StandardCtx): string {
+  return lang === "ko"
+    ? `
+
+[표준 대비 검토 모드]
+이 계약서를 문화체육관광부 「${s.categoryKo} 분야 표준계약서」 중 「${s.typeKo}」(통상 당사자: ${s.partiesKo})를 기준으로 검토하세요.
+- 표준계약서가 통상 보장하는 보호 조항의 누락 또는 약화를 적극적으로 찾아 분류하세요: 대금 및 지급 시기·방법, 저작권·2차적저작물작성권 등 권리 귀속, 저작인격권(성명표시·동일성유지), 수정·재작업 범위와 횟수, 납품·계약 기간, 비밀유지, 계약 해지, 손해배상, 분쟁 해결.
+- 표준 대비 창작자(을)에게 불리하게 작성된 조항을 우선적으로 지적하세요.
+- summary 첫 문장에 「${s.typeKo}」 표준 대비 종합 평가를 포함하세요.
+- 표준계약서 원문을 그대로 인용하지 말고, 일반적으로 알려진 표준계약서의 보호 취지를 기준으로 판단하세요. 결과는 참고용이며 사용자는 공식 표준양식과 대조해야 합니다.`
+    : `
+
+[Standard comparison mode]
+Review this contract against Korea MCST's "${s.categoryEn} standard contract — ${s.typeEn}" (typical parties: ${s.partiesEn}).
+- Actively flag protections the standard usually guarantees that are missing or weakened: payment & timing, ownership of copyright / derivative-work rights, moral rights, revision scope & count, delivery/term, confidentiality, termination, damages, dispute resolution.
+- Prioritise clauses that are worse for the creator than the standard.
+- Put the standard-vs-contract assessment in the first sentence of "summary".
+- Do not quote the official form verbatim; judge by the standard's general protective intent. Results are for reference and must be checked against the official form.`;
+}
 
 const SYSTEM_PROMPT_EN = `You are a senior contract lawyer specializing in identifying risky, vague, or one-sided contract clauses. You analyze contracts and provide actionable risk assessments.
 
@@ -96,12 +125,16 @@ async function extractTextFromDocx(buffer: Buffer): Promise<string> {
   return result.value?.trim() || "";
 }
 
-async function analyzeContract(contractText: string, lang: "en" | "ko" = "en"): Promise<object> {
+async function analyzeContract(contractText: string, lang: "en" | "ko" = "en", standard?: StandardCtx): Promise<object> {
   const truncated = contractText.slice(0, 15000);
-  const sys = lang === "ko" ? SYSTEM_PROMPT_KO : SYSTEM_PROMPT_EN;
+  const baseSys = lang === "ko" ? SYSTEM_PROMPT_KO : SYSTEM_PROMPT_EN;
+  const sys = standard ? baseSys + standardNote(lang, standard) : baseSys;
+  const stdLine = standard
+    ? (lang === "ko" ? `(기준 표준: 문체부 「${standard.typeKo}」)\n\n` : `(Benchmark standard: MCST "${standard.typeEn}")\n\n`)
+    : "";
   const userPrompt = lang === "ko"
-    ? `이 계약서를 분석해 JSON 리스크 리포트를 한국어로 반환해주세요:\n\n${truncated}`
-    : `Please analyze this contract and return a JSON risk report:\n\n${truncated}`;
+    ? `이 계약서를 분석해 JSON 리스크 리포트를 한국어로 반환해주세요:\n\n${stdLine}${truncated}`
+    : `Please analyze this contract and return a JSON risk report:\n\n${stdLine}${truncated}`;
   const message = await client.messages.create({
     model: "claude-sonnet-4-20250514",
     max_tokens: 4096,
@@ -156,6 +189,22 @@ export async function POST(req: NextRequest) {
     const langField = formData.get("lang");
     const lang: "en" | "ko" = langField === "ko" ? "ko" : "en";
 
+    // ── Optional: compare against a chosen MCST standard contract ──
+    const stdCatId = formData.get("standardCategory") as string | null;
+    const stdTypeId = formData.get("standardType") as string | null;
+    let standard: StandardCtx | undefined;
+    if (stdCatId && stdTypeId) {
+      const cat = getCategory(stdCatId);
+      const type = getContractType(stdCatId, stdTypeId);
+      if (cat && type) {
+        standard = {
+          categoryKo: cat.title.ko, categoryEn: cat.title.en,
+          typeKo: type.title.ko,    typeEn: type.title.en,
+          partiesKo: type.parties.ko, partiesEn: type.parties.en,
+        };
+      }
+    }
+
     let contractText = "";
     let extractionMethod = "paste";
     let filename = "Pasted text";
@@ -191,7 +240,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ── AI Analysis ──
-    const analysisData = await analyzeContract(contractText, lang) as {
+    const analysisData = await analyzeContract(contractText, lang, standard) as {
       summary: string;
       high: unknown[];
       medium: unknown[];

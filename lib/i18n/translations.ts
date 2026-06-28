@@ -50,54 +50,60 @@ export const translations = {
 
   /* ── Landing Page ── */
   landing: {
-    tag:           { en: "AI-Powered Contract Analysis", ko: "AI 기반 계약서 분석" },
-    headline1:     { en: "Spot risky contract clauses", ko: "위험한 계약 조항을 찾아내세요" },
-    headlineAccent:{ en: "before you sign", ko: "서명 전에" },
+    tag:           { en: "Based on Korean Government Standard Contracts", ko: "문화체육관광부 표준계약서 기반" },
+    headline1:     { en: "Standard contracts for", ko: "창작자를 위한" },
+    headlineAccent:{ en: "creative freelancers", ko: "표준계약서 AI" },
     sub:           {
-      en: "RedlineAI scans your contracts in seconds, flags dangerous clauses, and gives you copy-paste ready rewrites. Powered by Claude AI.",
-      ko: "RedlineAI는 몇 초 만에 계약서를 스캔하고 위험한 조항을 표시하며, 바로 복사해서 쓸 수 있는 대안 문구를 제공합니다. Claude AI 기반.",
+      en: "Fine art · webtoon · performance · film · craft. Draft contracts from the government's official standard forms, and check the contracts you receive against the standard to spot unfair clauses — powered by Claude AI.",
+      ko: "미술 · 웹툰 · 공연 · 영화 · 공예 — 문화체육관광부가 배포한 공식 표준계약서로 손쉽게 작성하고, 받은 계약서를 표준과 비교해 불리한 조항을 찾아냅니다. Claude AI 기반.",
     },
-    ctaPrimary:    { en: "Scan a Contract Free →", ko: "무료로 계약서 스캔하기 →" },
-    ctaSecondary:  { en: "See how it works",      ko: "사용 방법 보기" },
-    noCard:        { en: "No credit card required · 3 free scans/month", ko: "신용카드 불필요 · 월 3회 무료" },
+    ctaPrimary:    { en: "Start Free →", ko: "무료로 시작하기 →" },
+    ctaSecondary:  { en: "Browse standard contracts", ko: "표준계약서 둘러보기" },
+    noCard:        { en: "No credit card · Built on official MCST standard forms", ko: "신용카드 불필요 · 문체부 공식 표준양식 기반" },
 
-    /* Risk preview */
-    sampleDoc:     { en: "sample_nda.pdf — Analysis complete", ko: "sample_nda.pdf — 분석 완료" },
-    suggestedFix:  { en: "Suggested fix:", ko: "제안 수정안:" },
+    /* Category preview */
+    catTitle:      { en: "Official standard contracts, organized by field", ko: "분야별 공식 표준계약서를 한 곳에" },
+    catSub:        { en: "Published by the Ministry of Culture, Sports and Tourism. Browse, download the official form, then draft or review with AI.", ko: "문화체육관광부가 배포한 표준계약서입니다. 둘러보고, 공식 양식을 받고, AI로 작성·검토하세요." },
+    catTypesLabel: { en: "forms", ko: "종" },
+    catViewAll:    { en: "Open the standard contract library →", ko: "표준계약서 라이브러리 열기 →" },
+
+    /* Sample preview */
+    sampleDoc:     { en: "webtoon_serialization.pdf — Reviewed vs. standard", ko: "웹툰_연재계약서.pdf — 표준 대비 검토 완료" },
+    suggestedFix:  { en: "Standard form says:", ko: "표준양식 기준:" },
 
     /* How it works */
     howTitle:      { en: "How it works", ko: "사용 방법" },
     step:          { en: "Step",         ko: "단계" },
-    howStep1Title: { en: "Upload your contract", ko: "계약서 업로드" },
-    howStep1Desc:  { en: "Drag & drop a PDF or paste your contract text directly.", ko: "PDF를 드래그하거나 계약 내용을 붙여넣으세요." },
-    howStep2Title: { en: "AI scans every clause", ko: "AI가 모든 조항 분석" },
-    howStep2Desc:  { en: "Claude AI analyzes the entire document for risks, ambiguities, and one-sided terms.", ko: "Claude AI가 전체 문서에서 위험, 모호한 표현, 불공정 조항을 찾아냅니다." },
-    howStep3Title: { en: "Get your risk report", ko: "리스크 리포트 받기" },
-    howStep3Desc:  { en: "Receive a full report with severity ratings and copy-paste ready fix suggestions.", ko: "심각도 평가와 즉시 사용 가능한 수정 제안이 담긴 리포트를 받으세요." },
+    howStep1Title: { en: "Pick your field", ko: "내 분야 선택" },
+    howStep1Desc:  { en: "Choose the standard contract for your field — fine art, webtoon, performance, film, or craft.", ko: "미술·웹툰·공연·영화·공예 중 내 분야의 표준계약서를 고르세요." },
+    howStep2Title: { en: "Draft or review with AI", ko: "AI로 작성 또는 검토" },
+    howStep2Desc:  { en: "Enter your project terms to draft from the standard form, or upload a contract you received to compare it against the standard.", ko: "내 조건을 입력해 표준양식 기반 초안을 만들거나, 받은 계약서를 올려 표준과 비교 분석하세요." },
+    howStep3Title: { en: "Sign with confidence", ko: "안심하고 계약" },
+    howStep3Desc:  { en: "See which clauses are missing or worse than the standard, fix them, and sign knowing your rights are protected.", ko: "표준보다 불리하거나 빠진 보호 조항을 확인하고 수정한 뒤, 권리를 지킨 채 서명하세요." },
 
     /* Features */
-    featuresTitle: { en: "Everything you need to review contracts safely", ko: "안전한 계약 검토에 필요한 모든 것" },
-    f1Title: { en: "Risk categorization", ko: "리스크 분류" },
-    f1Desc:  { en: "Every issue categorized as High, Medium, or Low severity so you know what to prioritize.", ko: "모든 이슈를 높음/중간/낮음으로 분류해 우선순위를 한눈에 파악합니다." },
-    f2Title: { en: "Fix suggestions",  ko: "수정 제안" },
-    f2Desc:  { en: "Each flagged clause comes with a professionally rewritten version you can copy instantly.", ko: "지적된 조항마다 바로 복사해 사용할 수 있는 전문가 수준의 수정안을 제공합니다." },
-    f3Title: { en: "AI Legal Agent", ko: "AI 법률 에이전트" },
-    f3Desc:  { en: "Chat with AI to draft negotiation emails, ask legal questions, and explore clause alternatives — all in one place.", ko: "AI와 대화하며 협상 이메일 작성, 법률 질문, 조항 대안 탐색까지 한 곳에서 처리하세요." },
-    f4Title: { en: "Chat → Contract", ko: "메신저 → 계약서" },
-    f4Desc:  { en: "Drop a KakaoTalk / Slack / WhatsApp screenshot or paste a chat — AI extracts the agreement and drafts a full contract.", ko: "카톡 / 슬랙 / 왓츠앱 스크린샷을 올리거나 대화를 붙여넣으면 AI가 합의 내용을 추출해 정식 계약서를 생성합니다." },
-    f5Title: { en: "Vendor Risk Scan", ko: "공급업체 리스크 스캔" },
-    f5Desc:  { en: "Type any vendor name — AI searches news, lawsuits, and financials to deliver a due-diligence report.", ko: "공급업체명만 입력하면 AI가 뉴스·소송·재무를 검색해 실사 리포트를 제공합니다." },
+    featuresTitle: { en: "Everything a creative freelancer needs to contract safely", ko: "창작 프리랜서가 안전하게 계약하는 데 필요한 모든 것" },
+    f1Title: { en: "Standard contract library", ko: "표준계약서 라이브러리" },
+    f1Desc:  { en: "Fine art (12), webtoon (8), performance (5), film (5), craft (5) — every official MCST standard form in one place, with a direct link to the authoritative download.", ko: "미술 12종·웹툰 8종·공연 5종·영화 5종·공예 5종 — 문체부 공식 표준양식을 한 곳에서, 원본 다운로드 링크와 함께." },
+    f2Title: { en: "Review against the standard", ko: "표준 대비 검토" },
+    f2Desc:  { en: "Upload a contract you were offered. AI compares it to the matching standard form and flags missing protections and clauses worse than the standard.", ko: "제안받은 계약서를 올리면, AI가 해당 분야 표준양식과 비교해 빠진 보호 조항과 표준보다 불리한 조항을 표시합니다." },
+    f3Title: { en: "Draft from the standard form", ko: "표준양식 기반 작성" },
+    f3Desc:  { en: "Enter your project details and AI drafts a contract following the official standard structure — no blank-page stress.", ko: "내 프로젝트 조건만 입력하면 AI가 공식 표준 구조에 맞춰 계약서 초안을 만들어 줍니다." },
+    f4Title: { en: "Chat → Contract", ko: "대화 → 계약서" },
+    f4Desc:  { en: "Agreed something over KakaoTalk? Drop a screenshot or paste the chat — AI turns it into a proper contract.", ko: "카톡으로 합의했나요? 스크린샷을 올리거나 대화를 붙여넣으면 AI가 정식 계약서로 만들어 줍니다." },
+    f5Title: { en: "AI legal assistant", ko: "AI 법률 도우미" },
+    f5Desc:  { en: "Chat with AI to understand a clause, draft a negotiation message, or ask what a term means in plain Korean.", ko: "AI와 대화하며 조항을 이해하고, 협상 메시지를 작성하고, 어려운 용어를 쉬운 말로 물어보세요." },
 
     /* Sign recommendation card */
-    signNeededTag:   { en: "After analysis", ko: "분석 이후" },
+    signNeededTag:   { en: "After review", ko: "검토 이후" },
     signNeededTitle: { en: "Need to sign your contract?", ko: "계약서에 서명이 필요하신가요?" },
     signNeededBody:  {
-      en: "RedlineAI focuses on analyzing and improving your contracts. For legally binding e-signatures, we recommend trusted services like DocuSign or Dropbox Sign. Once your contract is reviewed and ready, you can sign it securely there.",
-      ko: "RedlineAI는 계약서 분석과 개선에 집중하는 도구입니다. 법적 효력이 있는 전자서명은 모두싸인, 이폼사인 같은 검증된 서비스 이용을 권장드립니다. 검토와 수정이 끝난 계약서를 해당 서비스에서 안전하게 서명하실 수 있습니다." },
-    signNeededLinkDocusign:    { en: "DocuSign →", ko: "DocuSign →" },
-    signNeededLinkDropbox:     { en: "Dropbox Sign →", ko: "Dropbox Sign →" },
+      en: "RedlineAI focuses on drafting and reviewing contracts. For legally binding e-signatures, we recommend trusted Korean services like ModuSign or eformsign. Once your contract is reviewed and ready, you can sign it securely there.",
+      ko: "RedlineAI는 계약서 작성과 검토에 집중하는 도구입니다. 법적 효력이 있는 전자서명은 모두싸인, 이폼사인 같은 검증된 서비스 이용을 권장드립니다. 검토와 수정이 끝난 계약서를 해당 서비스에서 안전하게 서명하실 수 있습니다." },
     signNeededLinkModoosign:   { en: "모두싸인 →", ko: "모두싸인 →" },
     signNeededLinkEformsign:   { en: "이폼사인 →", ko: "이폼사인 →" },
+    signNeededLinkDocusign:    { en: "DocuSign →", ko: "DocuSign →" },
+    signNeededLinkDropbox:     { en: "Dropbox Sign →", ko: "Dropbox Sign →" },
 
     /* Pricing */
     pricingTitle: { en: "Simple, transparent pricing", ko: "투명하고 단순한 가격" },
@@ -106,19 +112,19 @@ export const translations = {
     perMonth:     { en: "/month", ko: "/월" },
 
     /* Plan descriptions */
-    planFreeDesc:     { en: "For individuals trying RedlineAI", ko: "RedlineAI를 처음 사용해 보는 개인용" },
-    planProDesc:      { en: "For freelancers and small teams",  ko: "프리랜서와 소규모 팀을 위한" },
-    planBusinessDesc: { en: "For teams reviewing contracts at scale", ko: "대량 계약을 검토하는 팀을 위한" },
+    planFreeDesc:     { en: "For creators trying RedlineAI", ko: "RedlineAI를 처음 써보는 창작자용" },
+    planProDesc:      { en: "For active freelance creators",  ko: "활동 중인 프리랜서 창작자를 위한" },
+    planBusinessDesc: { en: "For studios and agencies", ko: "스튜디오·에이전시를 위한" },
     ctaFree:          { en: "Get started free", ko: "무료로 시작" },
     ctaPro:           { en: "Start Pro",        ko: "Pro 시작" },
     ctaBusiness:      { en: "Start Business",   ko: "Business 시작" },
 
     /* Features list (per plan) */
-    featContractAnalysis:  { en: "Contract Analysis",  ko: "계약서 분석" },
-    featQuoteToContract:   { en: "Quote / Chat to Contract",  ko: "견적서 / 대화 → 계약서" },
+    featStandardLibrary:   { en: "Standard contract library",  ko: "표준계약서 라이브러리" },
+    featContractAnalysis:  { en: "Review against standard",  ko: "표준 대비 검토" },
+    featQuoteToContract:   { en: "Draft from standard / chat",  ko: "표준양식 / 대화 → 작성" },
     featVendorRiskScan:    { en: "Vendor Risk Scan",   ko: "공급업체 리스크 스캔" },
-    featESignature:        { en: "E-Signature",        ko: "전자서명" },
-    featAIAgent:           { en: "AI Legal Agent (chat)", ko: "AI 법률 에이전트 (채팅)" },
+    featAIAgent:           { en: "AI legal assistant (chat)", ko: "AI 법률 도우미 (채팅)" },
     featChatMessages:      { en: "messages",           ko: "메시지" },
     featPerMonth:          { en: "/month",             ko: "/월" },
     featLocked:            { en: "locked",             ko: "잠김" },
@@ -126,11 +132,11 @@ export const translations = {
     featEmailSupport:      { en: "Email support",      ko: "이메일 지원" },
     featPrioritySupport:   { en: "Priority support",   ko: "우선 지원" },
     featAllLangs:          { en: "Korean + English",   ko: "한국어 + 영어" },
-    featChatScreenshot:    { en: "KakaoTalk / Slack / WhatsApp screenshot OCR", ko: "카톡 / 슬랙 / 왓츠앱 스크린샷 OCR" },
+    featChatScreenshot:    { en: "KakaoTalk / Slack screenshot OCR", ko: "카톡 / 슬랙 스크린샷 OCR" },
 
     /* CTA */
-    ctaSectionTitle: { en: "Ready to protect yourself?", ko: "자신을 보호할 준비가 되셨나요?" },
-    ctaSectionSub:   { en: "Scan your first contract in under 60 seconds — free.", ko: "60초 안에 첫 계약서를 무료로 스캔하세요." },
+    ctaSectionTitle: { en: "Ready to contract safely?", ko: "안전하게 계약할 준비가 되셨나요?" },
+    ctaSectionSub:   { en: "Browse the standard contracts and draft your first one — free.", ko: "표준계약서를 둘러보고 첫 계약서를 무료로 작성해보세요." },
 
     /* Risk levels */
     high:   { en: "high",   ko: "높음" },
@@ -171,8 +177,9 @@ export const translations = {
     manageSub:        { en: "Manage Subscription", ko: "구독 관리" },
 
     /* Feature tabs */
-    tabAnalysis: { en: "Contract Analysis",  ko: "계약서 분석" },
-    tabQuote:    { en: "Quote to Contract",  ko: "견적서 → 계약서" },
+    tabStandard: { en: "Standard Contracts", ko: "표준계약서" },
+    tabAnalysis: { en: "Review",             ko: "계약서 검토" },
+    tabQuote:    { en: "Draft",              ko: "계약서 작성" },
     tabVendor:   { en: "Vendor Risk Scan",   ko: "공급업체 리스크 스캔" },
     tabEsign:    { en: "E-Signature",        ko: "전자서명" },
     soon:        { en: "Soon", ko: "곧 출시" },
@@ -258,6 +265,44 @@ export const translations = {
     /* Delete */
     deleteChat:      { en: "Delete conversation", ko: "대화 삭제" },
     deleteConfirm:   { en: "Delete this conversation? This cannot be undone.", ko: "이 대화를 삭제할까요? 되돌릴 수 없습니다." },
+  },
+
+  /* ── Standard Contract Library ── */
+  standard: {
+    title:        { en: "Standard Contracts", ko: "표준계약서" },
+    intro:        { en: "Official standard contracts published by Korea's Ministry of Culture, Sports and Tourism. Browse by field, download the authoritative form, then draft or review with AI.", ko: "문화체육관광부가 배포한 분야별 공식 표준계약서입니다. 분야를 둘러보고 공식 양식을 내려받은 뒤, AI로 작성하거나 받은 계약서를 표준과 비교 검토하세요." },
+    poweredByGov: { en: "Official forms by the Ministry of Culture, Sports and Tourism", ko: "문화체육관광부 공식 표준양식" },
+
+    /* Category grid */
+    fieldsLabel:  { en: "fields", ko: "개 분야" },
+    formsLabel:   { en: "forms",  ko: "종" },
+    typesIn:      { en: "forms in this field", ko: "종의 표준양식" },
+    revisedLabel: { en: "Updated", ko: "기준" },
+    openField:    { en: "Open", ko: "열기" },
+
+    /* Type detail */
+    backToFields: { en: "← All fields", ko: "← 분야 목록" },
+    partiesLabel: { en: "Parties", ko: "당사자" },
+    whenToUse:    { en: "When to use", ko: "이럴 때 사용" },
+    downloadOfficial: { en: "Download official form", ko: "공식 양식 다운로드" },
+    officialSource:   { en: "Official source", ko: "공식 출처" },
+
+    /* Actions */
+    actionDraft:  { en: "Draft this with AI", ko: "이 양식으로 AI 작성" },
+    actionReview: { en: "Review a contract I received", ko: "받은 계약서 검토하기" },
+    actionsTitle: { en: "What do you want to do?", ko: "무엇을 하시겠어요?" },
+
+    /* Disclaimer */
+    disclaimer:   { en: "⚠️ Always confirm against the official form from the Korea Artist Welfare Foundation / MCST. AI drafts and reviews are for reference — verify the final version against the official standard and consult a professional for important deals.", ko: "⚠️ 최종본은 반드시 한국예술인복지재단 / 문체부의 공식 양식과 대조하세요. AI 작성·검토 결과는 참고용이며, 중요한 계약은 공식 표준양식 확인과 전문가 상담을 권장합니다." },
+    officialPortalKawf: { en: "Korea Artist Welfare Foundation", ko: "한국예술인복지재단" },
+    officialPortalMcst: { en: "Ministry of Culture, Sports and Tourism", ko: "문화체육관광부 자료실" },
+
+    /* Selected-standard banner (shown on Review / Draft tabs) */
+    bannerReview: { en: "Reviewing against standard", ko: "표준 대비 검토" },
+    bannerDraft:  { en: "Drafting based on standard",  ko: "표준양식 기반 작성" },
+    clear:        { en: "Clear", ko: "해제" },
+    aiDraftNote:  { en: "AI drafted this following the structure of the standard form above. Download it and check against the official form before signing.", ko: "위 표준계약서 구조를 따라 AI가 작성한 초안입니다. 서명 전 공식 양식·전문가 검토와 대조하세요." },
+    reviewModeNote: { en: "Upload the contract you received — AI compares it against this standard form and flags missing or weaker protections.", ko: "받은 계약서를 올리면 AI가 이 표준양식과 비교해 누락되거나 약화된 보호 조항을 표시합니다." },
   },
 
   /* ── Usage Counter ── */

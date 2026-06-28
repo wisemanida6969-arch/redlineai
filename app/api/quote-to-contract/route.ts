@@ -2,8 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { PLAN_LIMITS, type Plan } from "@/lib/planLimits";
+import { getCategory, getContractType } from "@/lib/standardContracts";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+interface StandardCtx {
+  categoryKo: string; categoryEn: string;
+  typeKo: string;     typeEn: string;
+  partiesKo: string;  partiesEn: string;
+}
 
 const EXTRACTION_PROMPT_EN = `You are a contract drafting assistant. Extract key business terms from the provided content.
 
@@ -341,6 +348,43 @@ function generateContract(data: ExtractedQuote, lang: "en" | "ko" = "en"): strin
   return lang === "ko" ? generateContractKO(data) : generateContractEN(data);
 }
 
+/**
+ * Generate a contract draft that follows the structure & creator-protections of a
+ * chosen MCST standard contract, filled with the extracted deal data. AI-generated
+ * (Claude knows the standard forms); always carries a "verify against official form" note.
+ */
+async function generateStandardDraftAI(data: ExtractedQuote, lang: "en" | "ko", s: StandardCtx): Promise<string> {
+  const sys = lang === "ko"
+    ? `당신은 한국 창작 분야 계약서 작성 전문 변호사입니다. 문화체육관광부가 배포한 「${s.categoryKo} 분야 표준계약서」 중 「${s.typeKo}」(통상 당사자: ${s.partiesKo})의 구조와 창작자 보호 조항을 충실히 따르는 정식 한국어 계약서 초안을 작성하세요.
+
+요구사항:
+- 해당 표준계약서에 통상 포함되는 조항을 빠짐없이 구성하세요: 계약의 목적, 정의, 권리의 귀속(저작재산권·2차적저작물작성권 등), 저작인격권(성명표시·동일성유지), 대금 및 지급 시기·방법, 수정·재작업의 범위와 횟수, 납품·계약 기간, 비밀유지, 계약의 해지, 손해배상, 분쟁 해결, 기타.
+- 아래 제공된 실제 거래 정보를 해당 조항에 반영하세요. 정보가 없는 항목은 "[기재 필요]" 형태의 placeholder로 두고 절대 지어내지 마세요.
+- 당사자 호칭과 권리 구조는 「${s.partiesKo}」 맥락(창작자 보호)에 맞추세요.
+- 계약서 본문만 출력하세요. 설명 문장이나 마크다운 기호(##, ** 등)는 쓰지 말고, 조문 번호(제1조, 제2조 …) 형식으로 작성하세요. 마지막에 양 당사자 서명란을 포함하세요.
+- 본문 맨 끝에 한 줄로 다음 고지를 그대로 포함하세요: "※ 본 초안은 문화체육관광부 「${s.typeKo}」 표준계약서를 참고하여 AI가 작성한 것으로, 서명 전 반드시 공식 표준양식 및 전문가 검토와 대조하시기 바랍니다."`
+    : `You are a Korean creative-industry contract lawyer. Draft a formal contract that faithfully follows the structure and creator protections of Korea MCST's "${s.categoryEn} standard contract — ${s.typeEn}" (typical parties: ${s.partiesEn}).
+
+Requirements:
+- Include the clauses the standard normally covers: purpose, definitions, assignment of rights (copyright / derivative-work rights), moral rights, fees & payment timing/method, scope & number of revisions, delivery/term, confidentiality, termination, damages, dispute resolution, miscellaneous.
+- Fill clauses with the deal data below. For missing items use a "[to be specified]" placeholder — never fabricate.
+- Output ONLY the contract body (no commentary, no markdown symbols), using article numbering (Article 1, Article 2 …), and end with a signature block.
+- Append this exact note as the final line: "※ This draft was AI-generated following the MCST \"${s.typeEn}\" standard contract; before signing, verify it against the official standard form and have it reviewed by a professional."`;
+
+  const userPrompt = lang === "ko"
+    ? `다음 거래 정보를 반영해 계약서 초안을 작성하세요:\n\n${JSON.stringify(data, null, 2)}`
+    : `Draft the contract using this deal data:\n\n${JSON.stringify(data, null, 2)}`;
+
+  const message = await client.messages.create({
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 4096,
+    temperature: 0.2,
+    system: sys,
+    messages: [{ role: "user", content: userPrompt }],
+  });
+  return message.content[0].type === "text" ? message.content[0].text.trim() : "";
+}
+
 export async function POST(req: NextRequest) {
   try {
     // ── Auth check ──
@@ -388,6 +432,24 @@ export async function POST(req: NextRequest) {
     const pastedText = formData.get("text") as string | null;
     const files = formData.getAll("file") as File[];
     const sourceFilename = formData.get("filename") as string | null;
+
+    // ── Optional: draft following a chosen MCST standard contract ──
+    const stdCatId = formData.get("standardCategory") as string | null;
+    const stdTypeId = formData.get("standardType") as string | null;
+    let standard: StandardCtx | undefined;
+    let standardTitle = "";
+    if (stdCatId && stdTypeId) {
+      const cat = getCategory(stdCatId);
+      const type = getContractType(stdCatId, stdTypeId);
+      if (cat && type) {
+        standard = {
+          categoryKo: cat.title.ko, categoryEn: cat.title.en,
+          typeKo: type.title.ko,    typeEn: type.title.en,
+          partiesKo: type.parties.ko, partiesEn: type.parties.en,
+        };
+        standardTitle = lang === "ko" ? type.title.ko : type.title.en;
+      }
+    }
 
     let quoteText = "";
     let extractionMethod = "";
@@ -461,7 +523,11 @@ export async function POST(req: NextRequest) {
     const extracted = await extractQuoteData(quoteText, lang);
 
     // ── Generate contract draft ──
-    const contractText = generateContract(extracted, lang);
+    // Standard selected → AI draft following that MCST standard form.
+    // Otherwise → fast deterministic generic service-agreement template.
+    const contractText = standard
+      ? await generateStandardDraftAI(extracted, lang, standard)
+      : generateContract(extracted, lang);
 
     // ── Update usage ──
     await service.from("profiles").update({
@@ -478,6 +544,8 @@ export async function POST(req: NextRequest) {
       quoteUsed: quoteUsed + 1,
       quoteLimit: limit,
       lang,
+      standardMode: Boolean(standard),
+      standardTitle,
     });
   } catch (err: unknown) {
     console.error("Quote-to-contract error:", err);

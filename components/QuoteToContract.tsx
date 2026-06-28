@@ -20,11 +20,15 @@ type View = "upload" | "review" | "preview";
 
 interface QuoteToContractProps {
   onUsed?: () => void;
+  /** When set, draft follows this MCST standard form (AI-generated). */
+  standard?: { categoryId: string; typeId: string } | null;
 }
 
-export default function QuoteToContract({ onUsed }: QuoteToContractProps = {}) {
+export default function QuoteToContract({ onUsed, standard }: QuoteToContractProps = {}) {
   const { t, lang } = useT();
   const [view, setView] = useState<View>("upload");
+  const [standardMode, setStandardMode] = useState(false);
+  const [standardTitle, setStandardTitle] = useState("");
   const [mode, setMode] = useState<"file" | "chat">("file");
   const [files, setFiles] = useState<File[]>([]);
   const [chatText, setChatText] = useState("");
@@ -82,8 +86,14 @@ export default function QuoteToContract({ onUsed }: QuoteToContractProps = {}) {
         formData.append("filename", lang === "ko" ? "대화 내용" : "Pasted conversation");
       }
       formData.append("lang", lang);
+      if (standard) {
+        formData.append("standardCategory", standard.categoryId);
+        formData.append("standardType", standard.typeId);
+      }
 
-      setLoadingStep(lang === "ko" ? "Claude AI로 분석 중…" : "Analyzing with Claude AI…");
+      setLoadingStep(standard
+        ? (lang === "ko" ? "표준양식 기반 작성 중…" : "Drafting from the standard…")
+        : (lang === "ko" ? "Claude AI로 분석 중…" : "Analyzing with Claude AI…"));
       const res = await fetch("/api/quote-to-contract", { method: "POST", body: formData });
       const data = await res.json();
 
@@ -93,7 +103,15 @@ export default function QuoteToContract({ onUsed }: QuoteToContractProps = {}) {
 
       setResult(data);
       setEditedData(data.extracted);
-      setView("review");
+      if (data.standardMode) {
+        // AI drafted from the standard form → straight to preview (no field-edit step).
+        setStandardMode(true);
+        setStandardTitle(data.standardTitle || "");
+        setView("preview");
+      } else {
+        setStandardMode(false);
+        setView("review");
+      }
       onUsed?.();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
@@ -132,6 +150,8 @@ export default function QuoteToContract({ onUsed }: QuoteToContractProps = {}) {
     setResult(null);
     setEditedData(null);
     setError("");
+    setStandardMode(false);
+    setStandardTitle("");
   };
 
   /* ─────────────── UPLOAD VIEW ─────────────── */
@@ -362,8 +382,8 @@ export default function QuoteToContract({ onUsed }: QuoteToContractProps = {}) {
     return (
       <div>
         <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
-          <button onClick={() => setView("review")} className="flex items-center gap-1 text-slate-400 hover:text-white text-sm transition-colors">
-            <ArrowLeft className="w-4 h-4" /> {t("quote.editTerms")}
+          <button onClick={() => (standardMode ? reset() : setView("review"))} className="flex items-center gap-1 text-slate-400 hover:text-white text-sm transition-colors">
+            <ArrowLeft className="w-4 h-4" /> {standardMode ? t("quote.uploadDifferent") : t("quote.editTerms")}
           </button>
 
           <button
@@ -375,6 +395,13 @@ export default function QuoteToContract({ onUsed }: QuoteToContractProps = {}) {
             {downloading ? t("quote.generatingPdf") : t("quote.downloadPdf")}
           </button>
         </div>
+
+        {standardMode && (
+          <div className="mb-4 bg-yellow-900/15 border border-yellow-700/30 rounded-xl px-4 py-3">
+            {standardTitle && <p className="text-yellow-200 text-sm font-semibold mb-1">📑 {standardTitle}</p>}
+            <p className="text-slate-300 text-xs leading-relaxed">{t("standard.aiDraftNote")}</p>
+          </div>
+        )}
 
         {error && (
           <div className="mb-4 flex items-center gap-2 text-red-400 text-sm bg-red-900/20 border border-red-800/50 rounded-xl px-4 py-3">

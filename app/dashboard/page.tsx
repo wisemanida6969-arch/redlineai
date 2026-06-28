@@ -6,8 +6,9 @@ import Navbar from "@/components/Navbar";
 import {
   Upload, FileText, AlertCircle, Loader2, CheckCircle,
   FileType, AlertTriangle, Clock, Crown,
-  Receipt, Building2, Lock, Bot
+  Receipt, Building2, Lock, Bot, Library, X
 } from "lucide-react";
+import StandardContracts from "@/components/StandardContracts";
 import QuoteToContract from "@/components/QuoteToContract";
 import VendorRiskScan from "@/components/VendorRiskScan";
 import AIAgent from "@/components/AIAgent";
@@ -15,6 +16,7 @@ import UsageCounter from "@/components/UsageCounter";
 import AppFooter from "@/components/AppFooter";
 import { useT } from "@/lib/i18n/LanguageProvider";
 import { type Plan, type FeatureKey, hasAccess, isOverLimit } from "@/lib/planLimits";
+import { getCategory, getContractType } from "@/lib/standardContracts";
 
 interface ScanRecord {
   id: string;
@@ -40,7 +42,9 @@ interface UsageData {
 export default function Dashboard() {
   const router = useRouter();
   const { t, lang } = useT();
-  const [feature, setFeature] = useState<Feature>("analysis");
+  const [feature, setFeature] = useState<Feature>("standard");
+  // Standard form chosen from the library, carried into Review / Draft tabs.
+  const [seededStandard, setSeededStandard] = useState<{ categoryId: string; typeId: string } | null>(null);
   const [mode, setMode] = useState<"upload" | "paste">("upload");
   const [file, setFile] = useState<File | null>(null);
   const [text, setText] = useState("");
@@ -93,6 +97,10 @@ export default function Dashboard() {
       if (mode === "upload" && file) formData.append("file", file);
       else formData.append("text", text);
       formData.append("lang", lang);
+      if (seededStandard) {
+        formData.append("standardCategory", seededStandard.categoryId);
+        formData.append("standardType", seededStandard.typeId);
+      }
 
       setLoadingStep(t("dashboard.analyzing"));
       const res = await fetch("/api/analyze", { method: "POST", body: formData });
@@ -122,11 +130,43 @@ export default function Dashboard() {
   const analysisLocked = !hasAccess(plan, "analysis");
 
   const FEATURES: { id: Feature; label: string; icon: typeof FileText; soon: boolean }[] = [
+    { id: "standard", label: t("dashboard.tabStandard"), icon: Library,   soon: false },
     { id: "analysis", label: t("dashboard.tabAnalysis"), icon: FileText,  soon: false },
     { id: "quote",    label: t("dashboard.tabQuote"),    icon: Receipt,   soon: false },
     { id: "vendor",   label: t("dashboard.tabVendor"),   icon: Building2, soon: false },
     { id: "agent",    label: t("dashboard.tabAgent"),    icon: Bot,       soon: false },
   ];
+
+  // Standard form carried in from the library → banner shown on Review / Draft tabs.
+  const stdCat  = seededStandard ? getCategory(seededStandard.categoryId) : undefined;
+  const stdType = seededStandard ? getContractType(seededStandard.categoryId, seededStandard.typeId) : undefined;
+  const stdLabel = stdCat && stdType
+    ? `${lang === "ko" ? stdCat.title.ko : stdCat.title.en} · ${lang === "ko" ? stdType.title.ko : stdType.title.en}`
+    : "";
+
+  const renderStandardBanner = (kind: "review" | "draft") =>
+    seededStandard && stdType ? (
+      <div className="mb-5 flex items-center justify-between gap-3 bg-gradient-to-r from-yellow-900/20 to-[#162035] border border-yellow-700/40 rounded-xl px-4 py-3 flex-wrap">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-9 h-9 bg-yellow-900/40 rounded-lg flex items-center justify-center shrink-0">
+            <Library className="w-4 h-4 text-yellow-300" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-yellow-200 text-[11px] font-bold uppercase tracking-wide">
+              {kind === "review" ? t("standard.bannerReview") : t("standard.bannerDraft")}
+            </p>
+            <p className="text-white text-sm font-medium truncate">{stdLabel}</p>
+            {kind === "review" && <p className="text-slate-400 text-xs mt-0.5">{t("standard.reviewModeNote")}</p>}
+          </div>
+        </div>
+        <button
+          onClick={() => setSeededStandard(null)}
+          className="flex items-center gap-1 text-slate-400 hover:text-white text-xs bg-[#0f1a2e] hover:bg-[#1e3050] border border-[#1e3050] rounded-lg px-3 py-1.5 shrink-0 transition-colors"
+        >
+          <X className="w-3.5 h-3.5" /> {t("standard.clear")}
+        </button>
+      </div>
+    ) : null;
 
   return (
     <div className="min-h-screen bg-[#0f1a2e]">
@@ -190,9 +230,17 @@ export default function Dashboard() {
 
 
         {/* ── Tab content ── */}
+        {feature === "standard" && (
+          <StandardContracts
+            onDraft={(categoryId, typeId) => { setSeededStandard({ categoryId, typeId }); setFeature("quote"); }}
+            onReview={(categoryId, typeId) => { setSeededStandard({ categoryId, typeId }); setFeature("analysis"); }}
+          />
+        )}
+
         {feature === "analysis" && (
           <>
             <UsageCounter plan={plan} feature="analysis" used={usage.analysis} />
+            {renderStandardBanner("review")}
 
             {/* Mode tabs */}
             <div className="flex gap-1 bg-[#162035] p-1 rounded-xl border border-[#1e3050] mb-6 w-fit">
@@ -294,8 +342,10 @@ export default function Dashboard() {
         {feature === "quote" && (
           <>
             <UsageCounter plan={plan} feature="quote" used={usage.quote} />
+            {renderStandardBanner("draft")}
             {hasAccess(plan, "quote") && (
               <QuoteToContract
+                standard={seededStandard}
                 onUsed={() => setUsage((u) => ({ ...u, quote: u.quote + 1 }))}
               />
             )}

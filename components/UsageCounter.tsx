@@ -14,6 +14,7 @@ export default function UsageCounter({ plan, feature, used }: Props) {
   const { t, lang } = useT();
   const limit = PLAN_LIMITS[plan][feature];
   const featureKeyMap: Record<FeatureKey, string> = {
+    standard: "dashboard.tabStandard",
     analysis: "dashboard.tabAnalysis",
     quote:    "dashboard.tabQuote",
     vendor:   "dashboard.tabVendor",

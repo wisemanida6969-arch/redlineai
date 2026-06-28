@@ -2,21 +2,26 @@
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import PaddleCheckout from "@/components/PaddleCheckout";
-import { Shield, Zap, FileText, CheckCircle, AlertTriangle, AlertCircle, Lock, Bot, MessageSquare, Building2, PenTool } from "lucide-react";
+import {
+  Shield, CheckCircle, Lock, Library, ScanSearch, PenLine,
+  MessageSquare, Bot, PenTool,
+} from "lucide-react";
 import { useT } from "@/lib/i18n/LanguageProvider";
+import { STANDARD_CONTRACTS, TOTAL_CONTRACT_COUNT, TOTAL_CATEGORY_COUNT, type Bi } from "@/lib/standardContracts";
 
 export default function Home() {
-  const { t } = useT();
+  const { t, lang } = useT();
+  const L = (b: Bi) => (lang === "ko" ? b.ko : b.en);
 
   return (
     <div className="min-h-screen bg-[#0f1a2e]">
       <Navbar />
 
       {/* Hero */}
-      <section className="pt-32 pb-20 px-6">
+      <section className="pt-32 pb-16 px-6">
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-red-900/30 border border-red-800/50 text-red-400 text-sm px-4 py-1.5 rounded-full mb-6">
-            <Zap className="w-3.5 h-3.5" />
+            <Shield className="w-3.5 h-3.5" />
             {t("landing.tag")}
           </div>
           <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight mb-6">
@@ -34,7 +39,7 @@ export default function Home() {
               {t("landing.ctaPrimary")}
             </Link>
             <a
-              href="#how-it-works"
+              href="#fields"
               className="border border-[#1e3050] hover:border-slate-500 text-slate-300 font-medium px-8 py-4 rounded-xl text-lg transition-colors"
             >
               {t("landing.ctaSecondary")}
@@ -44,40 +49,46 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Risk preview */}
-      <section className="pb-20 px-6">
-        <div className="max-w-3xl mx-auto bg-[#162035] border border-[#1e3050] rounded-2xl p-6 shadow-2xl">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-3 h-3 rounded-full bg-red-500" />
-            <div className="w-3 h-3 rounded-full bg-yellow-500" />
-            <div className="w-3 h-3 rounded-full bg-green-500" />
-            <span className="text-slate-500 text-sm ml-2">{t("landing.sampleDoc")}</span>
+      {/* Standard contract fields preview */}
+      <section id="fields" className="pb-20 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-white mb-3">{t("landing.catTitle")}</h2>
+            <p className="text-slate-400 max-w-2xl mx-auto">{t("landing.catSub")}</p>
+            <p className="text-slate-600 text-sm mt-3">
+              {TOTAL_CATEGORY_COUNT}{t("standard.fieldsLabel")} · {TOTAL_CONTRACT_COUNT}{t("standard.formsLabel")}
+            </p>
           </div>
-          <div className="space-y-3">
-            <RiskItem
-              level="high"
-              levelLabel={t("landing.high")}
-              title="Unlimited liability clause"
-              text="&quot;Employee shall be liable for any and all damages, losses, or expenses of any kind...&quot;"
-              fix="Liability shall be limited to direct damages not exceeding three (3) months of compensation."
-              fixLabel={t("landing.suggestedFix")}
-            />
-            <RiskItem
-              level="medium"
-              levelLabel={t("landing.medium")}
-              title="Vague non-compete scope"
-              text="&quot;Employee agrees not to engage in any similar business activities for a reasonable period...&quot;"
-              fix="Non-compete is restricted to 12 months within [City/Region] for direct competitors in [Industry]."
-              fixLabel={t("landing.suggestedFix")}
-            />
-            <RiskItem
-              level="low"
-              levelLabel={t("landing.low")}
-              title="Missing governing law"
-              text="&quot;This agreement shall be governed by applicable laws...&quot;"
-              fix='This agreement shall be governed by the laws of the State of [State], without regard to conflicts of law.'
-              fixLabel={t("landing.suggestedFix")}
-            />
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {STANDARD_CONTRACTS.map((c) => (
+              <Link
+                key={c.id}
+                href="/dashboard"
+                className="bg-[#162035] border border-[#1e3050] hover:border-red-700/50 rounded-2xl p-5 transition-colors group"
+              >
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <span className="text-3xl leading-none">{c.emoji}</span>
+                  <span className="text-[11px] font-bold text-red-400 bg-red-900/20 border border-red-800/40 rounded-full px-2.5 py-1 shrink-0">
+                    {c.types.length}{t("landing.catTypesLabel")}
+                  </span>
+                </div>
+                <h3 className="text-white font-bold text-base mb-1 group-hover:text-red-300 transition-colors">{L(c.title)}</h3>
+                <p className="text-slate-400 text-xs leading-relaxed">{L(c.blurb)}</p>
+              </Link>
+            ))}
+
+            {/* CTA tile */}
+            <Link
+              href="/dashboard"
+              className="bg-gradient-to-br from-red-900/30 to-[#162035] border border-red-700/40 rounded-2xl p-5 flex flex-col justify-center items-start transition-colors hover:border-red-600/60"
+            >
+              <Library className="w-7 h-7 text-red-400 mb-2" />
+              <h3 className="text-white font-bold text-base mb-1">{t("landing.catViewAll")}</h3>
+              <span className="text-red-400 text-sm font-medium inline-flex items-center gap-1 mt-1">
+                {t("landing.ctaPrimary")}
+              </span>
+            </Link>
           </div>
         </div>
       </section>
@@ -88,9 +99,9 @@ export default function Home() {
           <h2 className="text-3xl font-bold text-white text-center mb-12">{t("landing.howTitle")}</h2>
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { icon: FileText, step: "1", title: t("landing.howStep1Title"), desc: t("landing.howStep1Desc") },
-              { icon: Zap,      step: "2", title: t("landing.howStep2Title"), desc: t("landing.howStep2Desc") },
-              { icon: Shield,   step: "3", title: t("landing.howStep3Title"), desc: t("landing.howStep3Desc") },
+              { icon: Library,    step: "1", title: t("landing.howStep1Title"), desc: t("landing.howStep1Desc") },
+              { icon: ScanSearch, step: "2", title: t("landing.howStep2Title"), desc: t("landing.howStep2Desc") },
+              { icon: Shield,     step: "3", title: t("landing.howStep3Title"), desc: t("landing.howStep3Desc") },
             ].map(({ icon: Icon, step, title, desc }) => (
               <div key={step} className="text-center">
                 <div className="w-14 h-14 bg-red-900/30 border border-red-800/50 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -111,11 +122,11 @@ export default function Home() {
           <h2 className="text-3xl font-bold text-white text-center mb-12">{t("landing.featuresTitle")}</h2>
           <div className="grid md:grid-cols-2 gap-6">
             {[
-              { icon: AlertTriangle,  title: t("landing.f1Title"), desc: t("landing.f1Desc") },
-              { icon: FileText,       title: t("landing.f2Title"), desc: t("landing.f2Desc") },
-              { icon: Bot,            title: t("landing.f3Title"), desc: t("landing.f3Desc") },
-              { icon: MessageSquare,  title: t("landing.f4Title"), desc: t("landing.f4Desc") },
-              { icon: Building2,      title: t("landing.f5Title"), desc: t("landing.f5Desc") },
+              { icon: Library,       title: t("landing.f1Title"), desc: t("landing.f1Desc") },
+              { icon: ScanSearch,    title: t("landing.f2Title"), desc: t("landing.f2Desc") },
+              { icon: PenLine,       title: t("landing.f3Title"), desc: t("landing.f3Desc") },
+              { icon: MessageSquare, title: t("landing.f4Title"), desc: t("landing.f4Desc") },
+              { icon: Bot,           title: t("landing.f5Title"), desc: t("landing.f5Desc") },
             ].map(({ icon: Icon, title, desc }) => (
               <div key={title} className="flex gap-4 bg-[#162035] border border-[#1e3050] rounded-xl p-5">
                 <div className="w-10 h-10 bg-red-900/30 rounded-lg flex items-center justify-center shrink-0">
@@ -129,7 +140,7 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Sign recommendation card (E-Signature replacement notice) */}
+          {/* Sign recommendation card */}
           <SignRecommendationCard t={t} />
         </div>
       </section>
@@ -146,10 +157,10 @@ export default function Home() {
               period=""
               desc={t("landing.planFreeDesc")}
               features={[
+                `${t("landing.featStandardLibrary")}: ${t("landing.featUnlimited")}`,
                 `${t("landing.featContractAnalysis")}: 3${t("landing.featPerMonth")}`,
                 `${t("landing.featAIAgent")}: 10 ${t("landing.featChatMessages")}${t("landing.featPerMonth")}`,
                 `${t("landing.featQuoteToContract")}: ${t("landing.featLocked")}`,
-                `${t("landing.featVendorRiskScan")}: ${t("landing.featLocked")}`,
                 t("landing.featAllLangs"),
               ]}
               cta={t("landing.ctaFree")}
@@ -162,12 +173,11 @@ export default function Home() {
               period={t("landing.perMonth")}
               desc={t("landing.planProDesc")}
               features={[
+                `${t("landing.featStandardLibrary")}: ${t("landing.featUnlimited")}`,
                 `${t("landing.featContractAnalysis")}: 30${t("landing.featPerMonth")}`,
                 `${t("landing.featQuoteToContract")}: 30${t("landing.featPerMonth")}`,
                 `${t("landing.featAIAgent")}: 100 ${t("landing.featChatMessages")}${t("landing.featPerMonth")}`,
-                `${t("landing.featVendorRiskScan")}: 10${t("landing.featPerMonth")}`,
                 t("landing.featChatScreenshot"),
-                t("landing.featAllLangs"),
                 t("landing.featEmailSupport"),
               ]}
               cta={t("landing.ctaPro")}
@@ -182,12 +192,11 @@ export default function Home() {
               period={t("landing.perMonth")}
               desc={t("landing.planBusinessDesc")}
               features={[
+                `${t("landing.featStandardLibrary")}: ${t("landing.featUnlimited")}`,
                 `${t("landing.featContractAnalysis")}: ${t("landing.featUnlimited")}`,
                 `${t("landing.featQuoteToContract")}: ${t("landing.featUnlimited")}`,
                 `${t("landing.featAIAgent")}: ${t("landing.featUnlimited")}`,
                 `${t("landing.featVendorRiskScan")}: 30${t("landing.featPerMonth")}`,
-                t("landing.featChatScreenshot"),
-                t("landing.featAllLangs"),
                 t("landing.featPrioritySupport"),
               ]}
               cta={t("landing.ctaBusiness")}
@@ -232,34 +241,6 @@ export default function Home() {
   );
 }
 
-function RiskItem({ level, levelLabel, title, text, fix, fixLabel }: { level: "high" | "medium" | "low"; levelLabel: string; title: string; text: string; fix: string; fixLabel: string }) {
-  const colors = {
-    high: { bg: "bg-red-900/20", border: "border-red-800/50", badge: "bg-red-900/50 text-red-400", icon: AlertTriangle },
-    medium: { bg: "bg-yellow-900/20", border: "border-yellow-800/50", badge: "bg-yellow-900/50 text-yellow-400", icon: AlertCircle },
-    low: { bg: "bg-blue-900/20", border: "border-blue-800/50", badge: "bg-blue-900/50 text-blue-400", icon: CheckCircle },
-  };
-  const c = colors[level];
-  const Icon = c.icon;
-  return (
-    <div className={`${c.bg} border ${c.border} rounded-xl p-4`}>
-      <div className="flex items-start gap-3">
-        <Icon className="w-4 h-4 mt-0.5 shrink-0 text-current opacity-70" />
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className={`text-xs font-bold uppercase px-2 py-0.5 rounded ${c.badge}`}>{levelLabel}</span>
-            <span className="text-white text-sm font-medium">{title}</span>
-          </div>
-          <p className="text-slate-400 text-xs mb-2 italic">{text}</p>
-          <div className="bg-green-900/20 border border-green-800/30 rounded-lg p-2">
-            <span className="text-green-400 text-xs font-semibold">{fixLabel} </span>
-            <span className="text-green-300 text-xs">{fix}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function SignRecommendationCard({ t }: { t: (key: string) => string }) {
   return (
     <div className="mt-10 bg-gradient-to-br from-yellow-900/10 to-[#162035] border border-yellow-700/30 rounded-2xl p-6 sm:p-8">
@@ -279,14 +260,6 @@ function SignRecommendationCard({ t }: { t: (key: string) => string }) {
             {t("landing.signNeededBody")}
           </p>
           <div className="flex flex-wrap gap-2">
-            <a href="https://www.docusign.com/" target="_blank" rel="noopener noreferrer"
-               className="text-yellow-300 hover:text-yellow-200 text-xs font-medium bg-yellow-900/20 hover:bg-yellow-900/40 border border-yellow-700/40 rounded-md px-3 py-1.5 transition-colors">
-              {t("landing.signNeededLinkDocusign")}
-            </a>
-            <a href="https://sign.dropbox.com/" target="_blank" rel="noopener noreferrer"
-               className="text-yellow-300 hover:text-yellow-200 text-xs font-medium bg-yellow-900/20 hover:bg-yellow-900/40 border border-yellow-700/40 rounded-md px-3 py-1.5 transition-colors">
-              {t("landing.signNeededLinkDropbox")}
-            </a>
             <a href="https://www.modusign.co.kr/" target="_blank" rel="noopener noreferrer"
                className="text-yellow-300 hover:text-yellow-200 text-xs font-medium bg-yellow-900/20 hover:bg-yellow-900/40 border border-yellow-700/40 rounded-md px-3 py-1.5 transition-colors">
               {t("landing.signNeededLinkModoosign")}
@@ -294,6 +267,14 @@ function SignRecommendationCard({ t }: { t: (key: string) => string }) {
             <a href="https://www.eformsign.com/" target="_blank" rel="noopener noreferrer"
                className="text-yellow-300 hover:text-yellow-200 text-xs font-medium bg-yellow-900/20 hover:bg-yellow-900/40 border border-yellow-700/40 rounded-md px-3 py-1.5 transition-colors">
               {t("landing.signNeededLinkEformsign")}
+            </a>
+            <a href="https://www.docusign.com/" target="_blank" rel="noopener noreferrer"
+               className="text-yellow-300 hover:text-yellow-200 text-xs font-medium bg-yellow-900/20 hover:bg-yellow-900/40 border border-yellow-700/40 rounded-md px-3 py-1.5 transition-colors">
+              {t("landing.signNeededLinkDocusign")}
+            </a>
+            <a href="https://sign.dropbox.com/" target="_blank" rel="noopener noreferrer"
+               className="text-yellow-300 hover:text-yellow-200 text-xs font-medium bg-yellow-900/20 hover:bg-yellow-900/40 border border-yellow-700/40 rounded-md px-3 py-1.5 transition-colors">
+              {t("landing.signNeededLinkDropbox")}
             </a>
           </div>
         </div>
