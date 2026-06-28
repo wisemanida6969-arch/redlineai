@@ -389,8 +389,13 @@ function RelatedPrecedents({ field, plan }: { field: string; plan?: Plan }) {
 
   const submitSearch = () => { setActiveQuery(searchInput); runSearch(searchInput, 1, false); };
 
+  // Dedupe live results against curated highlights — by brdctsno (copyright IDs are "c"-prefixed)
+  // and by case number (covers the official law.go.kr source, which uses its own id space).
   const curatedIds = new Set(curated.map((c) => c.external_id).filter(Boolean));
-  const liveDeduped = live.filter((l) => !curatedIds.has(l.externalId));
+  const curatedCaseNos = new Set(curated.map((c) => c.case_no).filter(Boolean));
+  const liveDeduped = live.filter(
+    (l) => !curatedIds.has(l.externalId.replace(/^c/, "")) && !(l.caseNo && curatedCaseNos.has(l.caseNo)),
+  );
 
   return (
     <div className="mt-6">
