@@ -248,10 +248,73 @@ interface Precedent {
 
 interface LiveResult {
   externalId: string;
+  caseNo: string | null;
   title: string;
   court: string | null;
   date: string | null;
   url: string;
+  source: "law" | "copyright";
+}
+
+function LiveCard({ p }: { p: LiveResult }) {
+  const { t } = useT();
+  const [open, setOpen] = useState(false);
+  const [detail, setDetail] = useState<{ issue: string; summary: string } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState(false);
+
+  const toggle = async () => {
+    if (open) { setOpen(false); return; }
+    setOpen(true);
+    if (detail || loading) return;
+    setLoading(true); setErr(false);
+    try {
+      const r = await fetch(`/api/precedents/detail?id=${encodeURIComponent(p.externalId)}`);
+      const d = await r.json();
+      if (d && (d.issue || d.summary)) setDetail({ issue: d.issue || "", summary: d.summary || "" });
+      else setErr(true);
+    } catch { setErr(true); } finally { setLoading(false); }
+  };
+
+  return (
+    <div className="bg-[#162035] border border-[#1e3050] rounded-xl p-4">
+      <div className="flex items-center gap-2 flex-wrap mb-1.5">
+        {p.caseNo ? (
+          <span className="text-xs font-bold text-red-300 bg-red-900/20 border border-red-800/40 rounded px-2 py-0.5">{p.court ? `${p.court} ` : ""}{p.caseNo}</span>
+        ) : (
+          <span className="text-[10px] font-bold uppercase tracking-wide text-slate-300 bg-[#0f1a2e] border border-[#1e3050] rounded px-1.5 py-0.5">{p.court ?? t("standard.precedentsRef")}</span>
+        )}
+        {p.date && <span className="flex items-center gap-1 text-[11px] text-slate-500"><Calendar className="w-3 h-3" />{p.date}</span>}
+      </div>
+      <p className="text-white text-sm font-medium mb-2">{p.title}</p>
+
+      {open && (
+        <div className="mb-2 bg-[#0f1a2e] border border-[#1e3050] rounded-lg p-3">
+          {loading ? (
+            <div className="flex items-center gap-2 text-slate-500 text-xs"><Loader2 className="w-3.5 h-3.5 animate-spin" /> {t("standard.precedentsSearching")}</div>
+          ) : err || !detail ? (
+            <p className="text-slate-500 text-xs">{t("standard.precedentsDetailNone")}</p>
+          ) : (
+            <div className="space-y-2">
+              {detail.issue && (<div><p className="text-slate-400 text-[11px] font-bold mb-0.5">{t("standard.precedentsIssue")}</p><p className="text-slate-300 text-xs whitespace-pre-wrap leading-relaxed">{detail.issue}</p></div>)}
+              {detail.summary && (<div><p className="text-slate-400 text-[11px] font-bold mb-0.5">{t("standard.precedentsHolding")}</p><p className="text-slate-300 text-xs whitespace-pre-wrap leading-relaxed">{detail.summary}</p></div>)}
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="flex items-center justify-between gap-2">
+        {p.source === "law" ? (
+          <button onClick={toggle} className="text-red-400 hover:text-red-300 text-xs font-medium">
+            {open ? t("standard.precedentsHide") : t("standard.precedentsViewHolding")}
+          </button>
+        ) : <span />}
+        <a href={p.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-red-400 hover:text-red-300 text-xs font-medium shrink-0">
+          {t("standard.precedentsSource")} <ExternalLink className="w-3 h-3" />
+        </a>
+      </div>
+    </div>
+  );
 }
 
 const FIELD_KEYWORD: Record<string, string> = {
@@ -268,6 +331,7 @@ function RelatedPrecedents({ field }: { field: string }) {
   const [livePage, setLivePage] = useState(1);
   const [liveHasMore, setLiveHasMore] = useState(false);
   const [liveLoading, setLiveLoading] = useState(false);
+  const [liveSource, setLiveSource] = useState<"law" | "copyright" | null>(null);
 
   /* curated DB highlights (always available, includes cross-cutting cases) */
   useEffect(() => {
@@ -292,6 +356,7 @@ function RelatedPrecedents({ field }: { field: string }) {
       setLive((prev) => (append ? [...prev, ...results] : results));
       setLiveHasMore(Boolean(d.hasMore));
       setLivePage(page);
+      setLiveSource(d.source ?? null);
     } catch {
       if (!append) { setLive([]); setLiveHasMore(false); }
     } finally {
@@ -378,19 +443,7 @@ function RelatedPrecedents({ field }: { field: string }) {
         ) : (
           <div className="space-y-2">
             {liveDeduped.map((p) => (
-              <div key={p.externalId} className="bg-[#162035] border border-[#1e3050] rounded-xl p-4">
-                <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                  <span className="text-[10px] font-bold uppercase tracking-wide text-slate-300 bg-[#0f1a2e] border border-[#1e3050] rounded px-1.5 py-0.5">{p.court ?? t("standard.precedentsRef")}</span>
-                  {p.date && <span className="flex items-center gap-1 text-[11px] text-slate-500"><Calendar className="w-3 h-3" />{p.date}</span>}
-                </div>
-                <p className="text-white text-sm font-medium mb-2">{p.title}</p>
-                <div className="flex justify-end">
-                  <a href={p.url} target="_blank" rel="noopener noreferrer"
-                     className="flex items-center gap-1 text-red-400 hover:text-red-300 text-xs font-medium">
-                    {t("standard.precedentsSource")} <ExternalLink className="w-3 h-3" />
-                  </a>
-                </div>
-              </div>
+              <LiveCard key={p.externalId} p={p} />
             ))}
             {liveHasMore && (
               <button onClick={() => runSearch(activeQuery, livePage + 1, true)} disabled={liveLoading}
@@ -398,7 +451,9 @@ function RelatedPrecedents({ field }: { field: string }) {
                 {liveLoading && <Loader2 className="w-4 h-4 animate-spin" />} {t("standard.precedentsMore")}
               </button>
             )}
-            <p className="text-slate-600 text-[11px] mt-1">{t("standard.precedentsLiveSource")}</p>
+            <p className="text-slate-600 text-[11px] mt-1">
+              {liveSource === "law" ? t("standard.precedentsLiveSourceLaw") : t("standard.precedentsLiveSource")}
+            </p>
           </div>
         )}
       </div>

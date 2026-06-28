@@ -314,6 +314,12 @@ export const translations = {
     precedentsMore:       { en: "Load more", ko: "더 보기" },
     precedentsLiveNone:   { en: "No results. Try another keyword.", ko: "검색 결과가 없습니다. 다른 키워드로 검색해 보세요." },
     precedentsLiveSource: { en: "Live from the Korea Copyright Commission precedent database", ko: "출처: 한국저작권위원회 저작권판례 (실시간)" },
+    precedentsLiveSourceLaw: { en: "Live from the Korea Law Information Center (MOLEG) precedent API", ko: "출처: 법제처 국가법령정보 판례 API (실시간)" },
+    precedentsViewHolding: { en: "View holding", ko: "판결요지 보기" },
+    precedentsHide:        { en: "Hide", ko: "접기" },
+    precedentsIssue:       { en: "Issue", ko: "판시사항" },
+    precedentsHolding:     { en: "Holding", ko: "판결요지" },
+    precedentsDetailNone:  { en: "Could not load the holding.", ko: "판결요지를 불러올 수 없습니다." },
     precedentsDisclaimer: { en: "⚠️ Precedents are for reference — outcomes depend on the specific facts. Check the official source and consult a professional for your situation.", ko: "⚠️ 판례는 참고용이며 구체적 사실관계에 따라 결론이 달라질 수 있습니다. 본인 사안은 공식 출처 확인과 전문가 상담이 필요합니다." },
 
     /* Selected-standard banner (shown on Review / Draft tabs) */
