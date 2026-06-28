@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
   const service = createServiceClient();
   const base = service
     .from("precedents")
-    .select("id, case_no, court, decided_on, registered_on, title, summary, fields, topics, is_general, source_name, source_url")
+    .select("id, case_no, court, decided_on, registered_on, title, summary, fields, topics, is_general, source_name, source_url, external_id")
     .order("decided_on", { ascending: false, nullsFirst: false })
     .order("registered_on", { ascending: false, nullsFirst: false });
 

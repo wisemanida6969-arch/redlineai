@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   ExternalLink, Download, ChevronRight, Users, Lightbulb,
   PenLine, ScanSearch, Building2, ShieldCheck, Library,
@@ -243,48 +243,90 @@ interface Precedent {
   is_general: boolean;
   source_name: string;
   source_url: string;
+  external_id: string | null;
 }
+
+interface LiveResult {
+  externalId: string;
+  title: string;
+  court: string | null;
+  date: string | null;
+  url: string;
+}
+
+const FIELD_KEYWORD: Record<string, string> = {
+  webtoon: "웹툰", art: "미술", film: "영화", performing: "공연", craft: "공예",
+};
 
 function RelatedPrecedents({ field }: { field: string }) {
   const { t } = useT();
-  const [items, setItems] = useState<Precedent[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [curated, setCurated] = useState<Precedent[]>([]);
+  const [curatedLoading, setCuratedLoading] = useState(true);
+  const [searchInput, setSearchInput] = useState(FIELD_KEYWORD[field] ?? "");
+  const [activeQuery, setActiveQuery] = useState(FIELD_KEYWORD[field] ?? "");
+  const [live, setLive] = useState<LiveResult[]>([]);
+  const [livePage, setLivePage] = useState(1);
+  const [liveHasMore, setLiveHasMore] = useState(false);
+  const [liveLoading, setLiveLoading] = useState(false);
 
+  /* curated DB highlights (always available, includes cross-cutting cases) */
   useEffect(() => {
     let active = true;
-    setLoading(true);
+    setCuratedLoading(true);
     fetch(`/api/precedents?field=${encodeURIComponent(field)}`)
       .then((r) => r.json())
-      .then((d) => { if (active) setItems(d.precedents ?? []); })
-      .catch(() => { if (active) setItems([]); })
-      .finally(() => { if (active) setLoading(false); });
+      .then((d) => { if (active) setCurated(d.precedents ?? []); })
+      .catch(() => { if (active) setCurated([]); })
+      .finally(() => { if (active) setCuratedLoading(false); });
     return () => { active = false; };
   }, [field]);
+
+  /* live search against the official precedent DB */
+  const runSearch = useCallback(async (query: string, page: number, append: boolean) => {
+    if (!query.trim()) { setLive([]); setLiveHasMore(false); return; }
+    setLiveLoading(true);
+    try {
+      const r = await fetch(`/api/precedents/search?q=${encodeURIComponent(query)}&page=${page}`);
+      const d = await r.json();
+      const results: LiveResult[] = d.results ?? [];
+      setLive((prev) => (append ? [...prev, ...results] : results));
+      setLiveHasMore(Boolean(d.hasMore));
+      setLivePage(page);
+    } catch {
+      if (!append) { setLive([]); setLiveHasMore(false); }
+    } finally {
+      setLiveLoading(false);
+    }
+  }, []);
+
+  /* reset + auto-search when the field changes */
+  useEffect(() => {
+    const kw = FIELD_KEYWORD[field] ?? "";
+    setSearchInput(kw);
+    setActiveQuery(kw);
+    setLive([]);
+    setLivePage(1);
+    runSearch(kw, 1, false);
+  }, [field, runSearch]);
+
+  const submitSearch = () => { setActiveQuery(searchInput); runSearch(searchInput, 1, false); };
+
+  const curatedIds = new Set(curated.map((c) => c.external_id).filter(Boolean));
+  const liveDeduped = live.filter((l) => !curatedIds.has(l.externalId));
 
   return (
     <div className="mt-6">
       <div className="flex items-center gap-2 mb-1">
         <Scale className="w-4 h-4 text-red-400" />
         <h3 className="text-white font-bold text-base">{t("standard.precedentsTitle")}</h3>
-        {!loading && items.length > 0 && (
-          <span className="text-[11px] font-bold text-red-400 bg-red-900/20 border border-red-800/40 rounded-full px-2 py-0.5">
-            {items.length}{t("standard.precedentsCount")}
-          </span>
-        )}
       </div>
       <p className="text-slate-400 text-xs mb-3">{t("standard.precedentsIntro")}</p>
 
-      {loading ? (
-        <div className="flex items-center gap-2 text-slate-500 text-sm py-6 justify-center">
-          <Loader2 className="w-4 h-4 animate-spin" /> {t("standard.precedentsLoading")}
-        </div>
-      ) : items.length === 0 ? (
-        <div className="bg-[#162035] border border-[#1e3050] rounded-xl p-5 text-center text-slate-500 text-sm">
-          {t("standard.precedentsNone")}
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {items.map((p) => (
+      {/* Curated key precedents */}
+      {!curatedLoading && curated.length > 0 && (
+        <div className="space-y-2 mb-5">
+          <p className="text-slate-300 text-xs font-semibold uppercase tracking-wide">{t("standard.precedentsKeyTitle")}</p>
+          {curated.map((p) => (
             <div key={p.id} className="bg-[#162035] border border-[#1e3050] rounded-xl p-4">
               <div className="flex items-center gap-2 flex-wrap mb-1.5">
                 <span className="text-xs font-bold text-red-300 bg-red-900/20 border border-red-800/40 rounded px-2 py-0.5">
@@ -299,12 +341,7 @@ function RelatedPrecedents({ field }: { field: string }) {
               </div>
               <p className="text-white text-sm font-semibold mb-1">{p.title}</p>
               {p.summary && <p className="text-slate-400 text-xs leading-relaxed mb-2">{p.summary}</p>}
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <div className="flex flex-wrap gap-1">
-                  {p.topics.map((tp) => (
-                    <span key={tp} className="text-[10px] text-slate-400 bg-[#0f1a2e] border border-[#1e3050] rounded px-1.5 py-0.5">#{tp}</span>
-                  ))}
-                </div>
+              <div className="flex justify-end">
                 <a href={p.source_url} target="_blank" rel="noopener noreferrer"
                    className="flex items-center gap-1 text-red-400 hover:text-red-300 text-xs font-medium shrink-0">
                   {p.source_name} · {t("standard.precedentsSource")} <ExternalLink className="w-3 h-3" />
@@ -312,9 +349,61 @@ function RelatedPrecedents({ field }: { field: string }) {
               </div>
             </div>
           ))}
-          <p className="text-slate-500 text-[11px] leading-relaxed mt-2">{t("standard.precedentsDisclaimer")}</p>
         </div>
       )}
+
+      {/* Live search */}
+      <div>
+        <p className="text-slate-300 text-xs font-semibold uppercase tracking-wide mb-2">{t("standard.precedentsLiveTitle")}</p>
+        <div className="flex gap-2 mb-3">
+          <input
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") submitSearch(); }}
+            placeholder={t("standard.precedentsSearchPlaceholder")}
+            className="flex-1 min-w-0 bg-[#0f1a2e] border border-[#1e3050] rounded-lg px-3 py-2 text-slate-200 text-sm focus:outline-none focus:border-red-700/50"
+          />
+          <button onClick={submitSearch} disabled={liveLoading}
+            className="bg-red-600 hover:bg-red-700 disabled:bg-red-900/50 text-white text-sm font-semibold px-4 rounded-lg shrink-0 transition-colors">
+            {t("standard.precedentsSearchBtn")}
+          </button>
+        </div>
+
+        {liveLoading && live.length === 0 ? (
+          <div className="flex items-center gap-2 text-slate-500 text-sm py-4 justify-center">
+            <Loader2 className="w-4 h-4 animate-spin" /> {t("standard.precedentsSearching")}
+          </div>
+        ) : liveDeduped.length === 0 ? (
+          <p className="text-slate-500 text-sm py-2">{t("standard.precedentsLiveNone")}</p>
+        ) : (
+          <div className="space-y-2">
+            {liveDeduped.map((p) => (
+              <div key={p.externalId} className="bg-[#162035] border border-[#1e3050] rounded-xl p-4">
+                <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wide text-slate-300 bg-[#0f1a2e] border border-[#1e3050] rounded px-1.5 py-0.5">{p.court ?? t("standard.precedentsRef")}</span>
+                  {p.date && <span className="flex items-center gap-1 text-[11px] text-slate-500"><Calendar className="w-3 h-3" />{p.date}</span>}
+                </div>
+                <p className="text-white text-sm font-medium mb-2">{p.title}</p>
+                <div className="flex justify-end">
+                  <a href={p.url} target="_blank" rel="noopener noreferrer"
+                     className="flex items-center gap-1 text-red-400 hover:text-red-300 text-xs font-medium">
+                    {t("standard.precedentsSource")} <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              </div>
+            ))}
+            {liveHasMore && (
+              <button onClick={() => runSearch(activeQuery, livePage + 1, true)} disabled={liveLoading}
+                className="w-full bg-[#162035] hover:bg-[#1e3050] border border-[#1e3050] text-slate-300 text-sm font-medium py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors">
+                {liveLoading && <Loader2 className="w-4 h-4 animate-spin" />} {t("standard.precedentsMore")}
+              </button>
+            )}
+            <p className="text-slate-600 text-[11px] mt-1">{t("standard.precedentsLiveSource")}</p>
+          </div>
+        )}
+      </div>
+
+      <p className="text-slate-500 text-[11px] leading-relaxed mt-4">{t("standard.precedentsDisclaimer")}</p>
     </div>
   );
 }

@@ -306,6 +306,14 @@ export const translations = {
     precedentsGeneral:    { en: "All fields", ko: "전 분야 공통" },
     precedentsRef:        { en: "Precedent", ko: "판례" },
     precedentsCount:      { en: "cases", ko: "건" },
+    precedentsKeyTitle:   { en: "Key precedents", ko: "주요 판례" },
+    precedentsLiveTitle:  { en: "Search court precedents (live)", ko: "법원 판례 실시간 검색" },
+    precedentsSearchPlaceholder: { en: "Search by keyword (e.g. webtoon, copyright transfer)", ko: "키워드로 검색 (예: 웹툰, 저작권 양도, 전속계약)" },
+    precedentsSearchBtn:  { en: "Search", ko: "검색" },
+    precedentsSearching:  { en: "Searching…", ko: "검색 중…" },
+    precedentsMore:       { en: "Load more", ko: "더 보기" },
+    precedentsLiveNone:   { en: "No results. Try another keyword.", ko: "검색 결과가 없습니다. 다른 키워드로 검색해 보세요." },
+    precedentsLiveSource: { en: "Live from the Korea Copyright Commission precedent database", ko: "출처: 한국저작권위원회 저작권판례 (실시간)" },
     precedentsDisclaimer: { en: "⚠️ Precedents are for reference — outcomes depend on the specific facts. Check the official source and consult a professional for your situation.", ko: "⚠️ 판례는 참고용이며 구체적 사실관계에 따라 결론이 달라질 수 있습니다. 본인 사안은 공식 출처 확인과 전문가 상담이 필요합니다." },
 
     /* Selected-standard banner (shown on Review / Draft tabs) */
