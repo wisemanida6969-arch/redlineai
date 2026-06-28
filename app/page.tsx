@@ -200,7 +200,7 @@ export default function Home() {
                 `${t("landing.featQuoteToContract")}: ${t("landing.featUnlimited")}`,
                 `${t("landing.featAIAgent")}: ${t("landing.featUnlimited")}`,
                 t("landing.featPrecedentHolding"),
-                `${t("landing.featVendorRiskScan")}: 30${t("landing.featPerMonth")}`,
+                t("landing.featChatScreenshot"),
                 t("landing.featPrioritySupport"),
               ]}
               cta={t("landing.ctaBusiness")}

@@ -9,7 +9,7 @@ interface Ctx {
 }
 
 const LanguageContext = createContext<Ctx>({
-  lang: "en",
+  lang: "ko",
   setLang: () => {},
   t: (k) => k,
 });
@@ -17,7 +17,8 @@ const LanguageContext = createContext<Ctx>({
 const STORAGE_KEY = "redlineai_lang";
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("en");
+  // Korea-first product → default to Korean; users can switch to English via the toggle.
+  const [lang, setLangState] = useState<Lang>("ko");
 
   /* Restore from localStorage on mount */
   useEffect(() => {
@@ -28,10 +29,12 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
         document.documentElement.lang = stored;
         return;
       }
-      // First visit — guess from browser
+      // First visit — default Korean, but honour an explicitly English browser.
       const browser = navigator.language?.toLowerCase() ?? "";
-      if (browser.startsWith("ko")) {
-        setLangState("ko");
+      if (browser.startsWith("en")) {
+        setLangState("en");
+        document.documentElement.lang = "en";
+      } else {
         document.documentElement.lang = "ko";
       }
     } catch { /* ignore */ }

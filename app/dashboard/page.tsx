@@ -6,11 +6,10 @@ import Navbar from "@/components/Navbar";
 import {
   Upload, FileText, AlertCircle, Loader2, CheckCircle,
   FileType, AlertTriangle, Clock, Crown,
-  Receipt, Building2, Lock, Bot, Library, X
+  Receipt, Lock, Bot, Library, X
 } from "lucide-react";
 import StandardContracts from "@/components/StandardContracts";
 import QuoteToContract from "@/components/QuoteToContract";
-import VendorRiskScan from "@/components/VendorRiskScan";
 import AIAgent from "@/components/AIAgent";
 import UsageCounter from "@/components/UsageCounter";
 import AppFooter from "@/components/AppFooter";
@@ -133,7 +132,6 @@ export default function Dashboard() {
     { id: "standard", label: t("dashboard.tabStandard"), icon: Library,   soon: false },
     { id: "analysis", label: t("dashboard.tabAnalysis"), icon: FileText,  soon: false },
     { id: "quote",    label: t("dashboard.tabQuote"),    icon: Receipt,   soon: false },
-    { id: "vendor",   label: t("dashboard.tabVendor"),   icon: Building2, soon: false },
     { id: "agent",    label: t("dashboard.tabAgent"),    icon: Bot,       soon: false },
   ];
 
@@ -348,17 +346,6 @@ export default function Dashboard() {
               <QuoteToContract
                 standard={seededStandard}
                 onUsed={() => setUsage((u) => ({ ...u, quote: u.quote + 1 }))}
-              />
-            )}
-          </>
-        )}
-
-        {feature === "vendor" && (
-          <>
-            <UsageCounter plan={plan} feature="vendor" used={usage.vendor} />
-            {hasAccess(plan, "vendor") && (
-              <VendorRiskScan
-                onUsed={() => setUsage((u) => ({ ...u, vendor: u.vendor + 1 }))}
               />
             )}
           </>

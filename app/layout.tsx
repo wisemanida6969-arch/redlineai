@@ -6,14 +6,13 @@ import { LanguageProvider } from "@/lib/i18n/LanguageProvider";
 export const metadata: Metadata = {
   metadataBase: new URL("https://getredlineai.com"),
   title: {
-    default: "RedlineAI – AI Contract Risk Scanner",
+    default: "RedlineAI – 창작자를 위한 표준계약서 AI",
     template: "%s | RedlineAI",
   },
-  description: "Instantly detect risky, vague, or one-sided contract clauses with AI. Quote-to-contract automation, vendor risk scans, and e-signature — all in one place.",
+  description: "미술·웹툰·공연·영화·공예 — 문화체육관광부 표준계약서로 계약서를 작성하고, 받은 계약서를 표준과 비교 검토하세요. 관련 법원 판례까지 한 곳에서. Claude AI 기반.",
   keywords: [
-    "AI contract review", "contract risk analysis", "AI legal tools",
-    "contract scanner", "vendor risk assessment", "e-signature",
-    "Claude AI contracts", "contract automation", "legal AI",
+    "표준계약서", "문체부 표준계약서", "창작자 계약서", "웹툰 계약서", "프리랜서 계약서",
+    "계약서 작성", "계약서 검토 AI", "저작권 판례", "예술인 표준계약서", "Claude AI",
   ],
   authors: [{ name: "Pactbug" }],
   creator: "Pactbug",
@@ -32,15 +31,15 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: "https://getredlineai.com",
-    title: "RedlineAI – AI Contract Risk Scanner",
-    description: "Spot risky contract clauses in seconds. AI-powered analysis, quote-to-contract automation, vendor risk scans, and e-signature.",
+    title: "RedlineAI – 창작자를 위한 표준계약서 AI",
+    description: "문화체육관광부 표준계약서로 작성·검토하고, 관련 판례까지. 미술·웹툰·공연·영화·공예 창작자를 위한 AI.",
     siteName: "RedlineAI",
-    locale: "en_US",
+    locale: "ko_KR",
   },
   twitter: {
     card: "summary_large_image",
-    title: "RedlineAI – AI Contract Risk Scanner",
-    description: "Spot risky contract clauses in seconds with Claude AI.",
+    title: "RedlineAI – 창작자를 위한 표준계약서 AI",
+    description: "문체부 표준계약서로 작성·검토하고 관련 판례까지. Claude AI 기반.",
   },
   alternates: {
     canonical: "https://getredlineai.com",
@@ -59,7 +58,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="ko">
       <body className="antialiased min-h-screen bg-[#0f1a2e] text-slate-200">
         <LanguageProvider>
           <DisclaimerBanner />
