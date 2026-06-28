@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { PLAN_LIMITS, type Plan } from "@/lib/planLimits";
-import { getCategory, getContractType } from "@/lib/standardContracts";
+import { STANDARD_CONTRACTS, getCategory, getContractType } from "@/lib/standardContracts";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -385,6 +385,50 @@ Requirements:
   return message.content[0].type === "text" ? message.content[0].text.trim() : "";
 }
 
+/**
+ * Auto-detect which MCST standard contract best matches the deal content,
+ * so a quote/chat is always drafted on a real standard form. Returns null
+ * when nothing fits (→ fall back to the generic template).
+ */
+async function detectStandard(quoteText: string, extracted: ExtractedQuote): Promise<{ categoryId: string; typeId: string } | null> {
+  const catalog = STANDARD_CONTRACTS.flatMap((c) =>
+    c.types.map((tp) => ({ categoryId: c.id, typeId: tp.id, label: `${c.title.ko} / ${tp.title.ko} — ${tp.desc.ko}` })),
+  );
+  const list = catalog.map((x) => `[${x.categoryId}/${x.typeId}] ${x.label}`).join("\n");
+
+  const sys = `당신은 한국 창작 분야 계약 분류 전문가입니다. 아래 문화체육관광부 표준계약서 목록 중에서 주어진 거래 내용에 가장 적합한 표준계약서 하나를 고릅니다.
+
+목록:
+${list}
+
+규칙:
+- 반드시 JSON만 반환: {"categoryId":"<값>","typeId":"<값>"}
+- categoryId/typeId 는 위 목록의 대괄호 안 값과 정확히 일치해야 합니다.
+- 창작 분야(미술/웹툰/공연/영화/공예)와 명백히 무관한 일반 거래(예: 순수 소프트웨어 개발, 단순 물품 구매, 마케팅 대행 등)면 {"categoryId":null,"typeId":null} 을 반환하세요.
+- 설명 금지, JSON만.`;
+
+  const userPrompt = `거래 정보:\n${JSON.stringify(extracted).slice(0, 1800)}\n\n원문 일부:\n${quoteText.slice(0, 1800)}`;
+
+  try {
+    const msg = await client.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 200,
+      temperature: 0,
+      system: sys,
+      messages: [{ role: "user", content: userPrompt }],
+    });
+    const raw = msg.content[0].type === "text" ? msg.content[0].text : "";
+    const m = raw.match(/\{[\s\S]*\}/);
+    if (!m) return null;
+    const parsed = JSON.parse(m[0]) as { categoryId?: string | null; typeId?: string | null };
+    if (!parsed.categoryId || !parsed.typeId) return null;
+    if (!getContractType(parsed.categoryId, parsed.typeId)) return null; // validate against catalog
+    return { categoryId: parsed.categoryId, typeId: parsed.typeId };
+  } catch {
+    return null;
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     // ── Auth check ──
@@ -522,9 +566,29 @@ export async function POST(req: NextRequest) {
     // ── Extract structured data ──
     const extracted = await extractQuoteData(quoteText, lang);
 
+    // No standard explicitly chosen → auto-detect the best-matching MCST standard
+    // so the draft is always built on a real standard form when one fits.
+    let autoMatched = false;
+    if (!standard) {
+      const detected = await detectStandard(quoteText, extracted);
+      if (detected) {
+        const cat = getCategory(detected.categoryId);
+        const type = getContractType(detected.categoryId, detected.typeId);
+        if (cat && type) {
+          standard = {
+            categoryKo: cat.title.ko, categoryEn: cat.title.en,
+            typeKo: type.title.ko,    typeEn: type.title.en,
+            partiesKo: type.parties.ko, partiesEn: type.parties.en,
+          };
+          standardTitle = lang === "ko" ? type.title.ko : type.title.en;
+          autoMatched = true;
+        }
+      }
+    }
+
     // ── Generate contract draft ──
-    // Standard selected → AI draft following that MCST standard form.
-    // Otherwise → fast deterministic generic service-agreement template.
+    // Standard (chosen or auto-detected) → AI draft on that MCST standard form.
+    // Otherwise → generic service-agreement template.
     const contractText = standard
       ? await generateStandardDraftAI(extracted, lang, standard)
       : generateContract(extracted, lang);
@@ -546,6 +610,7 @@ export async function POST(req: NextRequest) {
       lang,
       standardMode: Boolean(standard),
       standardTitle,
+      autoMatched,
     });
   } catch (err: unknown) {
     console.error("Quote-to-contract error:", err);

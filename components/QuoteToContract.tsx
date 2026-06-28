@@ -29,6 +29,7 @@ export default function QuoteToContract({ onUsed, standard }: QuoteToContractPro
   const [view, setView] = useState<View>("upload");
   const [standardMode, setStandardMode] = useState(false);
   const [standardTitle, setStandardTitle] = useState("");
+  const [autoMatched, setAutoMatched] = useState(false);
   const [mode, setMode] = useState<"file" | "chat">("file");
   const [files, setFiles] = useState<File[]>([]);
   const [chatText, setChatText] = useState("");
@@ -107,9 +108,11 @@ export default function QuoteToContract({ onUsed, standard }: QuoteToContractPro
         // AI drafted from the standard form → straight to preview (no field-edit step).
         setStandardMode(true);
         setStandardTitle(data.standardTitle || "");
+        setAutoMatched(Boolean(data.autoMatched));
         setView("preview");
       } else {
         setStandardMode(false);
+        setAutoMatched(false);
         setView("review");
       }
       onUsed?.();
@@ -152,6 +155,7 @@ export default function QuoteToContract({ onUsed, standard }: QuoteToContractPro
     setError("");
     setStandardMode(false);
     setStandardTitle("");
+    setAutoMatched(false);
   };
 
   /* ─────────────── UPLOAD VIEW ─────────────── */
@@ -398,8 +402,13 @@ export default function QuoteToContract({ onUsed, standard }: QuoteToContractPro
 
         {standardMode && (
           <div className="mb-4 bg-yellow-900/15 border border-yellow-700/30 rounded-xl px-4 py-3">
-            {standardTitle && <p className="text-yellow-200 text-sm font-semibold mb-1">📑 {standardTitle}</p>}
-            <p className="text-slate-300 text-xs leading-relaxed">{t("standard.aiDraftNote")}</p>
+            {standardTitle && (
+              <p className="text-yellow-200 text-sm font-semibold mb-1">
+                📑 {standardTitle}
+                {autoMatched && <span className="ml-2 text-[10px] font-bold uppercase tracking-wide bg-yellow-900/40 text-yellow-300 border border-yellow-700/40 rounded px-1.5 py-0.5">AI</span>}
+              </p>
+            )}
+            <p className="text-slate-300 text-xs leading-relaxed">{autoMatched ? t("quote.autoMatchedNote") : t("standard.aiDraftNote")}</p>
           </div>
         )}
 

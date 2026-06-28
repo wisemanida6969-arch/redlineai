@@ -364,7 +364,8 @@ export const translations = {
   /* ── Quote to Contract ── */
   quote: {
     title:        { en: "Quote to Contract", ko: "견적서 → 계약서" },
-    intro:        { en: "Upload a quote, paste a chat conversation, or screenshot — RedlineAI extracts key terms and generates a complete service agreement.", ko: "견적서 업로드, 카톡/슬랙 대화 붙여넣기, 또는 스크린샷 — RedlineAI가 핵심 조건을 추출해 완전한 용역 계약서를 생성합니다." },
+    intro:        { en: "Upload a quote, paste a chat, or drop a screenshot — AI extracts the terms and auto-matches the right MCST standard contract to draft from.", ko: "견적서 업로드, 카톡/슬랙 대화 붙여넣기, 또는 스크린샷 — AI가 핵심 조건을 추출하고 알맞은 문체부 표준계약서를 자동으로 골라 작성합니다." },
+    autoMatchedNote: { en: "AI analysed your content and auto-selected the MCST standard form above. Want a different one? Pick it in the 'Standard Contracts' tab. Verify against the official form before signing.", ko: "AI가 내용을 분석해 위 문체부 표준계약서를 자동 선택했습니다. 다른 양식을 원하면 '표준계약서' 탭에서 직접 고르세요. 서명 전 공식 양식·전문가 검토와 대조하세요." },
     dropQuote:    { en: "Drop your file here", ko: "파일을 여기에 끌어다 놓으세요" },
     clickBrowse:  { en: "or click to browse", ko: "또는 클릭해서 선택" },
     pdfOrDocx:    { en: "PDF, DOCX, PNG, JPG, TXT · Max 20MB", ko: "PDF, DOCX, PNG, JPG, TXT · 최대 20MB" },
