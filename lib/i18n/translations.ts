@@ -320,6 +320,9 @@ export const translations = {
     precedentsIssue:       { en: "Issue", ko: "판시사항" },
     precedentsHolding:     { en: "Holding", ko: "판결요지" },
     precedentsDetailNone:  { en: "Could not load the holding.", ko: "판결요지를 불러올 수 없습니다." },
+    precedentsLockedTitle: { en: "Holdings are a Pro feature", ko: "판결요지는 Pro 기능입니다" },
+    precedentsLockedBody:  { en: "Searching and browsing case lists is free. Upgrade to read the full issue & holding inline.", ko: "검색과 사건 목록 보기는 무료입니다. 판시사항·판결요지 전체를 앱에서 바로 보려면 업그레이드하세요." },
+    precedentsUpgrade:     { en: "Upgrade to Pro →", ko: "Pro로 업그레이드 →" },
     precedentsDisclaimer: { en: "⚠️ Precedents are for reference — outcomes depend on the specific facts. Check the official source and consult a professional for your situation.", ko: "⚠️ 판례는 참고용이며 구체적 사실관계에 따라 결론이 달라질 수 있습니다. 본인 사안은 공식 출처 확인과 전문가 상담이 필요합니다." },
 
     /* Selected-standard banner (shown on Review / Draft tabs) */

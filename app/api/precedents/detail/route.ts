@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 
 /**
  * Fetch 판시사항 / 판결요지 for one precedent from the official 법제처 API.
@@ -22,6 +22,13 @@ export async function GET(req: NextRequest) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // ── Premium gate: viewing the holding (판결요지) is Pro+ only ──
+  const service = createServiceClient();
+  const { data: profile } = await service.from("profiles").select("plan").eq("id", user.id).single();
+  if ((profile?.plan ?? "free") === "free") {
+    return NextResponse.json({ locked: true }, { status: 403 });
+  }
 
   const oc = process.env.LAW_API_OC;
   if (!oc) return NextResponse.json({ error: "not_configured" }, { status: 200 });
