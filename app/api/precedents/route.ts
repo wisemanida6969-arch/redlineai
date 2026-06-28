@@ -19,8 +19,9 @@ export async function GET(req: NextRequest) {
   const service = createServiceClient();
   const base = service
     .from("precedents")
-    .select("id, case_no, court, decided_on, title, summary, fields, topics, is_general, source_name, source_url")
-    .order("decided_on", { ascending: false, nullsFirst: false });
+    .select("id, case_no, court, decided_on, registered_on, title, summary, fields, topics, is_general, source_name, source_url")
+    .order("decided_on", { ascending: false, nullsFirst: false })
+    .order("registered_on", { ascending: false, nullsFirst: false });
 
   const { data, error } = safeField
     ? await base.or(`is_general.eq.true,fields.cs.{${safeField}}`)

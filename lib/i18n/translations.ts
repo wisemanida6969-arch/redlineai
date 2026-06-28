@@ -304,6 +304,8 @@ export const translations = {
     precedentsNone:       { en: "No precedents registered for this field yet.", ko: "이 분야에 등록된 판례가 아직 없습니다." },
     precedentsSource:     { en: "View official source", ko: "공식 출처에서 보기" },
     precedentsGeneral:    { en: "All fields", ko: "전 분야 공통" },
+    precedentsRef:        { en: "Precedent", ko: "판례" },
+    precedentsCount:      { en: "cases", ko: "건" },
     precedentsDisclaimer: { en: "⚠️ Precedents are for reference — outcomes depend on the specific facts. Check the official source and consult a professional for your situation.", ko: "⚠️ 판례는 참고용이며 구체적 사실관계에 따라 결론이 달라질 수 있습니다. 본인 사안은 공식 출처 확인과 전문가 상담이 필요합니다." },
 
     /* Selected-standard banner (shown on Review / Draft tabs) */

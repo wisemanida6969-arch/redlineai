@@ -232,11 +232,12 @@ export default function StandardContracts({ onDraft, onReview }: Props) {
 
 interface Precedent {
   id: string;
-  case_no: string;
-  court: string;
+  case_no: string | null;
+  court: string | null;
   decided_on: string | null;
+  registered_on: string | null;
   title: string;
-  summary: string;
+  summary: string | null;
   fields: string[];
   topics: string[];
   is_general: boolean;
@@ -265,6 +266,11 @@ function RelatedPrecedents({ field }: { field: string }) {
       <div className="flex items-center gap-2 mb-1">
         <Scale className="w-4 h-4 text-red-400" />
         <h3 className="text-white font-bold text-base">{t("standard.precedentsTitle")}</h3>
+        {!loading && items.length > 0 && (
+          <span className="text-[11px] font-bold text-red-400 bg-red-900/20 border border-red-800/40 rounded-full px-2 py-0.5">
+            {items.length}{t("standard.precedentsCount")}
+          </span>
+        )}
       </div>
       <p className="text-slate-400 text-xs mb-3">{t("standard.precedentsIntro")}</p>
 
@@ -281,16 +287,18 @@ function RelatedPrecedents({ field }: { field: string }) {
           {items.map((p) => (
             <div key={p.id} className="bg-[#162035] border border-[#1e3050] rounded-xl p-4">
               <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                <span className="text-xs font-bold text-red-300 bg-red-900/20 border border-red-800/40 rounded px-2 py-0.5">{p.court} {p.case_no}</span>
-                {p.decided_on && (
-                  <span className="flex items-center gap-1 text-[11px] text-slate-500"><Calendar className="w-3 h-3" />{p.decided_on}</span>
+                <span className="text-xs font-bold text-red-300 bg-red-900/20 border border-red-800/40 rounded px-2 py-0.5">
+                  {p.case_no ? `${p.court ?? ""} ${p.case_no}`.trim() : t("standard.precedentsRef")}
+                </span>
+                {(p.decided_on || p.registered_on) && (
+                  <span className="flex items-center gap-1 text-[11px] text-slate-500"><Calendar className="w-3 h-3" />{p.decided_on || p.registered_on}</span>
                 )}
                 {p.is_general && (
                   <span className="text-[10px] font-bold uppercase tracking-wide text-yellow-300 bg-yellow-900/20 border border-yellow-700/30 rounded px-1.5 py-0.5">{t("standard.precedentsGeneral")}</span>
                 )}
               </div>
               <p className="text-white text-sm font-semibold mb-1">{p.title}</p>
-              <p className="text-slate-400 text-xs leading-relaxed mb-2">{p.summary}</p>
+              {p.summary && <p className="text-slate-400 text-xs leading-relaxed mb-2">{p.summary}</p>}
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex flex-wrap gap-1">
                   {p.topics.map((tp) => (
