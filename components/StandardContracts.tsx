@@ -1,8 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ExternalLink, Download, ChevronRight, Users, Lightbulb,
   PenLine, ScanSearch, Building2, ShieldCheck, Library,
+  Scale, Calendar, Loader2,
 } from "lucide-react";
 import { useT } from "@/lib/i18n/LanguageProvider";
 import {
@@ -121,6 +122,8 @@ export default function StandardContracts({ onDraft, onReview }: Props) {
           </a>
         </div>
 
+        <RelatedPrecedents field={cat.id} />
+
         <Disclaimer />
       </div>
     );
@@ -223,4 +226,87 @@ export default function StandardContracts({ onDraft, onReview }: Props) {
       </div>
     );
   }
+}
+
+/* ─────────────────────────  RELATED PRECEDENTS  ───────────────────────── */
+
+interface Precedent {
+  id: string;
+  case_no: string;
+  court: string;
+  decided_on: string | null;
+  title: string;
+  summary: string;
+  fields: string[];
+  topics: string[];
+  is_general: boolean;
+  source_name: string;
+  source_url: string;
+}
+
+function RelatedPrecedents({ field }: { field: string }) {
+  const { t } = useT();
+  const [items, setItems] = useState<Precedent[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    fetch(`/api/precedents?field=${encodeURIComponent(field)}`)
+      .then((r) => r.json())
+      .then((d) => { if (active) setItems(d.precedents ?? []); })
+      .catch(() => { if (active) setItems([]); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [field]);
+
+  return (
+    <div className="mt-6">
+      <div className="flex items-center gap-2 mb-1">
+        <Scale className="w-4 h-4 text-red-400" />
+        <h3 className="text-white font-bold text-base">{t("standard.precedentsTitle")}</h3>
+      </div>
+      <p className="text-slate-400 text-xs mb-3">{t("standard.precedentsIntro")}</p>
+
+      {loading ? (
+        <div className="flex items-center gap-2 text-slate-500 text-sm py-6 justify-center">
+          <Loader2 className="w-4 h-4 animate-spin" /> {t("standard.precedentsLoading")}
+        </div>
+      ) : items.length === 0 ? (
+        <div className="bg-[#162035] border border-[#1e3050] rounded-xl p-5 text-center text-slate-500 text-sm">
+          {t("standard.precedentsNone")}
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {items.map((p) => (
+            <div key={p.id} className="bg-[#162035] border border-[#1e3050] rounded-xl p-4">
+              <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                <span className="text-xs font-bold text-red-300 bg-red-900/20 border border-red-800/40 rounded px-2 py-0.5">{p.court} {p.case_no}</span>
+                {p.decided_on && (
+                  <span className="flex items-center gap-1 text-[11px] text-slate-500"><Calendar className="w-3 h-3" />{p.decided_on}</span>
+                )}
+                {p.is_general && (
+                  <span className="text-[10px] font-bold uppercase tracking-wide text-yellow-300 bg-yellow-900/20 border border-yellow-700/30 rounded px-1.5 py-0.5">{t("standard.precedentsGeneral")}</span>
+                )}
+              </div>
+              <p className="text-white text-sm font-semibold mb-1">{p.title}</p>
+              <p className="text-slate-400 text-xs leading-relaxed mb-2">{p.summary}</p>
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex flex-wrap gap-1">
+                  {p.topics.map((tp) => (
+                    <span key={tp} className="text-[10px] text-slate-400 bg-[#0f1a2e] border border-[#1e3050] rounded px-1.5 py-0.5">#{tp}</span>
+                  ))}
+                </div>
+                <a href={p.source_url} target="_blank" rel="noopener noreferrer"
+                   className="flex items-center gap-1 text-red-400 hover:text-red-300 text-xs font-medium shrink-0">
+                  {p.source_name} · {t("standard.precedentsSource")} <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            </div>
+          ))}
+          <p className="text-slate-500 text-[11px] leading-relaxed mt-2">{t("standard.precedentsDisclaimer")}</p>
+        </div>
+      )}
+    </div>
+  );
 }

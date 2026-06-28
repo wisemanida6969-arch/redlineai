@@ -297,6 +297,15 @@ export const translations = {
     officialPortalKawf: { en: "Korea Artist Welfare Foundation", ko: "한국예술인복지재단" },
     officialPortalMcst: { en: "Ministry of Culture, Sports and Tourism", ko: "문화체육관광부 자료실" },
 
+    /* Related precedents */
+    precedentsTitle:      { en: "Related court precedents", ko: "관련 판례" },
+    precedentsIntro:      { en: "Real Korean court cases related to disputes in this field. Open each official source for the full text.", ko: "이 분야 계약·저작권 분쟁과 관련된 실제 판례입니다. 각 판례의 공식 출처에서 전문을 확인하세요." },
+    precedentsLoading:    { en: "Loading precedents…", ko: "판례 불러오는 중…" },
+    precedentsNone:       { en: "No precedents registered for this field yet.", ko: "이 분야에 등록된 판례가 아직 없습니다." },
+    precedentsSource:     { en: "View official source", ko: "공식 출처에서 보기" },
+    precedentsGeneral:    { en: "All fields", ko: "전 분야 공통" },
+    precedentsDisclaimer: { en: "⚠️ Precedents are for reference — outcomes depend on the specific facts. Check the official source and consult a professional for your situation.", ko: "⚠️ 판례는 참고용이며 구체적 사실관계에 따라 결론이 달라질 수 있습니다. 본인 사안은 공식 출처 확인과 전문가 상담이 필요합니다." },
+
     /* Selected-standard banner (shown on Review / Draft tabs) */
     bannerReview: { en: "Reviewing against standard", ko: "표준 대비 검토" },
     bannerDraft:  { en: "Drafting based on standard",  ko: "표준양식 기반 작성" },
