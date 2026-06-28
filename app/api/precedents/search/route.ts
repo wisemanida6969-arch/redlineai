@@ -76,7 +76,24 @@ async function searchLaw(oc: string, q: string, page: number): Promise<{ results
 }
 
 /* ── 한국저작권위원회 (no-key fallback) ── */
-async function searchCopyright(q: string, page: number): Promise<{ results: LiveResult[]; hasMore: boolean }> {
+
+// Noise words to drop so multi-word queries still match (the source does keyword matching).
+const STOPWORDS = new Set([
+  "관련", "관한", "관련된", "관련하여", "관련해서", "에", "에서", "대한", "대하여",
+  "사건", "판례", "분쟁", "의", "및", "건", "으로", "로", "좀", "주세요", "어떻게", "되나요",
+]);
+
+/** Build fallback search candidates: raw → cleaned phrase → individual keywords (original order). */
+function candidateQueries(q: string): string[] {
+  const tokens = q.split(/\s+/).filter(Boolean);
+  const meaningful = tokens.filter((tk) => !STOPWORDS.has(tk) && tk.length >= 2);
+  const out: string[] = [q.trim()];
+  if (meaningful.length >= 2) out.push(meaningful.join(" "));
+  for (const tk of meaningful) out.push(tk);
+  return out.filter((v, i, a) => v.length > 0 && a.indexOf(v) === i).slice(0, 4);
+}
+
+async function fetchCopyrightPage(q: string, page: number): Promise<LiveResult[]> {
   const listUrl = `${COPYRIGHT_BASE}/list.do?servicecode=06&searchTarget=ALL&searchText=${encodeURIComponent(q)}&pageIndex=${page}`;
   let html = "";
   try {
@@ -88,7 +105,7 @@ async function searchCopyright(q: string, page: number): Promise<{ results: Live
     if (!res.ok) throw new Error(`upstream ${res.status}`);
     html = await res.text();
   } catch {
-    return { results: [], hasMore: false };
+    return [];
   }
 
   const tbody = html.match(/<tbody>([\s\S]*?)<\/tbody>/i)?.[1] ?? "";
@@ -114,7 +131,21 @@ async function searchCopyright(q: string, page: number): Promise<{ results: Live
       source: "copyright",
     });
   }
-  return { results, hasMore: results.length >= 10 };
+  return results;
+}
+
+async function searchCopyright(q: string, page: number): Promise<{ results: LiveResult[]; hasMore: boolean; effectiveQuery: string }> {
+  // For "load more", the client already sends the effective query — search it directly.
+  if (page > 1) {
+    const results = await fetchCopyrightPage(q, page);
+    return { results, hasMore: results.length >= 10, effectiveQuery: q };
+  }
+  // Page 1: try the raw query, then progressively simpler candidates until something matches.
+  for (const cand of candidateQueries(q)) {
+    const results = await fetchCopyrightPage(cand, page);
+    if (results.length > 0) return { results, hasMore: results.length >= 10, effectiveQuery: cand };
+  }
+  return { results: [], hasMore: false, effectiveQuery: q.trim() };
 }
 
 export async function GET(req: NextRequest) {
@@ -131,7 +162,7 @@ export async function GET(req: NextRequest) {
   if (oc) {
     const law = await searchLaw(oc, q, page);
     if (law && law.results.length > 0) {
-      return NextResponse.json({ ...law, page, source: "law" });
+      return NextResponse.json({ ...law, page, source: "law", effectiveQuery: q });
     }
   }
 

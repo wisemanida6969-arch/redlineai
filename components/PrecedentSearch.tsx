@@ -114,6 +114,7 @@ export default function PrecedentSearch({ queries, defaultQuery, plan }: Props) 
   const [liveHasMore, setLiveHasMore] = useState(false);
   const [liveLoading, setLiveLoading] = useState(false);
   const [liveSource, setLiveSource] = useState<"law" | "copyright" | null>(null);
+  const [searchedAs, setSearchedAs] = useState<string | null>(null);
 
   const runSearch = useCallback(async (query: string, page: number, append: boolean) => {
     if (!query.trim()) { setLive([]); setLiveHasMore(false); return; }
@@ -122,10 +123,15 @@ export default function PrecedentSearch({ queries, defaultQuery, plan }: Props) 
       const r = await fetch(`/api/precedents/search?q=${encodeURIComponent(query)}&page=${page}`);
       const d = await r.json();
       const results: LiveResult[] = d.results ?? [];
+      const eff: string | undefined = d.effectiveQuery;
       setLive((prev) => (append ? [...prev, ...results] : results));
       setLiveHasMore(Boolean(d.hasMore));
       setLivePage(page);
       setLiveSource(d.source ?? null);
+      if (!append) {
+        if (eff && eff !== query) { setActiveQuery(eff); setSearchedAs(eff); }
+        else setSearchedAs(null);
+      }
     } catch {
       if (!append) { setLive([]); setLiveHasMore(false); }
     } finally {
@@ -178,6 +184,10 @@ export default function PrecedentSearch({ queries, defaultQuery, plan }: Props) 
           <Search className="w-3.5 h-3.5" /> {t("standard.precedentsSearchBtn")}
         </button>
       </div>
+
+      {searchedAs && (
+        <p className="text-slate-500 text-[11px] mb-2">{t("standard.precedentsSearchedAs")}: ‘{searchedAs}’</p>
+      )}
 
       {liveLoading && live.length === 0 ? (
         <div className="flex items-center gap-2 text-slate-500 text-sm py-4 justify-center">
