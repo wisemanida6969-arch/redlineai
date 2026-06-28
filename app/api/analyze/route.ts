@@ -52,7 +52,8 @@ Return this exact structure:
     }
   ],
   "medium": [...same structure...],
-  "low": [...same structure...]
+  "low": [...same structure...],
+  "precedentQueries": ["2 to 4 short Korean keywords for finding related Korean court precedents, based on the contract's subject and main risks — e.g. \"저작권 양도\", \"2차적저작물\", \"용역 대금\", \"전속계약\""]
 }
 
 Severity guide:
@@ -80,7 +81,8 @@ const SYSTEM_PROMPT_KO = `당신은 위험하거나 모호하거나 일방적인
     }
   ],
   "medium": [...같은 구조...],
-  "low": [...같은 구조...]
+  "low": [...같은 구조...],
+  "precedentQueries": ["이 계약의 분야와 핵심 쟁점에 기반해 관련 한국 법원 판례를 찾을 검색어 2~4개 (한국어, 짧게) — 예: \"저작권 양도\", \"2차적저작물\", \"용역 대금\", \"전속계약\""]
 }
 
 심각도 가이드:
@@ -266,6 +268,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       ...analysisData,
+      plan,
       scannedAt: new Date().toISOString(),
       extractionMethod,
       scansUsed: scansUsed + 1,

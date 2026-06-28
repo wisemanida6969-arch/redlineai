@@ -547,6 +547,10 @@ export const translations = {
     tabHigh:        { en: "high", ko: "높음" },
     tabMedium:      { en: "medium", ko: "중간" },
     tabLow:         { en: "low", ko: "낮음" },
+
+    /* Related precedents (after review) */
+    relatedPrecedents:      { en: "Related court precedents", ko: "관련 판례" },
+    relatedPrecedentsIntro: { en: "Real precedents from disputes similar to this contract — found using AI-suggested keywords. Tap a keyword or search your own.", ko: "이 계약과 비슷한 분쟁의 실제 판례입니다. AI가 추천한 검색어로 찾았어요. 키워드를 누르거나 직접 검색해 보세요." },
   },
 };
 

@@ -18,6 +18,10 @@ export interface AnalysisResult {
   low: RiskClause[];
   scannedAt: string;
   extractionMethod?: string;
+  /** AI-suggested keywords for finding related court precedents */
+  precedentQueries?: string[];
+  /** User's plan at scan time (gates the precedent 판결요지 view) */
+  plan?: "free" | "pro" | "business";
 }
 
 const SEVERITY_LABEL: Record<string, string> = {

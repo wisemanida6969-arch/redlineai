@@ -5,6 +5,8 @@ import Navbar from "@/components/Navbar";
 import { AlertTriangle, AlertCircle, CheckCircle, Copy, Check, Download, ArrowLeft, Shield, FileText, Loader2, ChevronDown } from "lucide-react";
 import { downloadPDF, downloadDOCX, type AnalysisResult } from "@/lib/exportReport";
 import AppFooter from "@/components/AppFooter";
+import PrecedentSearch from "@/components/PrecedentSearch";
+import { Scale } from "lucide-react";
 import { useT } from "@/lib/i18n/LanguageProvider";
 
 export default function AnalysisPage() {
@@ -211,6 +213,19 @@ export default function AnalysisPage() {
             ))
           )}
         </div>
+
+        {/* Related court precedents */}
+        {result.precedentQueries && result.precedentQueries.length > 0 && (
+          <div className="mt-12">
+            <div className="flex items-center gap-2 mb-1">
+              <Scale className="w-5 h-5 text-red-400" />
+              <h2 className="text-white font-bold text-lg">{t("analysis.relatedPrecedents")}</h2>
+            </div>
+            <p className="text-slate-400 text-sm mb-4">{t("analysis.relatedPrecedentsIntro")}</p>
+            <PrecedentSearch queries={result.precedentQueries} plan={result.plan} />
+            <p className="text-slate-500 text-[11px] leading-relaxed mt-4">{t("standard.precedentsDisclaimer")}</p>
+          </div>
+        )}
       </div>
       <AppFooter />
     </div>
