@@ -409,6 +409,8 @@ export const translations = {
     contractPreview:  { en: "Service Agreement Preview", ko: "용역 계약서 미리보기" },
     pdfReady:         { en: "A4 · PDF Ready", ko: "A4 · PDF 준비됨" },
     legalNotice:      { en: "⚠️ This is a template draft. Have a lawyer review before signing important contracts.", ko: "⚠️ 이것은 템플릿 초안입니다. 중요한 계약 서명 전 변호사 검토를 받으세요." },
+    referencedTitle:  { en: "Disputes this draft guards against", ko: "이 초안이 예방하는 분쟁 사례" },
+    referencedIntro:  { en: "Real court disputes in this field. The clauses above were strengthened to help prevent these — open each official source for details.", ko: "이 분야에서 실제 발생한 법원 분쟁입니다. 위 초안은 이런 위험을 예방하도록 관련 조항을 보강했어요. 자세한 내용은 각 공식 출처에서 확인하세요." },
   },
 
   /* ── Vendor Risk Scan ── */

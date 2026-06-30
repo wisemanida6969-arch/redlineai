@@ -3,10 +3,18 @@ import { useState, useCallback } from "react";
 import {
   Upload, FileText, AlertCircle, Loader2, CheckCircle,
   Download, Receipt, Edit3, Eye, ArrowLeft, Building2,
-  User, DollarSign, Calendar, Briefcase, Sparkles, FileType
+  User, DollarSign, Calendar, Briefcase, Sparkles, FileType,
+  Scale, ExternalLink
 } from "lucide-react";
 import { downloadContractPDF, type ExtractedQuote } from "@/lib/contractExport";
 import { useT } from "@/lib/i18n/LanguageProvider";
+
+interface PrecedentRef {
+  title: string;
+  court: string | null;
+  date: string | null;
+  url: string;
+}
 
 interface QuoteResult {
   extracted: ExtractedQuote;
@@ -14,6 +22,7 @@ interface QuoteResult {
   filename: string;
   extractionMethod: string;
   generatedAt: string;
+  referencedPrecedents?: PrecedentRef[];
 }
 
 type View = "upload" | "review" | "preview";
@@ -432,6 +441,25 @@ export default function QuoteToContract({ onUsed, standard }: QuoteToContractPro
             </pre>
           </div>
         </div>
+
+        {result.referencedPrecedents && result.referencedPrecedents.length > 0 && (
+          <div className="mt-6 bg-[#162035] border border-[#1e3050] rounded-2xl p-5">
+            <div className="flex items-center gap-2 mb-1">
+              <Scale className="w-4 h-4 text-red-400" />
+              <h3 className="text-white font-semibold text-sm">{t("quote.referencedTitle")}</h3>
+            </div>
+            <p className="text-slate-400 text-xs mb-3">{t("quote.referencedIntro")}</p>
+            <div className="space-y-2">
+              {result.referencedPrecedents.map((p, i) => (
+                <a key={i} href={p.url} target="_blank" rel="noopener noreferrer"
+                   className="flex items-start gap-2 bg-[#0f1a2e] border border-[#1e3050] hover:border-red-700/50 rounded-lg px-3 py-2 transition-colors">
+                  <span className="text-slate-300 text-xs flex-1 leading-relaxed">{p.court ? `[${p.court}] ` : ""}{p.title}</span>
+                  <ExternalLink className="w-3 h-3 text-slate-500 shrink-0 mt-0.5" />
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="mt-4 text-center text-slate-500 text-xs">
           {t("quote.legalNotice")}

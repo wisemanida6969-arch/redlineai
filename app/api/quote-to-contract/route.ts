@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { PLAN_LIMITS, type Plan } from "@/lib/planLimits";
 import { STANDARD_CONTRACTS, getCategory, getContractType } from "@/lib/standardContracts";
+import { fetchPrecedentTitles, FIELD_PRECEDENT_KEYWORD, type PrecedentRef } from "@/lib/precedentFetch";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -353,7 +354,7 @@ function generateContract(data: ExtractedQuote, lang: "en" | "ko" = "en"): strin
  * chosen MCST standard contract, filled with the extracted deal data. AI-generated
  * (Claude knows the standard forms); always carries a "verify against official form" note.
  */
-async function generateStandardDraftAI(data: ExtractedQuote, lang: "en" | "ko", s: StandardCtx): Promise<string> {
+async function generateStandardDraftAI(data: ExtractedQuote, lang: "en" | "ko", s: StandardCtx, hints: string[] = []): Promise<string> {
   const sys = lang === "ko"
     ? `당신은 한국 창작 분야 계약서 작성 전문 변호사입니다. 문화체육관광부가 배포한 「${s.categoryKo} 분야 표준계약서」 중 「${s.typeKo}」(통상 당사자: ${s.partiesKo})의 구조와 창작자 보호 조항을 충실히 따르는 정식 한국어 계약서 초안을 작성하세요.
 
@@ -371,9 +372,15 @@ Requirements:
 - Output ONLY the contract body (no commentary, no markdown symbols), using article numbering (Article 1, Article 2 …), and end with a signature block.
 - Append this exact note as the final line: "※ This draft was AI-generated following the MCST \"${s.typeEn}\" standard contract; before signing, verify it against the official standard form and have it reviewed by a professional."`;
 
-  const userPrompt = lang === "ko"
+  const hintBlock = hints.length
+    ? (lang === "ko"
+        ? `\n\n[이 분야 실제 분쟁 사례 — 예방 참고용]\n다음은 이 분야에서 실제 발생한 법원 분쟁의 제목입니다. 이런 분쟁을 예방하는 관점에서 관련 조항(권리 귀속, 2차적저작물, 저작인격권, 대금·정산, 수정 범위, 계약 해지, 손해배상 등)을 더 명확하고 구체적으로 보강하세요. 단, 특정 판례의 결론을 단정하거나 인용하지 말고 일반적 예방 차원에서만 반영하세요:\n${hints.map((h) => `- ${h}`).join("\n")}`
+        : `\n\n[Real disputes in this field — for prevention]\nBelow are titles of actual court disputes in this field. Strengthen the relevant clauses to prevent such disputes (rights assignment, derivative works, moral rights, payment, revision scope, termination, damages). Do NOT cite or assert any case outcome — use them only for general prevention:\n${hints.map((h) => `- ${h}`).join("\n")}`)
+    : "";
+
+  const userPrompt = (lang === "ko"
     ? `다음 거래 정보를 반영해 계약서 초안을 작성하세요:\n\n${JSON.stringify(data, null, 2)}`
-    : `Draft the contract using this deal data:\n\n${JSON.stringify(data, null, 2)}`;
+    : `Draft the contract using this deal data:\n\n${JSON.stringify(data, null, 2)}`) + hintBlock;
 
   const message = await client.messages.create({
     model: "claude-sonnet-4-20250514",
@@ -482,6 +489,7 @@ export async function POST(req: NextRequest) {
     const stdTypeId = formData.get("standardType") as string | null;
     let standard: StandardCtx | undefined;
     let standardTitle = "";
+    let standardCatId: string | null = null;
     if (stdCatId && stdTypeId) {
       const cat = getCategory(stdCatId);
       const type = getContractType(stdCatId, stdTypeId);
@@ -492,6 +500,7 @@ export async function POST(req: NextRequest) {
           partiesKo: type.parties.ko, partiesEn: type.parties.en,
         };
         standardTitle = lang === "ko" ? type.title.ko : type.title.en;
+        standardCatId = stdCatId;
       }
     }
 
@@ -581,16 +590,24 @@ export async function POST(req: NextRequest) {
             partiesKo: type.parties.ko, partiesEn: type.parties.en,
           };
           standardTitle = lang === "ko" ? type.title.ko : type.title.en;
+          standardCatId = detected.categoryId;
           autoMatched = true;
         }
       }
     }
 
+    // Pull a few REAL disputes in this field to inform the draft (prevention only, titles only).
+    let referencedPrecedents: PrecedentRef[] = [];
+    if (standard && standardCatId) {
+      const kw = FIELD_PRECEDENT_KEYWORD[standardCatId];
+      if (kw) referencedPrecedents = await fetchPrecedentTitles(kw, 6);
+    }
+
     // ── Generate contract draft ──
-    // Standard (chosen or auto-detected) → AI draft on that MCST standard form.
-    // Otherwise → generic service-agreement template.
+    // Standard (chosen or auto-detected) → AI draft on that MCST standard form,
+    // strengthened against real dispute patterns. Otherwise → generic template.
     const contractText = standard
-      ? await generateStandardDraftAI(extracted, lang, standard)
+      ? await generateStandardDraftAI(extracted, lang, standard, referencedPrecedents.map((r) => r.title))
       : generateContract(extracted, lang);
 
     // ── Update usage ──
@@ -611,6 +628,7 @@ export async function POST(req: NextRequest) {
       standardMode: Boolean(standard),
       standardTitle,
       autoMatched,
+      referencedPrecedents,
     });
   } catch (err: unknown) {
     console.error("Quote-to-contract error:", err);
