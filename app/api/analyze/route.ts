@@ -4,6 +4,7 @@ import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { PLAN_LIMITS, type Plan } from "@/lib/planLimits";
 import { getCategory, getContractType } from "@/lib/standardContracts";
 import { extractTextFromHwpx, looksLikeZip } from "@/lib/hwpxExtract";
+import { extractTextFromHwpBinary } from "@/lib/hwpBinaryExtract";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -242,11 +243,15 @@ export async function POST(req: NextRequest) {
           }, { status: 400 });
         }
       } else if (name.endsWith(".hwp")) {
-        return NextResponse.json({
-          error: lang === "ko"
-            ? "구버전 HWP 파일은 아직 직접 업로드를 지원하지 않습니다. 가장 빠른 방법: 한글(또는 한글뷰어)에서 이 파일을 열어 전체 내용을 복사한 뒤, 위 '텍스트 붙여넣기' 탭에 붙여넣어 주세요. (또는 '다른 이름으로 저장 → PDF/HWPX' 후 업로드)"
-            : "Older-format HWP files can't be uploaded directly yet. Fastest fix: open it in 한글 (Hangul word processor), copy all the text, and paste it into the 'Paste Text' tab above. (Or save it as PDF/HWPX and upload that instead.)",
-        }, { status: 400 });
+        contractText = await extractTextFromHwpBinary(buffer);
+        extractionMethod = "hwp-binary";
+        if (!contractText.trim()) {
+          return NextResponse.json({
+            error: lang === "ko"
+              ? "이 HWP 파일에서 내용을 읽지 못했습니다. 한글(또는 한글뷰어)에서 열어 전체 내용을 복사한 뒤, 위 '텍스트 붙여넣기' 탭에 붙여넣어 주세요."
+              : "Could not read this HWP file. Please open it in 한글 (Hangul word processor), copy all the text, and paste it into the 'Paste Text' tab above.",
+          }, { status: 400 });
+        }
       } else {
         return NextResponse.json({ error: lang === "ko" ? "지원하지 않는 파일 형식입니다. PDF, DOCX, HWPX 파일을 업로드하세요." : "Unsupported file type. Upload a PDF, DOCX, or HWPX file." }, { status: 400 });
       }

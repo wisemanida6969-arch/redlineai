@@ -1,0 +1,17 @@
+# Extends the default Node build with Python + pyhwp (hwp5txt), used to
+# extract text from old-format binary .hwp files (구형 한글 문서).
+# If this Python setup ever fails to build/install, the app still works —
+# lib/hwpBinaryExtract.ts degrades to "" on any missing/broken binary, and
+# callers fall back to the existing paste-text guidance.
+
+providers = ["node"]
+
+[phases.setup]
+nixPkgs = ["nodejs", "python311"]
+
+[phases.install]
+cmds = [
+  "npm ci",
+  "python3 -m ensurepip --upgrade || true",
+  "python3 -m pip install --no-cache-dir pyhwp || python3 -m pip install --no-cache-dir --break-system-packages pyhwp || true"
+]
