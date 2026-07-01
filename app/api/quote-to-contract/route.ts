@@ -4,6 +4,7 @@ import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { PLAN_LIMITS, type Plan } from "@/lib/planLimits";
 import { STANDARD_CONTRACTS, getCategory, getContractType } from "@/lib/standardContracts";
 import { fetchPrecedentTitles, FIELD_PRECEDENT_KEYWORD, type PrecedentRef } from "@/lib/precedentFetch";
+import { extractTextFromHwpx, looksLikeZip } from "@/lib/hwpxExtract";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -493,23 +494,60 @@ export async function POST(req: NextRequest) {
 
     // ── Draft mode ──
     // Client sends edited terms (대금·기간·업무범위 …) + a standard → generate the contract
-    // from those terms. Finishes an already-counted use, so no extraction / no extra count.
+    // from those terms. Normally finishes an already-counted use (extraction counted it),
+    // EXCEPT for manual entry (no file/chat was ever extracted) — flagged via countUsage,
+    // which runs the same limit check + increment as the main flow.
     const editedRaw = formData.get("editedData") as string | null;
     if (editedRaw) {
+      const countUsage = formData.get("countUsage") === "true";
+      if (countUsage && limit !== null && quoteUsed >= limit) {
+        const upgradeMsg = plan === "pro" ? "Upgrade to Business for unlimited contracts." : "Limit reached.";
+        return NextResponse.json({
+          error: `You've used all ${limit} Quote to Contract generations this month. ${upgradeMsg}`,
+          limitReached: true,
+        }, { status: 403 });
+      }
       const catId = formData.get("standardCategory") as string | null;
       const typeId = formData.get("standardType") as string | null;
       const cat = catId ? getCategory(catId) : undefined;
       const type = catId && typeId ? getContractType(catId, typeId) : undefined;
-      if (!cat || !type) return NextResponse.json({ error: "Invalid standard selection." }, { status: 400 });
+      // A category/type was passed but doesn't resolve → real error. No category at all → generic path (manual entry, no standard chosen).
+      if (catId && (!cat || !type)) return NextResponse.json({ error: "Invalid standard selection." }, { status: 400 });
       let edited: ExtractedQuote;
       try { edited = JSON.parse(editedRaw) as ExtractedQuote; } catch { return NextResponse.json({ error: "Invalid terms." }, { status: 400 }); }
+      if (countUsage) {
+        await service.from("profiles").update({
+          quote_used: sameMonth ? quoteUsed + 1 : 1,
+          scan_month: currentMonth,
+        }).eq("id", user.id);
+      }
+
+      if (!cat || !type) {
+        // Generic — no standard selected (manual entry without a field).
+        return NextResponse.json({
+          extracted: edited,
+          contract: generateContract(edited, lang),
+          filename: "",
+          extractionMethod: "edited",
+          generatedAt: new Date().toISOString(),
+          lang,
+          standardMode: false,
+          standardCategory: null,
+          standardType: null,
+          standardTitle: "",
+          autoMatched: false,
+          referencedPrecedents: [],
+          precedentProtections: [],
+        });
+      }
+
       const std: StandardCtx = {
         categoryKo: cat.title.ko, categoryEn: cat.title.en,
         typeKo: type.title.ko,    typeEn: type.title.en,
         partiesKo: type.parties.ko, partiesEn: type.parties.en,
       };
       let refs: PrecedentRef[] = [];
-      const kw = catId ? FIELD_PRECEDENT_KEYWORD[catId] : "";
+      const kw = FIELD_PRECEDENT_KEYWORD[catId as string];
       if (kw) refs = await fetchPrecedentTitles(kw, 6);
       const { contract, protections } = await generateStandardDraftAI(edited, lang, std, refs.map((r) => r.title));
       const precedentProtections = protections
@@ -625,8 +663,24 @@ export async function POST(req: NextRequest) {
             quoteText = await extractTextWithVision(buffer, "application/pdf");
             extractionMethod = "pdf-vision";
           }
+        } else if (name.endsWith(".hwpx") || (name.endsWith(".hwp") && looksLikeZip(buffer))) {
+          quoteText = await extractTextFromHwpx(buffer);
+          extractionMethod = "hwpx";
+          if (!quoteText.trim()) {
+            return NextResponse.json({
+              error: lang === "ko"
+                ? "HWPX 파일에서 내용을 읽지 못했습니다. 한글 프로그램에서 '다른 이름으로 저장 → PDF'로 변환 후 다시 업로드해 주세요."
+                : "Could not read this HWPX file. Please save it as PDF from your word processor and try again.",
+            }, { status: 400 });
+          }
+        } else if (name.endsWith(".hwp")) {
+          return NextResponse.json({
+            error: lang === "ko"
+              ? "구버전 HWP 파일은 아직 지원하지 않습니다. 한글 프로그램에서 '다른 이름으로 저장 → PDF' 또는 'HWPX'로 변환 후 업로드해 주세요."
+              : "Older-format HWP files are not supported yet. Please save it as PDF (or HWPX) from your word processor and try again.",
+          }, { status: 400 });
         } else {
-          return NextResponse.json({ error: "Unsupported file type. Upload a PDF, DOCX, TXT, or PNG/JPG image." }, { status: 400 });
+          return NextResponse.json({ error: lang === "ko" ? "지원하지 않는 파일 형식입니다. PDF, DOCX, HWPX, TXT, 또는 PNG/JPG 이미지를 업로드하세요." : "Unsupported file type. Upload a PDF, DOCX, HWPX, TXT, or PNG/JPG image." }, { status: 400 });
         }
       }
     }

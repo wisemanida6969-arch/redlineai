@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { PLAN_LIMITS, type Plan } from "@/lib/planLimits";
 import { getCategory, getContractType } from "@/lib/standardContracts";
+import { extractTextFromHwpx, looksLikeZip } from "@/lib/hwpxExtract";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -230,8 +231,24 @@ export async function POST(req: NextRequest) {
           contractText = await extractTextWithVision(buffer, "application/pdf");
           extractionMethod = "pdf-vision";
         }
+      } else if (name.endsWith(".hwpx") || (name.endsWith(".hwp") && looksLikeZip(buffer))) {
+        contractText = await extractTextFromHwpx(buffer);
+        extractionMethod = "hwpx";
+        if (!contractText.trim()) {
+          return NextResponse.json({
+            error: lang === "ko"
+              ? "HWPX 파일에서 내용을 읽지 못했습니다. 한글 프로그램에서 '다른 이름으로 저장 → PDF'로 변환 후 다시 업로드해 주세요."
+              : "Could not read this HWPX file. Please save it as PDF from your word processor and try again.",
+          }, { status: 400 });
+        }
+      } else if (name.endsWith(".hwp")) {
+        return NextResponse.json({
+          error: lang === "ko"
+            ? "구버전 HWP 파일은 아직 지원하지 않습니다. 한글 프로그램에서 '다른 이름으로 저장 → PDF' 또는 'HWPX'로 변환 후 업로드해 주세요."
+            : "Older-format HWP files are not supported yet. Please save it as PDF (or HWPX) from your word processor and try again.",
+        }, { status: 400 });
       } else {
-        return NextResponse.json({ error: "Unsupported file type. Upload a PDF or DOCX." }, { status: 400 });
+        return NextResponse.json({ error: lang === "ko" ? "지원하지 않는 파일 형식입니다. PDF, DOCX, HWPX 파일을 업로드하세요." : "Unsupported file type. Upload a PDF, DOCX, or HWPX file." }, { status: 400 });
       }
     } else {
       return NextResponse.json({ error: "No contract provided" }, { status: 400 });

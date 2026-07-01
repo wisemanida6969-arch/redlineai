@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { downloadContractPDF, type ExtractedQuote } from "@/lib/contractExport";
 import { useT } from "@/lib/i18n/LanguageProvider";
+import { STANDARD_CONTRACTS, getCategory, getContractType } from "@/lib/standardContracts";
 
 interface PrecedentRef {
   title: string;
@@ -35,6 +36,12 @@ interface QuoteResult {
 }
 
 type View = "upload" | "review" | "preview";
+const BLANK_QUOTE: ExtractedQuote = {
+  providerName: "", providerContact: "", providerAddress: "",
+  clientName: "", clientContact: "", clientAddress: "",
+  serviceDescription: "", totalAmount: "", paymentTerms: "",
+  deliveryDate: "", additionalTerms: "",
+};
 
 interface QuoteToContractProps {
   onUsed?: () => void;
@@ -51,7 +58,10 @@ export default function QuoteToContract({ onUsed, standard }: QuoteToContractPro
   const [stdCatId, setStdCatId] = useState<string | null>(null);
   const [stdTypeId, setStdTypeId] = useState<string | null>(null);
   const [regenerating, setRegenerating] = useState(false);
-  const [mode, setMode] = useState<"file" | "chat">("file");
+  const [manualNeedsCount, setManualNeedsCount] = useState(false);
+  const [manualCatId, setManualCatId] = useState("");
+  const [manualTypeId, setManualTypeId] = useState("");
+  const [mode, setMode] = useState<"file" | "chat" | "manual">("file");
   const [files, setFiles] = useState<File[]>([]);
   const [chatText, setChatText] = useState("");
   const [dragging, setDragging] = useState(false);
@@ -66,8 +76,9 @@ export default function QuoteToContract({ onUsed, standard }: QuoteToContractPro
     const name = f.name.toLowerCase();
     const valid =
       name.endsWith(".pdf") || name.endsWith(".docx") || name.endsWith(".txt") ||
+      name.endsWith(".hwpx") || name.endsWith(".hwp") ||
       name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".webp");
-    if (!valid) { setError(lang === "ko" ? "PDF, DOCX, TXT, PNG, JPG 파일만 가능합니다." : "Please upload a PDF, DOCX, TXT, PNG, or JPG file."); return false; }
+    if (!valid) { setError(lang === "ko" ? "PDF, DOCX, HWPX, TXT, PNG, JPG 파일만 가능합니다." : "Please upload a PDF, DOCX, HWPX, TXT, PNG, or JPG file."); return false; }
     if (f.size > 20 * 1024 * 1024) { setError(lang === "ko" ? "파일이 너무 큽니다. 최대 20MB." : "File too large. Max 20MB."); return false; }
     return true;
   };
@@ -147,23 +158,52 @@ export default function QuoteToContract({ onUsed, standard }: QuoteToContractPro
     }
   };
 
+  /** Skip extraction entirely — start from blank fields for a manually-chosen (or generic) form. */
+  const startManualEntry = () => {
+    const catId = standard?.categoryId ?? (manualCatId || null);
+    const typeId = standard?.typeId ?? (manualTypeId || null);
+    setEditedData({ ...BLANK_QUOTE });
+    setResult(null);
+    if (catId && typeId) {
+      const type = getContractType(catId, typeId);
+      setStandardMode(true);
+      setStandardTitle(type ? (lang === "ko" ? type.title.ko : type.title.en) : "");
+      setStdCatId(catId);
+      setStdTypeId(typeId);
+    } else {
+      setStandardMode(false);
+      setStandardTitle("");
+      setStdCatId(null);
+      setStdTypeId(null);
+    }
+    setAutoMatched(false);
+    setManualNeedsCount(true);
+    setError("");
+    setView("review");
+  };
+
   const regenerateContract = async () => {
     if (!editedData) return;
-    // Standard mode → generate the contract from the edited terms on the matched standard form.
-    if (standardMode && stdCatId && stdTypeId) {
+    const willCountUsage = manualNeedsCount;
+    // Standard mode, or manual entry (with or without a chosen standard) → generate server-side.
+    if ((standardMode && stdCatId && stdTypeId) || manualNeedsCount) {
       setRegenerating(true);
       setError("");
       try {
         const fd = new FormData();
         fd.append("editedData", JSON.stringify(editedData));
-        fd.append("standardCategory", stdCatId);
-        fd.append("standardType", stdTypeId);
+        if (stdCatId) fd.append("standardCategory", stdCatId);
+        if (stdTypeId) fd.append("standardType", stdTypeId);
         fd.append("lang", lang);
+        if (willCountUsage) fd.append("countUsage", "true");
         const res = await fetch("/api/quote-to-contract", { method: "POST", body: fd });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || (lang === "ko" ? "생성에 실패했습니다." : "Failed to generate."));
         setResult((r) => (r ? { ...r, contract: data.contract, extracted: editedData, referencedPrecedents: data.referencedPrecedents, precedentProtections: data.precedentProtections } : data));
+        if (typeof data.standardMode === "boolean") setStandardMode(data.standardMode);
         if (data.standardTitle) setStandardTitle(data.standardTitle);
+        setManualNeedsCount(false);
+        if (willCountUsage) onUsed?.();
         setView("preview");
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to generate.");
@@ -172,7 +212,7 @@ export default function QuoteToContract({ onUsed, standard }: QuoteToContractPro
       }
       return;
     }
-    // Generic mode → client-side template.
+    // Generic mode (already extracted from a file/chat) → client-side template.
     const newContract = generateContractFromData(editedData, lang);
     if (result) {
       setResult({ ...result, contract: newContract, extracted: editedData });
@@ -206,6 +246,9 @@ export default function QuoteToContract({ onUsed, standard }: QuoteToContractPro
     setStdCatId(null);
     setStdTypeId(null);
     setRegenerating(false);
+    setManualNeedsCount(false);
+    setManualCatId("");
+    setManualTypeId("");
   };
 
   /* ─────────────── UPLOAD VIEW ─────────────── */
@@ -237,6 +280,12 @@ export default function QuoteToContract({ onUsed, standard }: QuoteToContractPro
           >
             <FileText className="w-4 h-4" /> {t("quote.modeChat")}
           </button>
+          <button
+            onClick={() => { setMode("manual"); setError(""); }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${mode === "manual" ? "bg-red-600 text-white" : "text-slate-400 hover:text-white"}`}
+          >
+            <Edit3 className="w-4 h-4" /> {t("quote.modeManual")}
+          </button>
         </div>
 
         {/* FILE MODE */}
@@ -252,7 +301,7 @@ export default function QuoteToContract({ onUsed, standard }: QuoteToContractPro
               <input
                 id="quote-file-input"
                 type="file"
-                accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp"
+                accept=".pdf,.docx,.hwpx,.hwp,.txt,.png,.jpg,.jpeg,.webp"
                 multiple
                 onChange={(e) => { const arr = e.target.files ? Array.from(e.target.files) : []; if (arr.length) addFiles(arr); e.target.value = ""; }}
                 className="hidden"
@@ -307,29 +356,94 @@ export default function QuoteToContract({ onUsed, standard }: QuoteToContractPro
           </>
         )}
 
-        {error && (
-          <div className="mt-4 flex items-center gap-2 text-red-400 text-sm bg-red-900/20 border border-red-800/50 rounded-xl px-4 py-3">
-            <AlertCircle className="w-4 h-4 shrink-0" /> {error}
+        {/* MANUAL ENTRY MODE */}
+        {mode === "manual" && (
+          <div>
+            <p className="text-slate-400 text-sm mb-4">{t("quote.manualIntro")}</p>
+
+            {standard ? (
+              <div className="bg-yellow-900/15 border border-yellow-700/30 rounded-xl px-4 py-3 mb-4">
+                <p className="text-yellow-200 text-xs font-semibold mb-1">{t("quote.manualStandardNote")}</p>
+                <p className="text-white text-sm">
+                  📑 {(() => { const type = getContractType(standard.categoryId, standard.typeId); return type ? (lang === "ko" ? type.title.ko : type.title.en) : ""; })()}
+                </p>
+              </div>
+            ) : (
+              <div className="grid sm:grid-cols-2 gap-3 mb-4">
+                <div>
+                  <label className="text-slate-400 text-xs font-medium block mb-1">{t("quote.manualFieldLabel")}</label>
+                  <select
+                    value={manualCatId}
+                    onChange={(e) => { setManualCatId(e.target.value); setManualTypeId(""); }}
+                    className="w-full bg-[#0f1a2e] border border-[#1e3050] rounded-lg px-3 py-2 text-slate-200 text-sm focus:outline-none focus:border-red-700/50"
+                  >
+                    <option value="">{t("quote.manualGenericOption")}</option>
+                    {STANDARD_CONTRACTS.map((c) => (
+                      <option key={c.id} value={c.id}>{c.emoji} {lang === "ko" ? c.title.ko : c.title.en}</option>
+                    ))}
+                  </select>
+                </div>
+                {manualCatId && (
+                  <div>
+                    <label className="text-slate-400 text-xs font-medium block mb-1">{t("quote.manualFormLabel")}</label>
+                    <select
+                      value={manualTypeId}
+                      onChange={(e) => setManualTypeId(e.target.value)}
+                      className="w-full bg-[#0f1a2e] border border-[#1e3050] rounded-lg px-3 py-2 text-slate-200 text-sm focus:outline-none focus:border-red-700/50"
+                    >
+                      <option value="">{t("quote.manualSelectForm")}</option>
+                      {getCategory(manualCatId)?.types.map((tp) => (
+                        <option key={tp.id} value={tp.id}>{lang === "ko" ? tp.title.ko : tp.title.en}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {error && (
+              <div className="mb-4 flex items-center gap-2 text-red-400 text-sm bg-red-900/20 border border-red-800/50 rounded-xl px-4 py-3">
+                <AlertCircle className="w-4 h-4 shrink-0" /> {error}
+              </div>
+            )}
+
+            <button
+              onClick={startManualEntry}
+              disabled={!standard && manualCatId !== "" && !manualTypeId}
+              className="w-full bg-red-600 hover:bg-red-700 disabled:bg-red-900/50 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl text-base sm:text-lg transition-colors flex items-center justify-center gap-3"
+            >
+              <Edit3 className="w-5 h-5" /> {t("quote.manualStart")}
+            </button>
           </div>
         )}
 
-        <button
-          onClick={handleGenerate}
-          disabled={loading || !canSubmit}
-          className="mt-5 w-full bg-red-600 hover:bg-red-700 disabled:bg-red-900/50 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl text-base sm:text-lg transition-colors flex items-center justify-center gap-3"
-        >
-          {loading ? <><Loader2 className="w-5 h-5 animate-spin" />{loadingStep}</> : <><Sparkles className="w-5 h-5" /> {t("quote.generate")}</>}
-        </button>
+        {mode !== "manual" && (
+          <>
+            {error && (
+              <div className="mt-4 flex items-center gap-2 text-red-400 text-sm bg-red-900/20 border border-red-800/50 rounded-xl px-4 py-3">
+                <AlertCircle className="w-4 h-4 shrink-0" /> {error}
+              </div>
+            )}
 
-        {loading && (
-          <div className="mt-4 bg-[#162035] border border-[#1e3050] rounded-xl p-4">
-            <div className="flex justify-between text-xs text-slate-500 mb-2">
-              <span>{t("quote.readingQuote")}</span><span>{t("quote.estimated")}</span>
-            </div>
-            <div className="h-1.5 bg-[#1e3050] rounded-full overflow-hidden">
-              <div className="h-full bg-red-600 rounded-full animate-pulse w-2/3" />
-            </div>
-          </div>
+            <button
+              onClick={handleGenerate}
+              disabled={loading || !canSubmit}
+              className="mt-5 w-full bg-red-600 hover:bg-red-700 disabled:bg-red-900/50 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl text-base sm:text-lg transition-colors flex items-center justify-center gap-3"
+            >
+              {loading ? <><Loader2 className="w-5 h-5 animate-spin" />{loadingStep}</> : <><Sparkles className="w-5 h-5" /> {t("quote.generate")}</>}
+            </button>
+
+            {loading && (
+              <div className="mt-4 bg-[#162035] border border-[#1e3050] rounded-xl p-4">
+                <div className="flex justify-between text-xs text-slate-500 mb-2">
+                  <span>{t("quote.readingQuote")}</span><span>{t("quote.estimated")}</span>
+                </div>
+                <div className="h-1.5 bg-[#1e3050] rounded-full overflow-hidden">
+                  <div className="h-full bg-red-600 rounded-full animate-pulse w-2/3" />
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     );
@@ -443,8 +557,8 @@ export default function QuoteToContract({ onUsed, standard }: QuoteToContractPro
           className="mt-6 w-full bg-red-600 hover:bg-red-700 disabled:bg-red-900/50 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl text-base sm:text-lg transition-colors flex items-center justify-center gap-3"
         >
           {regenerating
-            ? <><Loader2 className="w-5 h-5 animate-spin" /> {lang === "ko" ? "표준계약서 생성 중…" : "Generating…"}</>
-            : <><Eye className="w-5 h-5" /> {standardMode ? (lang === "ko" ? "표준계약서 생성" : "Generate contract") : t("quote.previewContract")}</>}
+            ? <><Loader2 className="w-5 h-5 animate-spin" /> {lang === "ko" ? "계약서 생성 중…" : "Generating…"}</>
+            : <><Eye className="w-5 h-5" /> {(standardMode || manualNeedsCount) ? (lang === "ko" ? (standardMode ? "표준계약서 생성" : "계약서 생성") : "Generate contract") : t("quote.previewContract")}</>}
         </button>
       </div>
     );

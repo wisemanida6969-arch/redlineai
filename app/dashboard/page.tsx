@@ -27,7 +27,7 @@ interface ScanRecord {
   created_at: string;
 }
 
-const ACCEPTED_EXT = [".pdf", ".docx"];
+const ACCEPTED_EXT = [".pdf", ".docx", ".hwpx", ".hwp"];
 
 type Feature = FeatureKey;
 
@@ -71,9 +71,9 @@ export default function Dashboard() {
   }, []);
 
   const validateFile = (f: File) => {
-    const valid = f.name.endsWith(".pdf") || f.name.endsWith(".docx");
-    if (!valid) { setError("Please upload a PDF or DOCX file."); return false; }
-    if (f.size > 20 * 1024 * 1024) { setError("File too large. Max 20MB."); return false; }
+    const valid = ACCEPTED_EXT.some((ext) => f.name.toLowerCase().endsWith(ext));
+    if (!valid) { setError(lang === "ko" ? "PDF, DOCX, HWPX 파일만 가능합니다." : "Please upload a PDF, DOCX, or HWPX file."); return false; }
+    if (f.size > 20 * 1024 * 1024) { setError(lang === "ko" ? "파일이 너무 큽니다. 최대 20MB." : "File too large. Max 20MB."); return false; }
     return true;
   };
 
@@ -276,6 +276,7 @@ export default function Dashboard() {
                       <div className="flex items-center justify-center gap-3">
                         <FormatBadge label="PDF" desc="Text & scanned" />
                         <FormatBadge label="DOCX" desc="Word documents" />
+                        <FormatBadge label="HWPX" desc={lang === "ko" ? "신형 한글 문서" : "Modern 한글 docs"} />
                       </div>
                       <p className="text-slate-500 text-xs mt-3">{t("dashboard.maxSize")}</p>
                     </>
