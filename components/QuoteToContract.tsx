@@ -39,6 +39,9 @@ export default function QuoteToContract({ onUsed, standard }: QuoteToContractPro
   const [standardMode, setStandardMode] = useState(false);
   const [standardTitle, setStandardTitle] = useState("");
   const [autoMatched, setAutoMatched] = useState(false);
+  const [stdCatId, setStdCatId] = useState<string | null>(null);
+  const [stdTypeId, setStdTypeId] = useState<string | null>(null);
+  const [regenerating, setRegenerating] = useState(false);
   const [mode, setMode] = useState<"file" | "chat">("file");
   const [files, setFiles] = useState<File[]>([]);
   const [chatText, setChatText] = useState("");
@@ -114,11 +117,13 @@ export default function QuoteToContract({ onUsed, standard }: QuoteToContractPro
       setResult(data);
       setEditedData(data.extracted);
       if (data.standardMode) {
-        // AI drafted from the standard form → straight to preview (no field-edit step).
+        // Standard matched → let the user review/edit terms (대금·기간 …) before drafting.
         setStandardMode(true);
         setStandardTitle(data.standardTitle || "");
         setAutoMatched(Boolean(data.autoMatched));
-        setView("preview");
+        setStdCatId(data.standardCategory || null);
+        setStdTypeId(data.standardType || null);
+        setView("review");
       } else {
         setStandardMode(false);
         setAutoMatched(false);
@@ -135,6 +140,30 @@ export default function QuoteToContract({ onUsed, standard }: QuoteToContractPro
 
   const regenerateContract = async () => {
     if (!editedData) return;
+    // Standard mode → generate the contract from the edited terms on the matched standard form.
+    if (standardMode && stdCatId && stdTypeId) {
+      setRegenerating(true);
+      setError("");
+      try {
+        const fd = new FormData();
+        fd.append("editedData", JSON.stringify(editedData));
+        fd.append("standardCategory", stdCatId);
+        fd.append("standardType", stdTypeId);
+        fd.append("lang", lang);
+        const res = await fetch("/api/quote-to-contract", { method: "POST", body: fd });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || (lang === "ko" ? "생성에 실패했습니다." : "Failed to generate."));
+        setResult((r) => (r ? { ...r, contract: data.contract, extracted: editedData, referencedPrecedents: data.referencedPrecedents } : data));
+        if (data.standardTitle) setStandardTitle(data.standardTitle);
+        setView("preview");
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Failed to generate.");
+      } finally {
+        setRegenerating(false);
+      }
+      return;
+    }
+    // Generic mode → client-side template.
     const newContract = generateContractFromData(editedData, lang);
     if (result) {
       setResult({ ...result, contract: newContract, extracted: editedData });
@@ -165,6 +194,9 @@ export default function QuoteToContract({ onUsed, standard }: QuoteToContractPro
     setStandardMode(false);
     setStandardTitle("");
     setAutoMatched(false);
+    setStdCatId(null);
+    setStdTypeId(null);
+    setRegenerating(false);
   };
 
   /* ─────────────── UPLOAD VIEW ─────────────── */
@@ -302,6 +334,16 @@ export default function QuoteToContract({ onUsed, standard }: QuoteToContractPro
           <ArrowLeft className="w-4 h-4" /> {t("quote.uploadDifferent")}
         </button>
 
+        {standardMode && standardTitle && (
+          <div className="mb-4 bg-yellow-900/15 border border-yellow-700/30 rounded-xl px-4 py-3">
+            <p className="text-yellow-200 text-sm font-semibold">
+              📑 {standardTitle}
+              {autoMatched && <span className="ml-2 text-[10px] font-bold uppercase tracking-wide bg-yellow-900/40 text-yellow-300 border border-yellow-700/40 rounded px-1.5 py-0.5">AI</span>}
+            </p>
+            <p className="text-slate-300 text-xs mt-1">{lang === "ko" ? "아래에서 대금·기간·업무 범위 등을 입력·수정하면 이 표준양식으로 계약서를 생성합니다." : "Edit the amount, term, scope, etc. below — the contract will be drafted on this standard form."}</p>
+          </div>
+        )}
+
         <div className="bg-green-900/15 border border-green-800/40 rounded-xl p-4 mb-6 flex items-center gap-3">
           <CheckCircle className="w-5 h-5 text-green-400 shrink-0" />
           <div>
@@ -380,11 +422,20 @@ export default function QuoteToContract({ onUsed, standard }: QuoteToContractPro
           </div>
         </div>
 
+        {error && (
+          <div className="mt-4 flex items-center gap-2 text-red-400 text-sm bg-red-900/20 border border-red-800/50 rounded-xl px-4 py-3">
+            <AlertCircle className="w-4 h-4 shrink-0" /> {error}
+          </div>
+        )}
+
         <button
           onClick={regenerateContract}
-          className="mt-6 w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-4 rounded-xl text-base sm:text-lg transition-colors flex items-center justify-center gap-3"
+          disabled={regenerating}
+          className="mt-6 w-full bg-red-600 hover:bg-red-700 disabled:bg-red-900/50 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl text-base sm:text-lg transition-colors flex items-center justify-center gap-3"
         >
-          <Eye className="w-5 h-5" /> {t("quote.previewContract")}
+          {regenerating
+            ? <><Loader2 className="w-5 h-5 animate-spin" /> {lang === "ko" ? "표준계약서 생성 중…" : "Generating…"}</>
+            : <><Eye className="w-5 h-5" /> {standardMode ? (lang === "ko" ? "표준계약서 생성" : "Generate contract") : t("quote.previewContract")}</>}
         </button>
       </div>
     );
@@ -395,8 +446,8 @@ export default function QuoteToContract({ onUsed, standard }: QuoteToContractPro
     return (
       <div>
         <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
-          <button onClick={() => (standardMode ? reset() : setView("review"))} className="flex items-center gap-1 text-slate-400 hover:text-white text-sm transition-colors">
-            <ArrowLeft className="w-4 h-4" /> {standardMode ? t("quote.uploadDifferent") : t("quote.editTerms")}
+          <button onClick={() => setView("review")} className="flex items-center gap-1 text-slate-400 hover:text-white text-sm transition-colors">
+            <ArrowLeft className="w-4 h-4" /> {t("quote.editTerms")}
           </button>
 
           <button

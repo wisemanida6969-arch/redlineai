@@ -466,6 +466,48 @@ export async function POST(req: NextRequest) {
       }, { status: 403 });
     }
 
+    // ── Parse input ──
+    const formData = await req.formData();
+    const langField = formData.get("lang");
+    const lang: "en" | "ko" = langField === "ko" ? "ko" : "en";
+
+    // ── Draft mode ──
+    // Client sends edited terms (대금·기간·업무범위 …) + a standard → generate the contract
+    // from those terms. Finishes an already-counted use, so no extraction / no extra count.
+    const editedRaw = formData.get("editedData") as string | null;
+    if (editedRaw) {
+      const catId = formData.get("standardCategory") as string | null;
+      const typeId = formData.get("standardType") as string | null;
+      const cat = catId ? getCategory(catId) : undefined;
+      const type = catId && typeId ? getContractType(catId, typeId) : undefined;
+      if (!cat || !type) return NextResponse.json({ error: "Invalid standard selection." }, { status: 400 });
+      let edited: ExtractedQuote;
+      try { edited = JSON.parse(editedRaw) as ExtractedQuote; } catch { return NextResponse.json({ error: "Invalid terms." }, { status: 400 }); }
+      const std: StandardCtx = {
+        categoryKo: cat.title.ko, categoryEn: cat.title.en,
+        typeKo: type.title.ko,    typeEn: type.title.en,
+        partiesKo: type.parties.ko, partiesEn: type.parties.en,
+      };
+      let refs: PrecedentRef[] = [];
+      const kw = catId ? FIELD_PRECEDENT_KEYWORD[catId] : "";
+      if (kw) refs = await fetchPrecedentTitles(kw, 6);
+      const contract = await generateStandardDraftAI(edited, lang, std, refs.map((r) => r.title));
+      return NextResponse.json({
+        extracted: edited,
+        contract,
+        filename: "",
+        extractionMethod: "edited",
+        generatedAt: new Date().toISOString(),
+        lang,
+        standardMode: true,
+        standardCategory: catId,
+        standardType: typeId,
+        standardTitle: lang === "ko" ? type.title.ko : type.title.en,
+        autoMatched: false,
+        referencedPrecedents: refs,
+      });
+    }
+
     if (limit !== null && quoteUsed >= limit) {
       const upgradeMsg = plan === "pro"
         ? "Upgrade to Business for unlimited contracts."
@@ -476,10 +518,6 @@ export async function POST(req: NextRequest) {
       }, { status: 403 });
     }
 
-    // ── Parse input ──
-    const formData = await req.formData();
-    const langField = formData.get("lang");
-    const lang: "en" | "ko" = langField === "ko" ? "ko" : "en";
     const pastedText = formData.get("text") as string | null;
     const files = formData.getAll("file") as File[];
     const sourceFilename = formData.get("filename") as string | null;
@@ -490,6 +528,7 @@ export async function POST(req: NextRequest) {
     let standard: StandardCtx | undefined;
     let standardTitle = "";
     let standardCatId: string | null = null;
+    let standardTypeId: string | null = null;
     if (stdCatId && stdTypeId) {
       const cat = getCategory(stdCatId);
       const type = getContractType(stdCatId, stdTypeId);
@@ -501,6 +540,7 @@ export async function POST(req: NextRequest) {
         };
         standardTitle = lang === "ko" ? type.title.ko : type.title.en;
         standardCatId = stdCatId;
+        standardTypeId = stdTypeId;
       }
     }
 
@@ -591,24 +631,23 @@ export async function POST(req: NextRequest) {
           };
           standardTitle = lang === "ko" ? type.title.ko : type.title.en;
           standardCatId = detected.categoryId;
+          standardTypeId = detected.typeId;
           autoMatched = true;
         }
       }
     }
 
-    // Pull a few REAL disputes in this field to inform the draft (prevention only, titles only).
+    // Pull a few REAL disputes in this field (shown in the review step + used at draft time).
     let referencedPrecedents: PrecedentRef[] = [];
     if (standard && standardCatId) {
       const kw = FIELD_PRECEDENT_KEYWORD[standardCatId];
       if (kw) referencedPrecedents = await fetchPrecedentTitles(kw, 6);
     }
 
-    // ── Generate contract draft ──
-    // Standard (chosen or auto-detected) → AI draft on that MCST standard form,
-    // strengthened against real dispute patterns. Otherwise → generic template.
-    const contractText = standard
-      ? await generateStandardDraftAI(extracted, lang, standard, referencedPrecedents.map((r) => r.title))
-      : generateContract(extracted, lang);
+    // Standard → user reviews/edits terms (대금·기간·업무범위 …) first; the contract is
+    // generated in a 2nd step (/api/quote-to-contract/draft) from the edited terms.
+    // Generic (no standard) → produce the template now for the review step.
+    const contractText = standard ? "" : generateContract(extracted, lang);
 
     // ── Update usage ──
     await service.from("profiles").update({
@@ -626,6 +665,8 @@ export async function POST(req: NextRequest) {
       quoteLimit: limit,
       lang,
       standardMode: Boolean(standard),
+      standardCategory: standardCatId,
+      standardType: standardTypeId,
       standardTitle,
       autoMatched,
       referencedPrecedents,
