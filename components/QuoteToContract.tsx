@@ -16,6 +16,14 @@ interface PrecedentRef {
   url: string;
 }
 
+interface ClauseProtection {
+  clause: string;
+  why: string;
+  disputeTitle: string;
+  court: string | null;
+  url: string;
+}
+
 interface QuoteResult {
   extracted: ExtractedQuote;
   contract: string;
@@ -23,6 +31,7 @@ interface QuoteResult {
   extractionMethod: string;
   generatedAt: string;
   referencedPrecedents?: PrecedentRef[];
+  precedentProtections?: ClauseProtection[];
 }
 
 type View = "upload" | "review" | "preview";
@@ -153,7 +162,7 @@ export default function QuoteToContract({ onUsed, standard }: QuoteToContractPro
         const res = await fetch("/api/quote-to-contract", { method: "POST", body: fd });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || (lang === "ko" ? "생성에 실패했습니다." : "Failed to generate."));
-        setResult((r) => (r ? { ...r, contract: data.contract, extracted: editedData, referencedPrecedents: data.referencedPrecedents } : data));
+        setResult((r) => (r ? { ...r, contract: data.contract, extracted: editedData, referencedPrecedents: data.referencedPrecedents, precedentProtections: data.precedentProtections } : data));
         if (data.standardTitle) setStandardTitle(data.standardTitle);
         setView("preview");
       } catch (e) {
@@ -493,7 +502,29 @@ export default function QuoteToContract({ onUsed, standard }: QuoteToContractPro
           </div>
         </div>
 
-        {result.referencedPrecedents && result.referencedPrecedents.length > 0 && (
+        {result.precedentProtections && result.precedentProtections.length > 0 && (
+          <div className="mt-6 bg-gradient-to-br from-red-900/15 to-[#162035] border border-red-800/40 rounded-2xl p-5">
+            <div className="flex items-center gap-2 mb-1">
+              <Scale className="w-4 h-4 text-red-400" />
+              <h3 className="text-white font-semibold text-sm">{t("quote.protectionsTitle")}</h3>
+            </div>
+            <p className="text-slate-400 text-xs mb-3">{t("quote.protectionsIntro")}</p>
+            <div className="space-y-2">
+              {result.precedentProtections.map((p, i) => (
+                <div key={i} className="bg-[#0f1a2e] border border-[#1e3050] rounded-lg p-3">
+                  <p className="text-white text-sm font-semibold mb-1">🛡️ {p.clause}</p>
+                  <p className="text-slate-300 text-xs leading-relaxed mb-2">{p.why}</p>
+                  <a href={p.url} target="_blank" rel="noopener noreferrer"
+                     className="inline-flex items-center gap-1 text-red-400 hover:text-red-300 text-[11px]">
+                    <Scale className="w-3 h-3" /> {p.court ? `[${p.court}] ` : ""}{p.disputeTitle} <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {result.referencedPrecedents && result.referencedPrecedents.length > 0 && !(result.precedentProtections && result.precedentProtections.length > 0) && (
           <div className="mt-6 bg-[#162035] border border-[#1e3050] rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-1">
               <Scale className="w-4 h-4 text-red-400" />

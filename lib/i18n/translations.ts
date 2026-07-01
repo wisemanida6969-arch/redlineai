@@ -411,6 +411,8 @@ export const translations = {
     legalNotice:      { en: "⚠️ This is a template draft. Have a lawyer review before signing important contracts.", ko: "⚠️ 이것은 템플릿 초안입니다. 중요한 계약 서명 전 변호사 검토를 받으세요." },
     referencedTitle:  { en: "Disputes this draft guards against", ko: "이 초안이 예방하는 분쟁 사례" },
     referencedIntro:  { en: "Real court disputes in this field. The clauses above were strengthened to help prevent these — open each official source for details.", ko: "이 분야에서 실제 발생한 법원 분쟁입니다. 위 초안은 이런 위험을 예방하도록 관련 조항을 보강했어요. 자세한 내용은 각 공식 출처에서 확인하세요." },
+    protectionsTitle: { en: "Precedent-based protections", ko: "판례 기반 보호 조항" },
+    protectionsIntro: { en: "How specific clauses in this draft protect you — each tied to a real court dispute in your field.", ko: "이 계약서의 어떤 조항이, 실제 법원 분쟁을 근거로, 당신을 어떻게 보호하는지 보여줍니다." },
   },
 
   /* ── Vendor Risk Scan ── */

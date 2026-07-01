@@ -354,7 +354,11 @@ function generateContract(data: ExtractedQuote, lang: "en" | "ko" = "en"): strin
  * chosen MCST standard contract, filled with the extracted deal data. AI-generated
  * (Claude knows the standard forms); always carries a "verify against official form" note.
  */
-async function generateStandardDraftAI(data: ExtractedQuote, lang: "en" | "ko", s: StandardCtx, hints: string[] = []): Promise<string> {
+interface ClauseProtection { clause: string; refIndex: number; why: string }
+
+async function generateStandardDraftAI(
+  data: ExtractedQuote, lang: "en" | "ko", s: StandardCtx, hints: string[] = [],
+): Promise<{ contract: string; protections: ClauseProtection[] }> {
   const sys = lang === "ko"
     ? `당신은 한국 창작 분야 계약서 작성 전문 변호사입니다. 문화체육관광부가 배포한 「${s.categoryKo} 분야 표준계약서」 중 「${s.typeKo}」(통상 당사자: ${s.partiesKo})의 구조와 창작자 보호 조항을 충실히 따르는 정식 한국어 계약서 초안을 작성하세요.
 
@@ -372,10 +376,11 @@ Requirements:
 - Output ONLY the contract body (no commentary, no markdown symbols), using article numbering (Article 1, Article 2 …), and end with a signature block.
 - Append this exact note as the final line: "※ This draft was AI-generated following the MCST \"${s.typeEn}\" standard contract; before signing, verify it against the official standard form and have it reviewed by a professional."`;
 
+  const numbered = hints.map((h, i) => `${i + 1}. ${h}`).join("\n");
   const hintBlock = hints.length
     ? (lang === "ko"
-        ? `\n\n[이 분야 실제 분쟁 사례 — 예방 참고용]\n다음은 이 분야에서 실제 발생한 법원 분쟁의 제목입니다. 이런 분쟁을 예방하는 관점에서 관련 조항(권리 귀속, 2차적저작물, 저작인격권, 대금·정산, 수정 범위, 계약 해지, 손해배상 등)을 더 명확하고 구체적으로 보강하세요. 단, 특정 판례의 결론을 단정하거나 인용하지 말고 일반적 예방 차원에서만 반영하세요:\n${hints.map((h) => `- ${h}`).join("\n")}`
-        : `\n\n[Real disputes in this field — for prevention]\nBelow are titles of actual court disputes in this field. Strengthen the relevant clauses to prevent such disputes (rights assignment, derivative works, moral rights, payment, revision scope, termination, damages). Do NOT cite or assert any case outcome — use them only for general prevention:\n${hints.map((h) => `- ${h}`).join("\n")}`)
+        ? `\n\n[이 분야 실제 분쟁 사례 — 예방 참고용]\n다음은 이 분야에서 실제 발생한 법원 분쟁입니다(번호 포함). 이런 분쟁을 예방하는 관점에서 관련 조항(권리 귀속, 2차적저작물, 저작인격권, 대금·정산, 수정 범위, 계약 해지, 손해배상 등)을 더 명확·구체적으로 보강하세요. 특정 판례의 결론을 단정·인용하지 말고 일반적 예방 차원에서만 반영하세요.\n${numbered}\n\n계약서 본문을 모두 출력한 뒤, 맨 아래에 아래 형식의 <PROTECTIONS> 블록을 추가하세요(계약서 본문이 아니라 별도 메타데이터입니다). 실제로 강화한 조항과 위 분쟁의 연결만, 진짜 관련된 것 3~6개만. 관련 없으면 억지로 만들지 마세요.\n<PROTECTIONS>\n조문번호와 제목|위 분쟁 번호|그 분쟁을 어떻게 예방하는지 한 줄\n</PROTECTIONS>\n예:\n<PROTECTIONS>\n제7조(2차적저작물작성권)|2|권리 범위와 대가를 명확히 규정해 양도 범위 분쟁을 예방\n제9조(저작인격권)|4|성명표시권·동일성유지권을 명시해 크레딧 누락 분쟁을 예방\n</PROTECTIONS>`
+        : `\n\n[Real disputes in this field — for prevention]\nBelow are actual court disputes in this field (numbered). Strengthen the relevant clauses to prevent such disputes. Do NOT cite or assert any case outcome — use them only for general prevention.\n${numbered}\n\nAfter the full contract body, append a <PROTECTIONS> block in the format below (this is metadata, NOT part of the contract). Only 3-6 real clause↔dispute links that you actually strengthened; do not force unrelated ones.\n<PROTECTIONS>\nArticle no. & title|dispute number above|one line on how it prevents that dispute\n</PROTECTIONS>`)
     : "";
 
   const userPrompt = (lang === "ko"
@@ -389,7 +394,22 @@ Requirements:
     system: sys,
     messages: [{ role: "user", content: userPrompt }],
   });
-  return message.content[0].type === "text" ? message.content[0].text.trim() : "";
+  const raw = message.content[0].type === "text" ? message.content[0].text : "";
+
+  // Split the contract body from the <PROTECTIONS> metadata.
+  const protMatch = raw.match(/<PROTECTIONS>([\s\S]*?)<\/PROTECTIONS>/i);
+  const contract = (protMatch ? raw.slice(0, protMatch.index) : raw).trim();
+  const protections: ClauseProtection[] = [];
+  if (protMatch) {
+    for (const line of protMatch[1].split("\n")) {
+      const parts = line.replace(/^[-*•\s]+/, "").split("|").map((x) => x.trim());
+      const idx = parseInt(parts[1], 10);
+      if (parts.length >= 3 && parts[0] && !Number.isNaN(idx)) {
+        protections.push({ clause: parts[0], refIndex: idx, why: parts.slice(2).join(" ") });
+      }
+    }
+  }
+  return { contract, protections };
 }
 
 /**
@@ -491,7 +511,13 @@ export async function POST(req: NextRequest) {
       let refs: PrecedentRef[] = [];
       const kw = catId ? FIELD_PRECEDENT_KEYWORD[catId] : "";
       if (kw) refs = await fetchPrecedentTitles(kw, 6);
-      const contract = await generateStandardDraftAI(edited, lang, std, refs.map((r) => r.title));
+      const { contract, protections } = await generateStandardDraftAI(edited, lang, std, refs.map((r) => r.title));
+      const precedentProtections = protections
+        .map((p) => {
+          const ref = refs[p.refIndex - 1];
+          return ref ? { clause: p.clause, why: p.why, disputeTitle: ref.title, court: ref.court, url: ref.url } : null;
+        })
+        .filter((x): x is NonNullable<typeof x> => x !== null);
       return NextResponse.json({
         extracted: edited,
         contract,
@@ -505,6 +531,7 @@ export async function POST(req: NextRequest) {
         standardTitle: lang === "ko" ? type.title.ko : type.title.en,
         autoMatched: false,
         referencedPrecedents: refs,
+        precedentProtections,
       });
     }
 
