@@ -6,21 +6,23 @@ import AppFooter from "@/components/AppFooter";
 import { useT } from "@/lib/i18n/LanguageProvider";
 import {
   FileText, Receipt, Building2, ChevronDown, ChevronRight,
-  Mail, Sparkles, Eye, Download,
-  Search, BookOpen
+  Mail, Sparkles, Eye, Download, Library, Bot, Scale,
+  Search, BookOpen, Edit3, Upload, MessageSquare,
 } from "lucide-react";
 
-type FeatureKey = "analysis" | "quote" | "vendor";
+type FeatureKey = "standard" | "analysis" | "quote" | "vendor" | "agent";
 
 export default function HelpPage() {
   const { t, lang } = useT();
-  const [open, setOpen] = useState<FeatureKey | null>("analysis");
+  const [open, setOpen] = useState<FeatureKey | null>("standard");
   const ko = lang === "ko";
 
   const features: { id: FeatureKey; label: string; icon: typeof FileText; tagline: string }[] = [
-    { id: "analysis", label: ko ? "계약서 분석" : "Contract Analysis", icon: FileText, tagline: ko ? "AI로 위험 조항 찾기" : "Spot risky clauses with AI" },
-    { id: "quote",    label: ko ? "견적서 → 계약서" : "Quote to Contract", icon: Receipt, tagline: ko ? "견적서·대화를 즉시 계약서로" : "Turn quotes & chats into contracts" },
-    { id: "vendor",   label: ko ? "공급업체 리스크 스캔" : "Vendor Risk Scan",  icon: Building2, tagline: ko ? "회사 실사 자동화" : "Due-diligence on any company" },
+    { id: "standard", label: ko ? "표준계약서" : "Standard Contracts", icon: Library, tagline: ko ? "문체부 표준양식 둘러보기" : "Browse official MCST forms" },
+    { id: "analysis", label: ko ? "계약서 검토" : "Contract Review",   icon: FileText, tagline: ko ? "표준 대비 위험 조항 찾기" : "Spot risky clauses vs. the standard" },
+    { id: "quote",    label: ko ? "계약서 작성" : "Contract Draft",    icon: Receipt,  tagline: ko ? "표준양식 기반 자동 작성" : "Auto-draft on a standard form" },
+    { id: "vendor",   label: ko ? "공급업체 리스크 스캔" : "Vendor Risk Scan", icon: Building2, tagline: ko ? "회사 실사 자동화" : "Due-diligence on any company" },
+    { id: "agent",    label: ko ? "AI 에이전트" : "AI Agent",          icon: Bot,      tagline: ko ? "법률 질문·협상 이메일 챗봇" : "Legal Q&A & negotiation chat" },
   ];
 
   return (
@@ -39,7 +41,7 @@ export default function HelpPage() {
         </div>
 
         {/* Quick links */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
           {features.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
@@ -56,32 +58,54 @@ export default function HelpPage() {
           ))}
         </div>
 
-        {/* ── Contract Analysis ── */}
+        {/* ── Standard Contracts ── */}
+        <Section
+          isOpen={open === "standard"}
+          onToggle={() => setOpen(open === "standard" ? null : "standard")}
+          icon={Library}
+          title={ko ? "표준계약서" : "Standard Contracts"}
+          tagline={ko ? "문화체육관광부 표준계약서 5개 분야 35종을 둘러보고, 공식 양식을 받고, AI로 작성·검토하세요" : "Browse 5 fields / 35 official MCST forms, download the original, then draft or review with AI"}
+        >
+          <Step n={1} title={ko ? "분야 선택" : "Pick a field"}>
+            {ko ? <>미술(12종) · 만화·웹툰(8종) · 공연예술(5종) · 영화(5종) · 공예(5종) 중 내 상황에 맞는 분야를 고르세요.</> : <>Choose from Fine Art (12), Webtoon (8), Performing Arts (5), Film (5), or Craft (5).</>}
+          </Step>
+          <Step n={2} title={ko ? "표준양식 확인" : "Check the standard form"}>
+            {ko ? "당사자, 언제 사용하는지, 관할 부처 정보를 확인하고, 공식 원본 PDF를 문화체육관광부/한국예술인복지재단에서 내려받을 수 있습니다." : "Review the parties, when it's used, and the issuing ministry — then download the official PDF from MCST or the Korea Artist Welfare Foundation."}
+          </Step>
+          <Step n={3} title={ko ? "판례 확인" : "Check related precedents"} icon={Scale}>
+            {ko ? "각 표준양식 하단에서 이 분야 실제 법원 판례를 검색할 수 있습니다. 사건 목록·검색은 무료, 판시사항·판결요지 전체 열람은 Pro 이상입니다." : "Search real court precedents in this field at the bottom of each form. Case search & listing are free; the full issue & holding text is Pro+."}
+          </Step>
+          <Step n={4} title={ko ? "AI 작성 또는 검토로 이동" : "Jump to Draft or Review"}>
+            {ko ? <><strong className="text-white">이 양식으로 AI 작성</strong>을 누르면 계약서 작성 탭으로, <strong className="text-white">받은 계약서 검토하기</strong>를 누르면 계약서 검토 탭으로 이 표준양식이 자동으로 연결된 채 이동합니다.</> : <>Tap <strong className="text-white">Draft this with AI</strong> to jump to Draft, or <strong className="text-white">Review a contract I received</strong> to jump to Review — both carry this standard form with you.</>}
+          </Step>
+        </Section>
+
+        {/* ── Contract Review ── */}
         <Section
           isOpen={open === "analysis"}
           onToggle={() => setOpen(open === "analysis" ? null : "analysis")}
           icon={FileText}
-          title={ko ? "계약서 분석" : "Contract Analysis"}
-          tagline={ko ? "계약서 업로드 → AI가 위험 조항 분석 → PDF 리포트 내보내기" : "Upload a contract → AI flags risky clauses → Export PDF report"}
+          title={ko ? "계약서 검토" : "Contract Review"}
+          tagline={ko ? "계약서 업로드 → AI가 표준 대비 위험 조항 분석 → PDF 리포트" : "Upload a contract → AI flags risk vs. the standard → Export PDF report"}
         >
-          <Step n={1} title={ko ? "계약서 분석 탭 열기" : "Open Contract Analysis tab"}>
-            {ko ? <>대시보드에서 <strong className="text-white">계약서 분석</strong> 탭을 클릭하세요.</> : <>On the Dashboard, click the <strong className="text-white">Contract Analysis</strong> tab.</>}
+          <Step n={1} title={ko ? "계약서 검토 탭 열기" : "Open the Contract Review tab"}>
+            {ko ? <>대시보드에서 <strong className="text-white">계약서 검토</strong> 탭을 클릭하세요. 표준계약서 라이브러리에서 넘어왔다면 상단에 노란 배너로 어떤 표준과 비교 중인지 표시됩니다.</> : <>Click the <strong className="text-white">Contract Review</strong> tab. If you arrived from the Standard Contracts library, a yellow banner at the top shows which standard you&apos;re comparing against.</>}
           </Step>
           <Step n={2} title={ko ? "계약서 업로드 또는 텍스트 붙여넣기" : "Upload your contract or paste text"}>
             <ul className="list-disc list-inside space-y-1 text-slate-400 text-sm mt-1">
               {ko ? <>
-                <li>📄 <strong className="text-slate-300">파일 업로드</strong>: PDF/DOCX를 드래그하거나 클릭해서 선택 (최대 20MB)</li>
+                <li>📄 <strong className="text-slate-300">파일 업로드</strong>: PDF · DOCX · HWPX · 구형 HWP 지원 (최대 20MB)</li>
                 <li>📝 <strong className="text-slate-300">텍스트 붙여넣기</strong>: 계약서 원문 텍스트 복사·붙여넣기</li>
                 <li>📷 <strong className="text-slate-300">스캔된 PDF</strong>: Claude Vision이 자동으로 인식합니다 — 별도 설정 불필요</li>
               </> : <>
-                <li>📄 <strong className="text-slate-300">Upload File</strong>: drag PDF/DOCX or click to browse (max 20MB)</li>
+                <li>📄 <strong className="text-slate-300">Upload File</strong>: PDF, DOCX, HWPX, and old-format HWP supported (max 20MB)</li>
                 <li>📝 <strong className="text-slate-300">Paste Text</strong>: copy and paste raw contract text</li>
                 <li>📷 <strong className="text-slate-300">Scanned PDFs</strong>: Claude Vision automatically reads them — no setup needed</li>
               </>}
             </ul>
           </Step>
           <Step n={3} title={ko ? "'계약서 분석하기' 클릭" : "Click 'Analyze Contract'"}>
-            {ko ? "Claude AI가 모든 조항을 분석하고 심각도별로 분류합니다:" : "Claude AI analyzes every clause and categorizes issues by severity:"}
+            {ko ? "Claude AI가 모든 조항을 분석하고 심각도별로 분류합니다. 표준양식과 함께 열었다면, 표준 대비 누락되거나 약화된 보호 조항을 우선적으로 지적합니다:" : "Claude AI analyzes every clause and categorizes issues by severity. If a standard form is attached, it prioritizes clauses that are missing or weaker than the standard:"}
             <div className="grid grid-cols-3 gap-2 mt-2">
               <Badge color="red" label={ko ? "높음" : "HIGH"} desc={ko ? "위험·불공정 조항" : "Dangerous, one-sided"} />
               <Badge color="yellow" label={ko ? "중간" : "MEDIUM"} desc={ko ? "모호한 표현" : "Vague, unclear"} />
@@ -102,68 +126,56 @@ export default function HelpPage() {
               </>}
             </ul>
           </Step>
-          <Step n={5} title={ko ? "리포트 내보내기" : "Export the report"} icon={Download}>
+          <Step n={5} title={ko ? "관련 판례 확인" : "Check related precedents"} icon={Scale}>
+            {ko ? "리포트 하단에 AI가 이 계약과 관련해 추천한 검색어로 실제 법원 판례를 보여줍니다. 검색어 칩을 누르거나 직접 검색할 수 있습니다." : "The bottom of the report surfaces real court precedents using AI-suggested keywords from your contract. Tap a keyword chip or search your own."}
+          </Step>
+          <Step n={6} title={ko ? "리포트 내보내기" : "Export the report"} icon={Download}>
             {ko ? <><strong className="text-white">리포트 다운로드</strong> 클릭 → <strong>PDF</strong> 또는 <strong>Word</strong> 선택. 팀이나 변호사와 공유하세요.</> : <>Click <strong className="text-white">Download Report</strong> → choose <strong>PDF</strong> or <strong>Word</strong>. Share with your team or lawyer.</>}
           </Step>
-          <Step n={6} title={ko ? "과거 스캔 다시 열기" : "Re-open past scans"} icon={Eye}>
+          <Step n={7} title={ko ? "과거 스캔 다시 열기" : "Re-open past scans"} icon={Eye}>
             {ko ? <>이전 스캔 기록은 하단 <strong className="text-white">최근 스캔 기록</strong>에서 확인할 수 있습니다. 항목을 클릭하면 전체 리포트가 다시 열립니다.</> : <>All your past scans appear in <strong className="text-white">Recent Scans</strong> at the bottom. Click any item to re-open the full report.</>}
           </Step>
         </Section>
 
-        {/* ── Quote to Contract ── */}
+        {/* ── Contract Draft ── */}
         <Section
           isOpen={open === "quote"}
           onToggle={() => setOpen(open === "quote" ? null : "quote")}
           icon={Receipt}
-          title={ko ? "견적서 → 계약서" : "Quote to Contract"}
-          tagline={ko ? "견적서 업로드 → AI가 조건 추출 → 서비스 계약서 자동 생성" : "Upload a quote → AI extracts terms → Auto-generates service agreement"}
+          title={ko ? "계약서 작성" : "Contract Draft"}
+          tagline={ko ? "견적서·대화·직접 입력 → AI가 표준양식 기반 계약서 자동 생성" : "From a quote, chat, or manual entry → AI drafts on the matching standard form"}
         >
-          <Step n={1} title={ko ? "견적서 → 계약서 탭 열기" : "Open Quote to Contract tab"}>
-            {ko ? <><strong className="text-white">견적서 → 계약서</strong> 탭을 클릭하세요.</> : <>Click the <strong className="text-white">Quote to Contract</strong> tab.</>}
+          <Step n={1} title={ko ? "계약서 작성 탭 열기" : "Open the Contract Draft tab"}>
+            {ko ? <><strong className="text-white">계약서 작성</strong> 탭을 클릭하세요.</> : <>Click the <strong className="text-white">Contract Draft</strong> tab.</>}
             <p className="text-yellow-400 text-xs mt-1">{ko ? "⚠️ Pro 플랜 이상 (무료 플랜에서는 잠김)" : "⚠️ Pro plan and above (locked on Free plan)"}</p>
           </Step>
-          <Step n={2} title={ko ? "견적서 또는 제안서 업로드" : "Upload a quote or proposal"}>
-            {ko ? "당사자·서비스·가격·일정이 담긴 PDF나 DOCX를 드래그하세요." : "Drag a PDF or DOCX with quote details — parties, services, pricing, schedule."}
-          </Step>
-          <Step n={3} title={ko ? "'계약서 생성하기' 클릭" : "Click 'Generate Contract'"}>
-            {ko ? "AI가 다음 항목을 자동으로 추출합니다:" : "AI extracts these fields automatically:"}
-            <div className="bg-[#0f1a2e] rounded-lg p-3 mt-2 text-xs text-slate-400 space-y-1">
-              {ko ? <>
-                <p>• 공급자 & 고객 정보 (이름, 연락처, 주소)</p>
-                <p>• 서비스 설명 / 업무 범위</p>
-                <p>• 총 금액 + 결제 조건</p>
-                <p>• 납기일 / 계약 기간</p>
-                <p>• 추가 조항</p>
-              </> : <>
-                <p>• Provider & Client info (name, contact, address)</p>
-                <p>• Service description / scope of work</p>
-                <p>• Total amount + payment terms</p>
-                <p>• Delivery date / contract duration</p>
-                <p>• Additional terms</p>
-              </>}
-            </div>
-          </Step>
-          <Step n={4} title={ko ? "추출된 조건 검토·수정" : "Review & edit extracted terms"}>
-            {ko ? "모든 필드를 편집할 수 있습니다. 생성 전 추출 오류를 수정하세요." : "All fields are editable. Fix any extraction errors before generating."}
-          </Step>
-          <Step n={5} title={ko ? "계약서 미리보기" : "Preview the contract"}>
-            {ko ? <><strong className="text-white">계약서 미리보기</strong> 클릭 → 다음을 포함한 11개 섹션의 서비스 계약서:</> : <>Click <strong className="text-white">Preview Contract</strong> → 11-section service agreement with:</>}
+          <Step n={2} title={ko ? "세 가지 시작 방법 중 선택" : "Choose one of three ways to start"} icon={Upload}>
             <ul className="list-disc list-inside space-y-1 text-slate-400 text-sm mt-1">
               {ko ? <>
-                <li>업무 범위, 결제 조건, 납기 일정</li>
-                <li>비밀유지, 지식재산권, 계약 해지</li>
-                <li>책임 한도, 독립 계약자 조항</li>
-                <li>서명란 (인쇄 후 사용 가능)</li>
+                <li>📤 <strong className="text-slate-300">파일 업로드</strong>: 견적서를 PDF · DOCX · HWPX/HWP · 이미지로 업로드</li>
+                <li>💬 <strong className="text-slate-300">대화 붙여넣기</strong>: 카톡·슬랙 등 대화 내용을 붙여넣거나 스크린샷을 올리면 Claude Vision이 읽습니다</li>
+                <li>✏️ <strong className="text-slate-300">직접 입력</strong>: 견적서가 없어도 분야·양식만 골라 바로 빈 양식에서 시작</li>
               </> : <>
-                <li>Scope of Work, Payment Terms, Delivery Timeline</li>
-                <li>Confidentiality, IP, Termination</li>
-                <li>Limitation of Liability, Independent Contractor</li>
-                <li>Signature blocks (ready for printing)</li>
+                <li>📤 <strong className="text-slate-300">Upload File</strong>: PDF, DOCX, HWPX/HWP, or an image of your quote</li>
+                <li>💬 <strong className="text-slate-300">Paste Chat</strong>: paste a KakaoTalk/Slack conversation, or drop a screenshot for Claude Vision to read</li>
+                <li>✏️ <strong className="text-slate-300">Enter Manually</strong>: no quote at all? Pick a field/form and start from a blank form</li>
               </>}
             </ul>
           </Step>
-          <Step n={6} title={ko ? "PDF로 다운로드" : "Download as PDF"} icon={Download}>
-            {ko ? <><strong className="text-white">PDF 다운로드</strong>를 클릭하면 바로 서명 가능한 스타일의 계약서를 받을 수 있습니다.</> : <>Click <strong className="text-white">Download PDF</strong> for a styled, ready-to-sign contract.</>}
+          <Step n={3} title={ko ? "표준양식 자동 매칭" : "Automatic standard matching"} icon={Library}>
+            {ko ? "표준계약서 라이브러리에서 오지 않았다면, AI가 내용을 분석해 문체부 표준계약서 중 가장 잘 맞는 것을 자동으로 골라줍니다. 창작 분야와 무관한 거래는 일반 용역계약서 템플릿으로 처리됩니다." : "If you didn't arrive from the library, AI analyzes your content and auto-selects the best-matching MCST standard form. Deals unrelated to creative fields fall back to a generic service-agreement template."}
+          </Step>
+          <Step n={4} title={ko ? "조건 검토·수정" : "Review & edit the terms"} icon={Edit3}>
+            {ko ? "당사자 정보, 업무 범위, 대금·결제 조건, 납기·계약 기간을 직접 입력하거나 수정할 수 있습니다. 모든 필드가 편집 가능합니다." : "Enter or edit the parties, scope of work, amount & payment terms, and delivery/term — every field is editable."}
+          </Step>
+          <Step n={5} title={ko ? "'표준계약서 생성' 클릭" : "Click 'Generate Contract'"}>
+            {ko ? "AI가 해당 표준계약서의 구조(권리 귀속, 저작인격권, 대금, 수정 범위, 해지, 손해배상 등)를 따르는 정식 계약서를 작성합니다." : "AI drafts a formal contract following the standard's structure — rights assignment, moral rights, payment, revision scope, termination, damages, and more."}
+          </Step>
+          <Step n={6} title={ko ? "판례 기반 보호 조항 확인" : "Check precedent-based protections"} icon={Scale}>
+            {ko ? "미리보기 하단에 어떤 조항이 이 분야의 실제 법원 분쟁을 예방하기 위해 강화되었는지 보여줍니다. 각 조항은 관련 판례와 함께 표시됩니다." : "The preview shows which clauses were strengthened to prevent real disputes in this field — each tied to a related precedent."}
+          </Step>
+          <Step n={7} title={ko ? "PDF로 다운로드" : "Download as PDF"} icon={Download}>
+            {ko ? <><strong className="text-white">PDF 다운로드</strong>를 클릭하면 바로 서명 가능한 스타일의 계약서를 받을 수 있습니다. 서명 전 공식 표준양식 대조와 전문가 검토를 권장합니다.</> : <>Click <strong className="text-white">Download PDF</strong> for a styled, ready-to-sign contract. Verify against the official standard form and have it reviewed before signing.</>}
           </Step>
         </Section>
 
@@ -210,19 +222,44 @@ export default function HelpPage() {
           <Step n={5} title={ko ? "내보내기 & 저장" : "Export & save"} icon={Download}>
             {ko ? <>PDF 또는 Word로 다운로드하세요. 이전 스캔은 하단 <strong className="text-white">최근 공급업체 스캔</strong>에 표시되며, 클릭하면 다시 열립니다.</> : <>Download as PDF or Word. Past scans appear in <strong className="text-white">Recent Vendor Scans</strong> at the bottom — click any to re-open.</>}
           </Step>
-          <Step n={6} title={ko ? "최적의 검색 대상" : "Best vendor types"}>
-            {ko ? "다음 회사에 가장 적합합니다:" : "Works best for:"}
-            <div className="bg-[#0f1a2e] rounded-lg p-3 mt-2 text-xs text-slate-400">
+        </Section>
+
+        {/* ── AI Agent ── */}
+        <Section
+          isOpen={open === "agent"}
+          onToggle={() => setOpen(open === "agent" ? null : "agent")}
+          icon={Bot}
+          title={ko ? "AI 에이전트" : "AI Agent"}
+          tagline={ko ? "협상 이메일 작성, 법률 질문, 조항 대안까지 — AI와 대화하세요" : "Draft negotiation emails, ask legal questions, explore clause alternatives — all in chat"}
+        >
+          <Step n={1} title={ko ? "AI 에이전트 탭 열기" : "Open the AI Agent tab"}>
+            {ko ? <><strong className="text-white">AI 에이전트</strong> 탭을 클릭하고 <strong className="text-white">+ 새 대화</strong>를 시작하세요.</> : <>Click the <strong className="text-white">AI Agent</strong> tab and start a <strong className="text-white">+ New conversation</strong>.</>}
+            <p className="text-yellow-400 text-xs mt-1">{ko ? "⚠️ 무료: 월 10 메시지 · Pro: 월 100 메시지 · Business: 무제한" : "⚠️ Free: 10 messages/mo · Pro: 100/mo · Business: unlimited"}</p>
+          </Step>
+          <Step n={2} title={ko ? "계약서 첨부 (선택)" : "Attach a contract (optional)"} icon={MessageSquare}>
+            {ko ? "새 대화를 시작할 때 PDF·DOCX 계약서를 첨부하면, 그 내용을 바탕으로 맥락에 맞는 답변을 받을 수 있습니다." : "When starting a new conversation, attach a PDF/DOCX contract to get answers grounded in its content."}
+          </Step>
+          <Step n={3} title={ko ? "무엇이든 물어보기" : "Ask anything"}>
+            {ko ? "예시 질문들:" : "Example prompts:"}
+            <ul className="list-disc list-inside space-y-1 text-slate-400 text-sm mt-1">
               {ko ? <>
-                <p>⭐ <strong className="text-slate-300">매우 우수:</strong> 미국·영국·캐나다·호주·인도 기업</p>
-                <p>👍 <strong className="text-slate-300">우수:</strong> 싱가포르·독일·프랑스·EU 기업</p>
-                <p>⚠️ <strong className="text-slate-300">제한적:</strong> 영문 정보가 없는 소규모 지역 사업체</p>
+                <li>계약서의 위약금 조항을 50%로 줄여달라는 정중한 이메일을 작성해줘</li>
+                <li>일방 NDA와 상호 NDA의 차이가 뭐야?</li>
+                <li>&apos;손해배상예정액&apos;이 무슨 뜻인지 쉬운 말로 설명해줘</li>
+                <li>첨부한 계약서를 검토해서 협상해야 할 상위 3개 조항을 알려줘</li>
               </> : <>
-                <p>⭐ <strong className="text-slate-300">Excellent:</strong> US, UK, Canada, Australia, India</p>
-                <p>👍 <strong className="text-slate-300">Good:</strong> Singapore, Germany, France, EU companies</p>
-                <p>⚠️ <strong className="text-slate-300">Limited:</strong> small local businesses with no English presence</p>
+                <li>Draft a polite email asking to reduce a contract&apos;s penalty clause to 50%</li>
+                <li>What&apos;s the difference between a unilateral NDA and a mutual NDA?</li>
+                <li>Explain what &apos;liquidated damages&apos; means in plain language</li>
+                <li>Review my attached contract and list the top 3 clauses I should negotiate</li>
               </>}
-            </div>
+            </ul>
+          </Step>
+          <Step n={4} title={ko ? "이메일로 바로 보내기" : "Send emails directly"} icon={Mail}>
+            {ko ? "AI가 협상 이메일 초안을 작성하면 답변에 '이메일로 보내기' 버튼이 나타납니다 — 누르면 기본 이메일 앱이 제목·본문을 채운 채로 열립니다." : "When the AI drafts a negotiation email, a 'Send as email' button appears on the reply — it opens your default email app with the subject and body pre-filled."}
+          </Step>
+          <Step n={5} title={ko ? "대화 기록 관리" : "Manage your conversations"}>
+            {ko ? "왼쪽 목록에서 과거 대화를 다시 열거나 삭제할 수 있습니다. 대화 제목은 첫 메시지를 바탕으로 자동 생성됩니다." : "Reopen or delete past conversations from the sidebar. Titles are auto-generated from your first message."}
           </Step>
         </Section>
 
@@ -231,10 +268,10 @@ export default function HelpPage() {
           <h3 className="text-white font-bold text-base mb-2">{t("landing.signNeededTitle")}</h3>
           <p className="text-slate-300 text-sm leading-relaxed mb-3">{t("landing.signNeededBody")}</p>
           <div className="flex flex-wrap gap-2">
-            <a href="https://www.docusign.com/" target="_blank" rel="noopener noreferrer" className="text-yellow-300 hover:text-yellow-200 text-xs font-medium bg-yellow-900/20 hover:bg-yellow-900/40 border border-yellow-700/40 rounded-md px-3 py-1.5 transition-colors">DocuSign →</a>
-            <a href="https://sign.dropbox.com/" target="_blank" rel="noopener noreferrer" className="text-yellow-300 hover:text-yellow-200 text-xs font-medium bg-yellow-900/20 hover:bg-yellow-900/40 border border-yellow-700/40 rounded-md px-3 py-1.5 transition-colors">Dropbox Sign →</a>
             <a href="https://www.modusign.co.kr/" target="_blank" rel="noopener noreferrer" className="text-yellow-300 hover:text-yellow-200 text-xs font-medium bg-yellow-900/20 hover:bg-yellow-900/40 border border-yellow-700/40 rounded-md px-3 py-1.5 transition-colors">모두싸인 →</a>
             <a href="https://www.eformsign.com/" target="_blank" rel="noopener noreferrer" className="text-yellow-300 hover:text-yellow-200 text-xs font-medium bg-yellow-900/20 hover:bg-yellow-900/40 border border-yellow-700/40 rounded-md px-3 py-1.5 transition-colors">이폼사인 →</a>
+            <a href="https://www.docusign.com/" target="_blank" rel="noopener noreferrer" className="text-yellow-300 hover:text-yellow-200 text-xs font-medium bg-yellow-900/20 hover:bg-yellow-900/40 border border-yellow-700/40 rounded-md px-3 py-1.5 transition-colors">DocuSign →</a>
+            <a href="https://sign.dropbox.com/" target="_blank" rel="noopener noreferrer" className="text-yellow-300 hover:text-yellow-200 text-xs font-medium bg-yellow-900/20 hover:bg-yellow-900/40 border border-yellow-700/40 rounded-md px-3 py-1.5 transition-colors">Dropbox Sign →</a>
           </div>
         </div>
 
@@ -349,4 +386,3 @@ function InfoCard({ icon: Icon, label }: { icon: typeof FileText; label: string 
     </div>
   );
 }
-
