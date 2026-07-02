@@ -198,6 +198,11 @@ ${r.recommendations.map((rec, i) => `${i + 1}. ${rec}`).join("\n")}
           </div>
         </div>
 
+        <div className="mb-4 bg-[#162035] border border-[#1e3050] rounded-xl p-3 flex items-center justify-between gap-3 flex-wrap">
+          <p className="text-slate-400 text-xs">{t("vendor.passNotice")}</p>
+          <PassPurchaseButtons feature="vendor" passPriceId={PADDLE_VENDOR_PASS_PRICE_ID} />
+        </div>
+
         <div className="bg-[#162035] border border-[#1e3050] rounded-2xl p-6">
           <label className="text-slate-300 text-sm font-medium block mb-2">{t("vendor.vendorName")}</label>
           <div className="relative">

@@ -436,6 +436,7 @@ export const translations = {
   vendor: {
     title:        { en: "Vendor Risk Scan", ko: "공급업체 리스크 스캔" },
     intro:        { en: "Type any vendor or supplier name. Claude AI searches the web for news, lawsuits, financial signals, and reputation risks — then delivers a complete due-diligence report.", ko: "공급업체명을 입력하세요. Claude AI가 뉴스·소송·재무·평판 정보를 웹에서 검색해 완전한 실사 리포트를 제공합니다." },
+    passNotice:   { en: "This feature needs a 24h pass or membership.", ko: "이 기능은 24시간 패스 또는 멤버십이 필요합니다." },
     vendorName:   { en: "Vendor / Company Name", ko: "공급업체/회사명" },
     placeholder:  { en: "e.g., Acme Corp, Stripe, OpenAI, John's Plumbing LLC", ko: "예: Acme Corp, Stripe, OpenAI, 김배관 주식회사" },
     runScan:      { en: "Run Risk Scan", ko: "리스크 스캔 실행" },

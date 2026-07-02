@@ -178,6 +178,11 @@ export default function PrecedentSearch({ queries, defaultQuery }: Props) {
         </button>
       </div>
 
+      <div className="mb-3 bg-[#162035] border border-[#1e3050] rounded-xl p-3 flex items-center justify-between gap-3 flex-wrap">
+        <p className="text-slate-400 text-xs flex items-center gap-1.5"><Lock className="w-3.5 h-3.5 text-yellow-400 shrink-0" /> {t("standard.precedentsLockedBody")}</p>
+        <PassPurchaseButtons feature="precedent" passPriceId={PADDLE_PRECEDENT_PASS_PRICE_ID} />
+      </div>
+
       {searchedAs && (
         <p className="text-slate-500 text-[11px] mb-2">{t("standard.precedentsSearchedAs")}: ‘{searchedAs}’</p>
       )}
