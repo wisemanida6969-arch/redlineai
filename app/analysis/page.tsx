@@ -2,12 +2,19 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
-import { AlertTriangle, AlertCircle, CheckCircle, Copy, Check, Download, ArrowLeft, Shield, FileText, Loader2, ChevronDown } from "lucide-react";
+import { AlertTriangle, AlertCircle, CheckCircle, Copy, Check, Download, ArrowLeft, Shield, FileText, Loader2, ChevronDown, MessageCircle } from "lucide-react";
 import { downloadPDF, downloadDOCX, type AnalysisResult } from "@/lib/exportReport";
 import AppFooter from "@/components/AppFooter";
 import PrecedentSearch from "@/components/PrecedentSearch";
 import { Scale } from "lucide-react";
 import { useT } from "@/lib/i18n/LanguageProvider";
+
+function buildClientMessage(clause: { title: string; fix: string }, lang: "en" | "ko"): string {
+  if (lang === "ko") {
+    return `안녕하세요! 계약서 꼼꼼히 살펴보다가 조율하고 싶은 부분이 있어서 편하게 말씀드려요 😊\n\n"${clause.title}" 부분을 아래처럼 조정해도 괜찮을까요?\n\n"${clause.fix}"\n\n서로 나중에 오해 생기지 않게 미리 명확히 해두면 좋을 것 같아서요. 확인 부탁드립니다 🙏`;
+  }
+  return `Hi! While going through the contract I found a spot I'd like to adjust, if that's okay 😊\n\nCould we revise the "${clause.title}" clause to this?\n\n"${clause.fix}"\n\nJust want to make sure we're both clear upfront so there's no confusion later. Let me know what you think 🙏`;
+}
 
 export default function AnalysisPage() {
   const { t, lang } = useT();
@@ -15,6 +22,7 @@ export default function AnalysisPage() {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [activeTab, setActiveTab] = useState<"all" | "high" | "medium" | "low">("all");
   const [copied, setCopied] = useState<string | null>(null);
+  const [copiedMsg, setCopiedMsg] = useState<string | null>(null);
   const [exporting, setExporting] = useState<"pdf" | "docx" | null>(null);
   const [exportError, setExportError] = useState("");
   const [dropOpen, setDropOpen] = useState(false);
@@ -41,6 +49,12 @@ export default function AnalysisPage() {
     navigator.clipboard.writeText(fix);
     setCopied(id);
     setTimeout(() => setCopied(null), 2000);
+  };
+
+  const copyClientMessage = (id: string, clause: { title: string; fix: string }) => {
+    navigator.clipboard.writeText(buildClientMessage(clause, lang));
+    setCopiedMsg(id);
+    setTimeout(() => setCopiedMsg(null), 2000);
   };
 
   const handleExport = async (type: "pdf" | "docx") => {
@@ -208,6 +222,8 @@ export default function AnalysisPage() {
                 clause={clause}
                 copied={copied === clause.id}
                 onCopy={() => copyFix(clause.id, clause.fix)}
+                copiedMsg={copiedMsg === clause.id}
+                onCopyMessage={() => copyClientMessage(clause.id, clause)}
                 t={t}
               />
             ))
@@ -250,10 +266,12 @@ function ScoreCard({ count, level, t }: { count: number; level: "high" | "medium
   );
 }
 
-function ClauseCard({ clause, copied, onCopy, t }: {
+function ClauseCard({ clause, copied, onCopy, copiedMsg, onCopyMessage, t }: {
   clause: { id: string; severity: "high"|"medium"|"low"; title: string; original: string; problem: string; fix: string };
   copied: boolean;
   onCopy: () => void;
+  copiedMsg: boolean;
+  onCopyMessage: () => void;
   t: (k: string) => string;
 }) {
   const [expanded, setExpanded] = useState(true);
@@ -304,6 +322,13 @@ function ClauseCard({ clause, copied, onCopy, t }: {
             </div>
             <p className="text-green-300 text-sm">{clause.fix}</p>
           </div>
+          <button
+            onClick={onCopyMessage}
+            className="w-full flex items-center justify-center gap-2 bg-[#FEE500]/10 border border-[#FEE500]/30 hover:bg-[#FEE500]/20 text-[#FEE500] rounded-xl py-2.5 text-sm font-medium transition-colors"
+          >
+            {copiedMsg ? <Check className="w-4 h-4" /> : <MessageCircle className="w-4 h-4" />}
+            {copiedMsg ? t("analysis.copiedKakaoMsg") : t("analysis.copyKakaoMsg")}
+          </button>
         </div>
       )}
     </div>
