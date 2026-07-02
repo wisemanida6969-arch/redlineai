@@ -26,14 +26,36 @@ function auth(req, res, next) {
   next();
 }
 
-/** Fetch a URL via curl (fetch/undici has TLS trouble with law.go.kr; curl works). */
-function curlGet(url) {
+function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
+function curlOnce(url) {
   return new Promise((resolve, reject) => {
-    execFile("curl", ["-s", "--max-time", "12", "-A", "Mozilla/5.0", url], { maxBuffer: 10 * 1024 * 1024 }, (err, stdout) => {
-      if (err) return reject(err);
-      resolve(stdout);
-    });
+    // --retry: curl's own retry on transient errors (incl. DNS) within one invocation.
+    execFile(
+      "curl", ["-s", "--max-time", "12", "--retry", "2", "--retry-delay", "1", "-A", "Mozilla/5.0", url],
+      { maxBuffer: 10 * 1024 * 1024 },
+      (err, stdout) => { if (err) return reject(err); resolve(stdout); },
+    );
   });
+}
+
+/**
+ * Fetch a URL via curl (fetch/undici has TLS trouble with law.go.kr; curl works).
+ * The VPS's DNS resolvers intermittently fail (~1 in 5 requests, near-instant
+ * "could not resolve host") — retry the whole curl call a couple more times
+ * with a short delay before giving up.
+ */
+async function curlGet(url, attempts = 3) {
+  let lastErr;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await curlOnce(url);
+    } catch (e) {
+      lastErr = e;
+      if (i < attempts - 1) await sleep(400 * (i + 1));
+    }
+  }
+  throw lastErr;
 }
 
 app.get("/health", (_req, res) => res.json({ ok: true, ocConfigured: Boolean(OC) }));
