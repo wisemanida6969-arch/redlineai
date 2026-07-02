@@ -5,10 +5,15 @@
 /*  당하므로, 한국 소재 서버(이 프록시)를 하나 두고 그 IP만 법제처에      */
 /*  등록한다. RedlineAI 본서버는 이 프록시를 거쳐 법제처를 호출한다.       */
 /*                                                                     */
-/*  Node 18+ 필요 (전역 fetch 사용). 의존성: express 하나뿐.             */
+/*  Node 18+ 필요. 의존성: express.                                     */
+/*                                                                     */
+/*  law.go.kr 호출은 Node의 fetch(undici) 대신 curl 서브프로세스를 쓴다  */
+/*  — undici가 이 서버의 TLS 설정과 궁합이 안 맞아 fetch가 실패하는 것을  */
+/*  실측으로 확인함(curl은 정상 동작). curl은 시스템에 기본 설치돼 있다.  */
 /* ------------------------------------------------------------------ */
 
 const express = require("express");
+const { execFile } = require("child_process");
 const app = express();
 
 const PORT = process.env.PORT || 8787;
@@ -21,6 +26,16 @@ function auth(req, res, next) {
   next();
 }
 
+/** Fetch a URL via curl (fetch/undici has TLS trouble with law.go.kr; curl works). */
+function curlGet(url) {
+  return new Promise((resolve, reject) => {
+    execFile("curl", ["-s", "--max-time", "12", "-A", "Mozilla/5.0", url], { maxBuffer: 10 * 1024 * 1024 }, (err, stdout) => {
+      if (err) return reject(err);
+      resolve(stdout);
+    });
+  });
+}
+
 app.get("/health", (_req, res) => res.json({ ok: true, ocConfigured: Boolean(OC) }));
 
 app.get("/prec/search", auth, async (req, res) => {
@@ -29,9 +44,8 @@ app.get("/prec/search", auth, async (req, res) => {
   const page = String(req.query.page ?? "1");
   const url = `https://www.law.go.kr/DRF/lawSearch.do?OC=${encodeURIComponent(OC)}&target=prec&type=JSON&search=2&display=10&page=${encodeURIComponent(page)}&query=${encodeURIComponent(query)}`;
   try {
-    const r = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(12000) });
-    const text = await r.text();
-    res.status(r.status).type("application/json").send(text);
+    const text = await curlGet(url);
+    res.type("application/json").send(text);
   } catch (e) {
     res.status(502).json({ error: "upstream_failed", detail: String(e) });
   }
@@ -43,9 +57,8 @@ app.get("/prec/detail", auth, async (req, res) => {
   if (!id) return res.status(400).json({ error: "missing id" });
   const url = `https://www.law.go.kr/DRF/lawService.do?OC=${encodeURIComponent(OC)}&target=prec&ID=${id}&type=JSON`;
   try {
-    const r = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(12000) });
-    const text = await r.text();
-    res.status(r.status).type("application/json").send(text);
+    const text = await curlGet(url);
+    res.type("application/json").send(text);
   } catch (e) {
     res.status(502).json({ error: "upstream_failed", detail: String(e) });
   }
