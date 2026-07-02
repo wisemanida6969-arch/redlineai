@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { PLAN_LIMITS, type Plan } from "@/lib/planLimits";
+import { CLAUDE_MODEL } from "@/lib/anthropic";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -187,9 +188,9 @@ async function scanVendor(vendorName: string, lang: "en" | "ko" = "en", hints: S
   let finalText = "";
   for (let turn = 0; turn < 6; turn++) {
     const response = await client.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: CLAUDE_MODEL,
       max_tokens: 4096,
-      temperature: 0,
+      thinking: { type: "disabled" },
       system: sys,
       tools: [
         {

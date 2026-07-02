@@ -7,7 +7,7 @@ import { useT } from "@/lib/i18n/LanguageProvider";
 import {
   FileText, Receipt, Building2, ChevronDown, ChevronRight,
   Mail, Sparkles, Eye, Download, Library, Bot, Scale,
-  Search, BookOpen, Edit3, Upload, MessageSquare,
+  Search, BookOpen, Edit3, Upload, MessageSquare, AlertTriangle,
 } from "lucide-react";
 
 type FeatureKey = "standard" | "analysis" | "quote" | "vendor" | "agent";
@@ -112,7 +112,21 @@ export default function HelpPage() {
               <Badge color="blue" label={ko ? "낮음" : "LOW"} desc={ko ? "사소한 개선 사항" : "Minor improvements"} />
             </div>
           </Step>
-          <Step n={4} title={ko ? "리포트 검토" : "Review the report"}>
+          <Step n={4} title={ko ? "한국형 갑질 독소조항 3대장 자동 탐지" : "Auto-detects the 3 most common Korean freelance red flags"} icon={AlertTriangle}>
+            {ko ? "계약서 종류와 무관하게 아래 세 가지를 항상 우선적으로 확인해 HIGH로 표시합니다:" : "Regardless of contract type, these three are always checked first and flagged HIGH when found:"}
+            <ul className="list-disc list-inside space-y-1 text-slate-400 text-sm mt-1">
+              {ko ? <>
+                <li>♾️ <strong className="text-slate-300">무한 수정 조항</strong> — &quot;갑이 만족할 때까지 수정&quot; → 수정 횟수 제한 + 초과 시 요율 적용 제안</li>
+                <li>©️ <strong className="text-slate-300">저작권 통째로 먹기 조항</strong> — &quot;모든 권리는 갑에게 귀속&quot; → 대금 완납 전까지 저작권은 을에게 귀속 제안</li>
+                <li>💣 <strong className="text-slate-300">지체상금 폭탄 조항</strong> — 상한 없는 과도한 일일 위약벌 → 상한선 설정 + 갑의 귀책 지연 제외 제안</li>
+              </> : <>
+                <li>♾️ <strong className="text-slate-300">Unlimited revisions</strong> — &quot;revise until the client is satisfied&quot; → caps revisions + bills extra rounds</li>
+                <li>©️ <strong className="text-slate-300">Full copyright grab</strong> — &quot;all rights belong to the client&quot; → suggests copyright stays with the freelancer until paid in full</li>
+                <li>💣 <strong className="text-slate-300">Excessive late-delivery penalty</strong> — uncapped daily penalty → suggests a rate cap + excludes client-caused delays</li>
+              </>}
+            </ul>
+          </Step>
+          <Step n={5} title={ko ? "리포트 검토" : "Review the report"}>
             {ko ? "각 지적된 조항에는 다음이 포함됩니다:" : "Each flagged clause includes:"}
             <ul className="list-disc list-inside space-y-1 text-slate-400 text-sm mt-1">
               {ko ? <>
@@ -126,13 +140,13 @@ export default function HelpPage() {
               </>}
             </ul>
           </Step>
-          <Step n={5} title={ko ? "관련 판례 확인" : "Check related precedents"} icon={Scale}>
+          <Step n={6} title={ko ? "관련 판례 확인" : "Check related precedents"} icon={Scale}>
             {ko ? "리포트 하단에 AI가 이 계약과 관련해 추천한 검색어로 실제 법원 판례를 보여줍니다. 검색어 칩을 누르거나 직접 검색할 수 있습니다." : "The bottom of the report surfaces real court precedents using AI-suggested keywords from your contract. Tap a keyword chip or search your own."}
           </Step>
-          <Step n={6} title={ko ? "리포트 내보내기" : "Export the report"} icon={Download}>
+          <Step n={7} title={ko ? "리포트 내보내기" : "Export the report"} icon={Download}>
             {ko ? <><strong className="text-white">리포트 다운로드</strong> 클릭 → <strong>PDF</strong> 또는 <strong>Word</strong> 선택. 팀이나 변호사와 공유하세요.</> : <>Click <strong className="text-white">Download Report</strong> → choose <strong>PDF</strong> or <strong>Word</strong>. Share with your team or lawyer.</>}
           </Step>
-          <Step n={7} title={ko ? "과거 스캔 다시 열기" : "Re-open past scans"} icon={Eye}>
+          <Step n={8} title={ko ? "과거 스캔 다시 열기" : "Re-open past scans"} icon={Eye}>
             {ko ? <>이전 스캔 기록은 하단 <strong className="text-white">최근 스캔 기록</strong>에서 확인할 수 있습니다. 항목을 클릭하면 전체 리포트가 다시 열립니다.</> : <>All your past scans appear in <strong className="text-white">Recent Scans</strong> at the bottom. Click any item to re-open the full report.</>}
           </Step>
         </Section>

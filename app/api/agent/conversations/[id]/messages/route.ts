@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { PLAN_LIMITS, type Plan } from "@/lib/planLimits";
+import { CLAUDE_MODEL } from "@/lib/anthropic";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -148,9 +149,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     /* ── Call Claude ── */
     const response = await client.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: CLAUDE_MODEL,
       max_tokens: 2048,
-      temperature: 0.3,
+      thinking: { type: "disabled" },
       system: systemPrompt,
       messages,
     });
@@ -174,9 +175,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       // history includes the user's first message we just inserted
       try {
         const titleResp = await client.messages.create({
-          model: "claude-sonnet-4-20250514",
+          model: CLAUDE_MODEL,
           max_tokens: 50,
-          temperature: 0.3,
+          thinking: { type: "disabled" },
           system: lang === "ko" ? TITLE_PROMPT_KO : TITLE_PROMPT_EN,
           messages: [{ role: "user", content: userMessage.slice(0, 500) }],
         });

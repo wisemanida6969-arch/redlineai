@@ -6,6 +6,7 @@ import { STANDARD_CONTRACTS, getCategory, getContractType } from "@/lib/standard
 import { fetchPrecedentTitles, FIELD_PRECEDENT_KEYWORD, type PrecedentRef } from "@/lib/precedentFetch";
 import { extractTextFromHwpx, looksLikeZip } from "@/lib/hwpxExtract";
 import { extractTextFromHwpBinary } from "@/lib/hwpBinaryExtract";
+import { CLAUDE_MODEL, extractText } from "@/lib/anthropic";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -95,23 +96,23 @@ async function extractTextFromImages(buffers: Array<{ buffer: Buffer; mime: stri
   }));
 
   const response = await client.messages.create({
-    model: "claude-sonnet-4-20250514",
+    model: CLAUDE_MODEL,
     max_tokens: 4096,
-    temperature: 0,
+    thinking: { type: "disabled" },
     messages: [{
       role: "user",
       content: [...imgBlocks, { type: "text", text: instruction }],
     }],
   });
-  return response.content[0].type === "text" ? response.content[0].text : "";
+  return extractText(response);
 }
 
 async function extractTextWithVision(buffer: Buffer, mimeType: string): Promise<string> {
   const base64 = buffer.toString("base64");
   const response = await client.messages.create({
-    model: "claude-sonnet-4-20250514",
+    model: CLAUDE_MODEL,
     max_tokens: 4096,
-    temperature: 0,
+    thinking: { type: "disabled" },
     messages: [{
       role: "user",
       content: [
@@ -120,7 +121,7 @@ async function extractTextWithVision(buffer: Buffer, mimeType: string): Promise<
       ],
     }],
   });
-  return response.content[0].type === "text" ? response.content[0].text : "";
+  return extractText(response);
 }
 
 async function extractTextFromDocx(buffer: Buffer): Promise<string> {
@@ -150,13 +151,13 @@ async function extractQuoteData(quoteText: string, lang: "en" | "ko" = "en"): Pr
     ? `${CONTRACT_LANG_NOTE_KO}\n\n다음 견적서에서 핵심 조건을 추출해 한국어 JSON으로 반환해주세요:\n\n${truncated}`
     : `Please extract key terms from this quote document:\n\n${truncated}`;
   const message = await client.messages.create({
-    model: "claude-sonnet-4-20250514",
+    model: CLAUDE_MODEL,
     max_tokens: 2048,
-    temperature: 0,
+    thinking: { type: "disabled" },
     system: sys,
     messages: [{ role: "user", content: userPrompt }],
   });
-  const rawText = message.content[0].type === "text" ? message.content[0].text : "";
+  const rawText = extractText(message);
   const jsonMatch = rawText.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error("Failed to extract quote data");
   return JSON.parse(jsonMatch[0]);
@@ -390,13 +391,13 @@ Requirements:
     : `Draft the contract using this deal data:\n\n${JSON.stringify(data, null, 2)}`) + hintBlock;
 
   const message = await client.messages.create({
-    model: "claude-sonnet-4-20250514",
+    model: CLAUDE_MODEL,
     max_tokens: 4096,
-    temperature: 0.2,
+    thinking: { type: "disabled" },
     system: sys,
     messages: [{ role: "user", content: userPrompt }],
   });
-  const raw = message.content[0].type === "text" ? message.content[0].text : "";
+  const raw = extractText(message);
 
   // Split the contract body from the <PROTECTIONS> metadata.
   const protMatch = raw.match(/<PROTECTIONS>([\s\S]*?)<\/PROTECTIONS>/i);
@@ -440,13 +441,13 @@ ${list}
 
   try {
     const msg = await client.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: CLAUDE_MODEL,
       max_tokens: 200,
-      temperature: 0,
+      thinking: { type: "disabled" },
       system: sys,
       messages: [{ role: "user", content: userPrompt }],
     });
-    const raw = msg.content[0].type === "text" ? msg.content[0].text : "";
+    const raw = extractText(msg);
     const m = raw.match(/\{[\s\S]*\}/);
     if (!m) return null;
     const parsed = JSON.parse(m[0]) as { categoryId?: string | null; typeId?: string | null };

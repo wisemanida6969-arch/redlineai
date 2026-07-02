@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/lib/supabase/server";
+import { CLAUDE_MODEL, extractText } from "@/lib/anthropic";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -19,9 +20,9 @@ async function extractTextFromPdf(buffer: Buffer): Promise<string | null> {
 async function extractTextWithVision(buffer: Buffer, mimeType: string): Promise<string> {
   const base64 = buffer.toString("base64");
   const response = await client.messages.create({
-    model: "claude-sonnet-4-20250514",
+    model: CLAUDE_MODEL,
     max_tokens: 4096,
-    temperature: 0,
+    thinking: { type: "disabled" },
     messages: [{
       role: "user",
       content: [
@@ -30,7 +31,7 @@ async function extractTextWithVision(buffer: Buffer, mimeType: string): Promise<
       ],
     }],
   });
-  return response.content[0].type === "text" ? response.content[0].text : "";
+  return extractText(response);
 }
 
 async function extractTextFromDocx(buffer: Buffer): Promise<string> {
