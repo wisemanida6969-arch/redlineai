@@ -64,4 +64,20 @@ app.get("/prec/detail", auth, async (req, res) => {
   }
 });
 
+// Official HTML view of one precedent (used when a user clicks "공식 출처에서 보기").
+// Must go through this proxy too — law.go.kr gates by registered IP even for
+// the HTML view, so redirecting the end user's own browser directly fails.
+app.get("/prec/view", auth, async (req, res) => {
+  if (!OC) return res.status(500).send("LAW_API_OC not configured on proxy");
+  const id = String(req.query.id ?? "").replace(/[^0-9]/g, "");
+  if (!id) return res.status(400).send("missing id");
+  const url = `https://www.law.go.kr/DRF/lawService.do?OC=${encodeURIComponent(OC)}&target=prec&ID=${id}&type=HTML`;
+  try {
+    const html = await curlGet(url);
+    res.type("text/html; charset=utf-8").send(html);
+  } catch (e) {
+    res.status(502).send(`upstream_failed: ${String(e)}`);
+  }
+});
+
 app.listen(PORT, () => console.log(`law-proxy listening on port ${PORT}`));
