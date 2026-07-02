@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { EventName } from "@paddle/paddle-node-sdk";
-import { getPaddle, priceIdToPlan } from "@/lib/paddle";
+import { getPaddle, priceIdToPlan, PADDLE_PRECEDENT_PASS_PRICE_ID, PADDLE_VENDOR_PASS_PRICE_ID } from "@/lib/paddle";
 import { createServiceClient } from "@/lib/supabase/server";
+import { PASS_DURATION_MS, type PassFeature } from "@/lib/monetization";
 
 export const dynamic = "force-dynamic";
 
@@ -88,10 +89,35 @@ export async function POST(req: NextRequest) {
         break;
       }
 
-      case EventName.TransactionCompleted:
-        // Receipt — Paddle emails the customer. We log for audit.
-        console.log("Transaction completed:", event.data?.id);
+      case EventName.TransactionCompleted: {
+        const txn = event.data;
+        // Subscription renewal invoices also fire this event — only one-time
+        // 24h-pass purchases (no subscriptionId) should grant a pass here.
+        if (txn.subscriptionId) break;
+
+        const priceId = txn.items?.[0]?.price?.id as string | undefined;
+        const feature: PassFeature | null =
+          priceId === PADDLE_PRECEDENT_PASS_PRICE_ID ? "precedent" :
+          priceId === PADDLE_VENDOR_PASS_PRICE_ID ? "vendor" :
+          null;
+        if (!feature) break;
+
+        const userId = txn.customData?.user_id as string | undefined;
+        if (!userId) {
+          console.warn("Pass transaction without user_id custom_data:", txn.id);
+          break;
+        }
+
+        const { error } = await service.from("feature_passes").insert({
+          user_id: userId,
+          feature,
+          expires_at: new Date(Date.now() + PASS_DURATION_MS).toISOString(),
+          paddle_transaction_id: txn.id,
+        });
+        // Unique index on paddle_transaction_id makes this safe against webhook retries.
+        if (error && error.code !== "23505") console.error("Failed to grant pass:", error);
         break;
+      }
 
       case EventName.TransactionPaymentFailed:
         console.warn("Payment failed:", event.data?.id);

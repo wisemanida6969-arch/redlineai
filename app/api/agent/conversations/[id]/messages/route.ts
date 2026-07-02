@@ -87,18 +87,13 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     if (limit === 0) {
       return NextResponse.json({
-        error: "AI Agent requires a paid plan. Upgrade to Pro for 100 messages/month.",
+        error: "AI Agent requires a paid plan.",
         limitReached: true,
       }, { status: 403 });
     }
     if (limit !== null && agentUsed >= limit) {
-      const upgrade = plan === "free"
-        ? "Upgrade to Pro for 100 messages/month or Business for unlimited."
-        : plan === "pro"
-          ? "Upgrade to Business for unlimited messages."
-          : "Limit reached.";
       return NextResponse.json({
-        error: `You've used all ${limit} AI Agent messages this month. ${upgrade}`,
+        error: `You've used all ${limit} AI Agent messages this month.`,
         limitReached: true,
       }, { status: 403 });
     }

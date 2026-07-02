@@ -4,10 +4,12 @@ import Navbar from "@/components/Navbar";
 import PaddleCheckout from "@/components/PaddleCheckout";
 import {
   Shield, CheckCircle, Lock, Library, ScanSearch, PenLine,
-  MessageSquare, Bot, PenTool,
+  MessageSquare, Bot, PenTool, Clock,
 } from "lucide-react";
 import { useT } from "@/lib/i18n/LanguageProvider";
 import { STANDARD_CONTRACTS, TOTAL_CONTRACT_COUNT, TOTAL_CATEGORY_COUNT, type Bi } from "@/lib/standardContracts";
+import { PADDLE_MEMBER_PRICE_ID, PADDLE_PRECEDENT_PASS_PRICE_ID, PADDLE_VENDOR_PASS_PRICE_ID } from "@/lib/paddle";
+import { PASS_PRICE_KRW, MEMBER_PRICE_KRW, MEMBER_MONTHLY_QUOTA, BETA_END_DATE } from "@/lib/monetization";
 
 export default function Home() {
   const { t, lang } = useT();
@@ -149,20 +151,23 @@ export default function Home() {
       <section id="pricing" className="py-20 px-6 border-t border-[#1e3050]">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-3xl font-bold text-white text-center mb-4">{t("landing.pricingTitle")}</h2>
-          <p className="text-slate-400 text-center mb-12">{t("landing.pricingSub")}</p>
-          <div className="grid md:grid-cols-3 gap-6">
+          <p className="text-slate-400 text-center mb-3">{t("landing.pricingSub")}</p>
+          <p className="text-center mb-12">
+            <span className="inline-flex items-center gap-1.5 bg-yellow-900/20 border border-yellow-700/40 text-yellow-400 text-xs font-medium px-3 py-1 rounded-full">
+              <Clock className="w-3 h-3" /> {t("landing.betaNotice")} {BETA_END_DATE}
+            </span>
+          </p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <PricingCard
               name={t("common.free")}
-              price="$0"
+              price="₩0"
               period=""
               desc={t("landing.planFreeDesc")}
               features={[
-                `${t("landing.featStandardLibrary")}: ${t("landing.featUnlimited")}`,
-                `${t("landing.featContractAnalysis")}: 3${t("landing.featPerMonth")}`,
-                `${t("landing.featAIAgent")}: 10 ${t("landing.featChatMessages")}${t("landing.featPerMonth")}`,
-                t("landing.featPrecedentSearch"),
-                `${t("landing.featPrecedentHolding")}: ${t("landing.featLocked")}`,
-                `${t("landing.featQuoteToContract")}: ${t("landing.featLocked")}`,
+                t("landing.featStandardLibrary"),
+                t("landing.featContractAnalysis"),
+                t("landing.featQuoteToContract"),
+                t("landing.featAIAgent"),
                 t("landing.featAllLangs"),
               ]}
               cta={t("landing.ctaFree")}
@@ -170,44 +175,41 @@ export default function Home() {
               highlighted={false}
             />
             <PricingCard
-              name={t("common.pro")}
-              price="$49"
-              period={t("landing.perMonth")}
-              desc={t("landing.planProDesc")}
-              features={[
-                `${t("landing.featStandardLibrary")}: ${t("landing.featUnlimited")}`,
-                `${t("landing.featContractAnalysis")}: 30${t("landing.featPerMonth")}`,
-                `${t("landing.featQuoteToContract")}: 30${t("landing.featPerMonth")}`,
-                `${t("landing.featAIAgent")}: 100 ${t("landing.featChatMessages")}${t("landing.featPerMonth")}`,
-                t("landing.featPrecedentHolding"),
-                t("landing.featChatScreenshot"),
-                t("landing.featEmailSupport"),
-              ]}
-              cta={t("landing.ctaPro")}
-              href="/dashboard"
-              highlighted={true}
-              paddlePriceId={process.env.NEXT_PUBLIC_PADDLE_PRO_PRICE_ID}
-              mostPopular={t("landing.mostPopular")}
-            />
-            <PricingCard
-              name={t("common.business")}
-              price="$99"
-              period={t("landing.perMonth")}
-              desc={t("landing.planBusinessDesc")}
-              features={[
-                `${t("landing.featStandardLibrary")}: ${t("landing.featUnlimited")}`,
-                `${t("landing.featContractAnalysis")}: ${t("landing.featUnlimited")}`,
-                `${t("landing.featQuoteToContract")}: ${t("landing.featUnlimited")}`,
-                `${t("landing.featAIAgent")}: ${t("landing.featUnlimited")}`,
-                t("landing.featPrecedentHolding"),
-                `${t("landing.featVendorRiskScan")}: 30${t("landing.featPerMonth")}`,
-                t("landing.featChatScreenshot"),
-                t("landing.featPrioritySupport"),
-              ]}
-              cta={t("landing.ctaBusiness")}
+              name={t("pass.buyPass")}
+              price={`₩${PASS_PRICE_KRW.precedent.toLocaleString()}`}
+              period={`/ ${t("landing.pass24h")}`}
+              desc={t("landing.planPrecedentPassDesc")}
+              features={[t("landing.featPrecedentHolding")]}
+              cta={t("pass.buyPass")}
               href="/dashboard"
               highlighted={false}
-              paddlePriceId={process.env.NEXT_PUBLIC_PADDLE_BUSINESS_PRICE_ID}
+              paddlePriceId={PADDLE_PRECEDENT_PASS_PRICE_ID}
+            />
+            <PricingCard
+              name={t("pass.buyPass")}
+              price={`₩${PASS_PRICE_KRW.vendor.toLocaleString()}`}
+              period={`/ ${t("landing.pass24h")}`}
+              desc={t("landing.planVendorPassDesc")}
+              features={[t("landing.featVendorRiskScan")]}
+              cta={t("pass.buyPass")}
+              href="/dashboard"
+              highlighted={false}
+              paddlePriceId={PADDLE_VENDOR_PASS_PRICE_ID}
+            />
+            <PricingCard
+              name={t("pass.joinMember")}
+              price={`₩${MEMBER_PRICE_KRW.toLocaleString()}`}
+              period={`/ ${t("pass.perMonth")}`}
+              desc={t("landing.planMemberDesc")}
+              features={[
+                `${t("landing.featPrecedentHolding")}: ${MEMBER_MONTHLY_QUOTA.precedent}${t("landing.featPerMonth")}`,
+                `${t("landing.featVendorRiskScan")}: ${MEMBER_MONTHLY_QUOTA.vendor}${t("landing.featPerMonth")}`,
+              ]}
+              cta={t("pass.joinMember")}
+              href="/dashboard"
+              highlighted={true}
+              paddlePriceId={PADDLE_MEMBER_PRICE_ID}
+              mostPopular={t("landing.mostPopular")}
             />
           </div>
         </div>

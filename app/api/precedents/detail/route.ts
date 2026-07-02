@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { checkFeatureAccess, recordFeatureUsage } from "@/lib/passGating";
 
 /**
  * Fetch 판시사항 / 판결요지 for one precedent from the official 법제처 API.
@@ -23,11 +24,14 @@ export async function GET(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  // ── Premium gate: viewing the holding (판결요지) is Pro+ only ──
+  // ── Gate: viewing the holding (판결요지) needs a 24h pass or membership quota ──
   const service = createServiceClient();
-  const { data: profile } = await service.from("profiles").select("plan").eq("id", user.id).single();
-  if ((profile?.plan ?? "free") === "free") {
-    return NextResponse.json({ locked: true }, { status: 403 });
+  const access = await checkFeatureAccess(service, user.id, "precedent");
+  if (!access.allowed) {
+    return NextResponse.json({ locked: true, access }, { status: 403 });
+  }
+  if (access.via === "member") {
+    await recordFeatureUsage(service, user.id, "precedent");
   }
 
   // Reachable either directly (OC + registered IP) or via the Korea-hosted

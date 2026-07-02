@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
-import { PLAN_LIMITS, type Plan } from "@/lib/planLimits";
 import { CLAUDE_MODEL } from "@/lib/anthropic";
+import { checkFeatureAccess, recordFeatureUsage } from "@/lib/passGating";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -244,34 +244,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Please sign in to use this feature." }, { status: 401 });
     }
 
-    // ── Plan / limit check ──
+    // ── Pass / membership quota check ──
     const service = createServiceClient();
-    const { data: profile } = await service
-      .from("profiles")
-      .select("plan, vendor_used, scan_month")
-      .eq("id", user.id)
-      .single();
+    const access = await checkFeatureAccess(service, user.id, "vendor");
 
-    const currentMonth = new Date().toISOString().slice(0, 7);
-    const sameMonth = profile?.scan_month === currentMonth;
-    const vendorUsed = sameMonth ? (profile?.vendor_used ?? 0) : 0;
-    const plan = (profile?.plan ?? "free") as Plan;
-    const limit = PLAN_LIMITS[plan].vendor;
-
-    if (limit === 0) {
+    if (!access.allowed) {
       return NextResponse.json({
-        error: "Vendor Risk Scan is a Pro feature. Upgrade to Pro ($49/mo) for 10 scans or Business ($99/mo) for 30 scans.",
+        error: access.reason === "quota_exceeded"
+          ? `You've used all ${access.limit} Vendor Risk Scans this month.`
+          : "Vendor Risk Scan requires a 24-hour pass or membership.",
         limitReached: true,
-      }, { status: 403 });
-    }
-
-    if (limit !== null && vendorUsed >= limit) {
-      const upgradeMsg = plan === "pro"
-        ? "Upgrade to Business for 30 scans/month."
-        : "Limit reached.";
-      return NextResponse.json({
-        error: `You've used all ${limit} Vendor Risk Scans this month. ${upgradeMsg}`,
-        limitReached: true,
+        access,
       }, { status: 403 });
     }
 
@@ -308,18 +291,16 @@ export async function POST(req: NextRequest) {
       console.error("Failed to save vendor scan:", JSON.stringify(saveError, null, 2));
     }
 
-    // ── Update usage ──
-    await service.from("profiles").update({
-      vendor_used: sameMonth ? vendorUsed + 1 : 1,
-      scan_month: currentMonth,
-    }).eq("id", user.id);
+    // ── Update usage (member-quota grants only; a pass doesn't count against quota) ──
+    if (access.via === "member") {
+      await recordFeatureUsage(service, user.id, "vendor");
+    }
 
     return NextResponse.json({
       report,
       scannedAt: saved?.created_at || new Date().toISOString(),
       scanId: saved?.id,
-      vendorUsed: vendorUsed + 1,
-      vendorLimit: limit,
+      access,
     });
   } catch (err: unknown) {
     console.error("Vendor scan error:", err);

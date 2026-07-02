@@ -115,9 +115,14 @@ export const translations = {
     planFreeDesc:     { en: "For creators trying RedlineAI", ko: "RedlineAI를 처음 써보는 창작자용" },
     planProDesc:      { en: "For active freelance creators",  ko: "활동 중인 프리랜서 창작자를 위한" },
     planBusinessDesc: { en: "For studios and agencies", ko: "스튜디오·에이전시를 위한" },
+    planPrecedentPassDesc: { en: "One-time, 24-hour access", ko: "1회 구매, 24시간 이용 가능" },
+    planVendorPassDesc:    { en: "One-time, 24-hour access", ko: "1회 구매, 24시간 이용 가능" },
+    planMemberDesc:        { en: "For frequent precedent/vendor lookups", ko: "판례·업체스캔을 자주 쓰는 분에게" },
     ctaFree:          { en: "Get started free", ko: "무료로 시작" },
     ctaPro:           { en: "Start Pro",        ko: "Pro 시작" },
     ctaBusiness:      { en: "Start Business",   ko: "Business 시작" },
+    betaNotice:       { en: "Beta pricing through", ko: "베타 기간 가격, ~" },
+    pass24h:          { en: "24h pass", ko: "24시간" },
 
     /* Features list (per plan) */
     featStandardLibrary:   { en: "Standard contract library",  ko: "표준계약서 라이브러리" },
@@ -573,6 +578,13 @@ export const translations = {
     /* Related precedents (after review) */
     relatedPrecedents:      { en: "Related court precedents", ko: "관련 판례" },
     relatedPrecedentsIntro: { en: "Real precedents from disputes similar to this contract — found using AI-suggested keywords. Tap a keyword or search your own.", ko: "이 계약과 비슷한 분쟁의 실제 판례입니다. AI가 추천한 검색어로 찾았어요. 키워드를 누르거나 직접 검색해 보세요." },
+  },
+
+  /* ── Precedent-view / vendor-scan pass & membership purchase ── */
+  pass: {
+    buyPass:    { en: "Buy 24h pass", ko: "24시간 패스 구매" },
+    joinMember: { en: "Join membership", ko: "멤버십 가입" },
+    perMonth:   { en: "mo", ko: "월" },
   },
 };
 

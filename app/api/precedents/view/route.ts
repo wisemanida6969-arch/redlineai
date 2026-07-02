@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { checkFeatureAccess, recordFeatureUsage } from "@/lib/passGating";
 
 /**
  * Serves the official 법제처 precedent HTML view. law.go.kr gates this page by
@@ -8,7 +10,24 @@ import { NextRequest, NextResponse } from "next/server";
  * and return it directly (proxied content, not a redirect). Falls back to a
  * direct redirect (best-effort) when no proxy is configured.
  */
+
 export async function GET(req: NextRequest) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.redirect(new URL("/auth/login", req.url));
+
+  const service = createServiceClient();
+  const access = await checkFeatureAccess(service, user.id, "precedent");
+  if (!access.allowed) {
+    return new NextResponse(lockedPage(), {
+      status: 403,
+      headers: { "Content-Type": "text/html; charset=utf-8" },
+    });
+  }
+  if (access.via === "member") {
+    await recordFeatureUsage(service, user.id, "precedent");
+  }
+
   const oc = process.env.LAW_API_OC;
   const proxyUrl = process.env.LAW_PROXY_URL;
   const proxyKey = process.env.LAW_PROXY_KEY;
@@ -50,6 +69,17 @@ export async function GET(req: NextRequest) {
   return NextResponse.redirect(
     `https://www.law.go.kr/DRF/lawService.do?OC=${encodeURIComponent(oc)}&target=prec&ID=${id}&type=HTML`,
   );
+}
+
+function lockedPage(): string {
+  return `<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><title>판례 원문 보기</title>
+<style>body{font-family:system-ui,sans-serif;background:#0f1a2e;color:#e2e8f0;padding:40px 24px;max-width:560px;margin:0 auto;line-height:1.6}
+h1{font-size:18px;color:#fff}</style></head>
+<body>
+<h1>판례 원문 보기는 유료 기능입니다</h1>
+<p>24시간 패스(₩3,900) 또는 월 멤버십(₩9,900, 판례보기 50건+업체스캔 40건 포함)으로 이용하실 수 있어요. 대시보드로 돌아가 구매해주세요.</p>
+</body></html>`;
 }
 
 function fallbackPage(id: string): string {

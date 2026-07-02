@@ -30,7 +30,7 @@ interface ScanRecord {
 
 const ACCEPTED_EXT = [".pdf", ".docx", ".hwpx", ".hwp"];
 
-type Feature = FeatureKey;
+type Feature = FeatureKey | "vendor";
 
 interface UsageData {
   analysis: number;
@@ -182,7 +182,7 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium border ${plan === "free" ? "bg-slate-800/50 border-slate-700 text-slate-300" : plan === "pro" ? "bg-red-900/20 border-red-700/50 text-red-300" : "bg-yellow-900/20 border-yellow-700/50 text-yellow-400"}`}>
+            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium border ${plan === "free" ? "bg-slate-800/50 border-slate-700 text-slate-300" : "bg-yellow-900/20 border-yellow-700/50 text-yellow-400"}`}>
               {plan !== "free" && <Crown className="w-3.5 h-3.5" />}
               <span className="capitalize">{plan} Plan</span>
             </div>
@@ -201,7 +201,7 @@ export default function Dashboard() {
           <div className="flex gap-2 min-w-max border-b border-[#1e3050]">
             {FEATURES.map(({ id, label, icon: Icon, soon }) => {
               const active = feature === id;
-              const locked = !hasAccess(plan, id);
+              const locked = id === "vendor" ? false : !hasAccess(plan, id);
               return (
                 <button
                   key={id}
@@ -355,14 +355,9 @@ export default function Dashboard() {
         )}
 
         {feature === "vendor" && (
-          <>
-            <UsageCounter plan={plan} feature="vendor" used={usage.vendor} />
-            {hasAccess(plan, "vendor") && (
-              <VendorRiskScan
-                onUsed={() => setUsage((u) => ({ ...u, vendor: u.vendor + 1 }))}
-              />
-            )}
-          </>
+          <VendorRiskScan
+            onUsed={() => setUsage((u) => ({ ...u, vendor: u.vendor + 1 }))}
+          />
         )}
 
         {feature === "agent" && (

@@ -191,13 +191,8 @@ export async function POST(req: NextRequest) {
     const limit = PLAN_LIMITS[plan].analysis;
 
     if (limit !== null && scansUsed >= limit) {
-      const upgradeMsg = plan === "free"
-        ? "Upgrade to Pro for 30 scans/month or Business for unlimited."
-        : plan === "pro"
-          ? "Upgrade to Business for unlimited scans."
-          : "Limit reached.";
       return NextResponse.json({
-        error: `You've used all ${limit} Contract Analysis scans this month. ${upgradeMsg}`,
+        error: `You've used all ${limit} Contract Analysis scans this month.`,
         limitReached: true,
       }, { status: 403 });
     }

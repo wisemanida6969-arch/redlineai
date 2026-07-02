@@ -7,6 +7,8 @@ import {
 } from "lucide-react";
 import { downloadVendorPDF, downloadVendorDOCX, type VendorReport } from "@/lib/vendorReportExport";
 import { useT } from "@/lib/i18n/LanguageProvider";
+import PassPurchaseButtons from "@/components/PassPurchaseButtons";
+import { PADDLE_VENDOR_PASS_PRICE_ID } from "@/lib/paddle";
 
 interface VendorScanRecord {
   id: string;
@@ -19,8 +21,6 @@ interface VendorScanRecord {
 interface VendorScanResult {
   report: VendorReport;
   scannedAt: string;
-  vendorUsed: number;
-  vendorLimit: number | null;
 }
 
 interface Props {
@@ -42,6 +42,7 @@ export default function VendorRiskScan({ onUsed }: Props = {}) {
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState("");
   const [error, setError] = useState("");
+  const [locked, setLocked] = useState(false);
   const [result, setResult] = useState<VendorScanResult | null>(null);
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState<"pdf" | "docx" | null>(null);
@@ -85,8 +86,6 @@ export default function VendorRiskScan({ onUsed }: Props = {}) {
       setResult({
         report: data.report,
         scannedAt: data.scannedAt,
-        vendorUsed: 0,
-        vendorLimit: null,
       });
       setView("report");
     } catch (e) {
@@ -101,6 +100,7 @@ export default function VendorRiskScan({ onUsed }: Props = {}) {
     if (!name) return setError(lang === "ko" ? "공급업체 또는 회사명을 입력해주세요." : "Please enter a vendor or company name.");
     setLoading(true);
     setError("");
+    setLocked(false);
 
     try {
       setLoadingStep(lang === "ko" ? "뉴스·재무·법적 기록 검색 중…" : "Searching news, financials, and legal records…");
@@ -117,7 +117,10 @@ export default function VendorRiskScan({ onUsed }: Props = {}) {
       });
       const data = await res.json();
 
-      if (!res.ok) throw new Error(data.error || "Scan failed");
+      if (!res.ok) {
+        if (data.limitReached) setLocked(true);
+        throw new Error(data.error || "Scan failed");
+      }
 
       setResult(data);
       setView("report");
@@ -269,8 +272,15 @@ ${r.recommendations.map((rec, i) => `${i + 1}. ${rec}`).join("\n")}
         </div>
 
         {error && (
-          <div className="mt-4 flex items-center gap-2 text-red-400 text-sm bg-red-900/20 border border-red-800/50 rounded-xl px-4 py-3">
-            <AlertCircle className="w-4 h-4 shrink-0" /> {error}
+          <div className="mt-4 bg-red-900/20 border border-red-800/50 rounded-xl px-4 py-3">
+            <div className="flex items-center gap-2 text-red-400 text-sm">
+              <AlertCircle className="w-4 h-4 shrink-0" /> {error}
+            </div>
+            {locked && (
+              <div className="mt-3">
+                <PassPurchaseButtons feature="vendor" passPriceId={PADDLE_VENDOR_PASS_PRICE_ID} />
+              </div>
+            )}
           </div>
         )}
 

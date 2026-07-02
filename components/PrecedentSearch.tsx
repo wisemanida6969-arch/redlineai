@@ -2,7 +2,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { ExternalLink, Calendar, Loader2, Lock, Search } from "lucide-react";
 import { useT } from "@/lib/i18n/LanguageProvider";
-import { type Plan } from "@/lib/planLimits";
+import PassPurchaseButtons from "@/components/PassPurchaseButtons";
+import { PADDLE_PRECEDENT_PASS_PRICE_ID } from "@/lib/paddle";
 
 interface LiveResult {
   externalId: string;
@@ -14,10 +15,9 @@ interface LiveResult {
   source: "law" | "copyright";
 }
 
-/* One precedent card with a Pro-gated "판결요지" expand. */
-function LiveCard({ p, plan }: { p: LiveResult; plan?: Plan }) {
+/* One precedent card with a pass/membership-gated "판결요지" expand. */
+function LiveCard({ p }: { p: LiveResult }) {
   const { t } = useT();
-  const proactiveLock = plan === "free"; // if plan unknown, let the server enforce
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState<{ issue: string; summary: string } | null>(null);
   const [loading, setLoading] = useState(false);
@@ -27,7 +27,6 @@ function LiveCard({ p, plan }: { p: LiveResult; plan?: Plan }) {
   const toggle = async () => {
     if (open) { setOpen(false); return; }
     setOpen(true);
-    if (proactiveLock) { setLocked(true); return; }
     if (detail || loading) return;
     setLoading(true); setErr(false); setLocked(false);
     try {
@@ -39,8 +38,6 @@ function LiveCard({ p, plan }: { p: LiveResult; plan?: Plan }) {
       else setErr(true);
     } catch { setErr(true); } finally { setLoading(false); }
   };
-
-  const showLockBadge = proactiveLock && !open;
 
   return (
     <div className="bg-[#162035] border border-[#1e3050] rounded-xl p-4">
@@ -60,7 +57,7 @@ function LiveCard({ p, plan }: { p: LiveResult; plan?: Plan }) {
             <div>
               <p className="text-yellow-300 text-xs font-bold mb-1 flex items-center gap-1.5"><Lock className="w-3.5 h-3.5" /> {t("standard.precedentsLockedTitle")}</p>
               <p className="text-slate-400 text-xs leading-relaxed mb-2">{t("standard.precedentsLockedBody")}</p>
-              <a href="/#pricing" className="inline-block bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">{t("standard.precedentsUpgrade")}</a>
+              <PassPurchaseButtons feature="precedent" passPriceId={PADDLE_PRECEDENT_PASS_PRICE_ID} />
             </div>
           ) : loading ? (
             <div className="flex items-center gap-2 text-slate-500 text-xs"><Loader2 className="w-3.5 h-3.5 animate-spin" /> {t("standard.precedentsSearching")}</div>
@@ -78,9 +75,7 @@ function LiveCard({ p, plan }: { p: LiveResult; plan?: Plan }) {
       <div className="flex items-center justify-between gap-2">
         {p.source === "law" ? (
           <button onClick={toggle} className="flex items-center gap-1 text-red-400 hover:text-red-300 text-xs font-medium">
-            {showLockBadge && <Lock className="w-3 h-3" />}
             {open ? t("standard.precedentsHide") : t("standard.precedentsViewHolding")}
-            {showLockBadge && <span className="text-[10px] text-yellow-300 font-bold">PRO</span>}
           </button>
         ) : <span />}
         <a href={p.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-red-400 hover:text-red-300 text-xs font-medium shrink-0">
@@ -96,12 +91,10 @@ interface Props {
   queries?: string[];
   /** Fallback initial query when no chips are given (e.g. a field keyword). */
   defaultQuery?: string;
-  /** Current plan — gates the 판결요지 view (also enforced server-side). */
-  plan?: Plan;
 }
 
 /** Live court-precedent search (official MOLEG API → copyright.or.kr fallback). */
-export default function PrecedentSearch({ queries, defaultQuery, plan }: Props) {
+export default function PrecedentSearch({ queries, defaultQuery }: Props) {
   const { t } = useT();
   const chips = (queries ?? []).filter(Boolean).slice(0, 6);
   const initial = chips[0] || defaultQuery || "";
@@ -198,7 +191,7 @@ export default function PrecedentSearch({ queries, defaultQuery, plan }: Props) 
       ) : (
         <div className="space-y-2">
           {live.map((p) => (
-            <LiveCard key={p.externalId} p={p} plan={plan} />
+            <LiveCard key={p.externalId} p={p} />
           ))}
           {liveHasMore && (
             <button onClick={() => runSearch(activeQuery, livePage + 1, true)} disabled={liveLoading}

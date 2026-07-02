@@ -14,13 +14,15 @@ export function getPaddle(): Paddle {
   return paddleInstance;
 }
 
-export const PADDLE_PRO_PRICE_ID = process.env.NEXT_PUBLIC_PADDLE_PRO_PRICE_ID || "";
-export const PADDLE_BUSINESS_PRICE_ID = process.env.NEXT_PUBLIC_PADDLE_BUSINESS_PRICE_ID || "";
+/** Recurring — grants the "member" plan (₩9,900/mo, 판례보기 50건 + 업체스캔 40건 월간 쿼터). */
+export const PADDLE_MEMBER_PRICE_ID = process.env.NEXT_PUBLIC_PADDLE_MEMBER_PRICE_ID || "";
+/** One-time — 24-hour passes. Handled in the webhook's transaction.completed branch, not priceIdToPlan. */
+export const PADDLE_PRECEDENT_PASS_PRICE_ID = process.env.NEXT_PUBLIC_PADDLE_PRECEDENT_PASS_PRICE_ID || "";
+export const PADDLE_VENDOR_PASS_PRICE_ID = process.env.NEXT_PUBLIC_PADDLE_VENDOR_PASS_PRICE_ID || "";
 
-/** Map a Paddle price_id to our internal plan name. */
+/** Map a Paddle recurring-subscription price_id to our internal plan name. */
 export function priceIdToPlan(priceId: string): Plan | null {
   if (!priceId) return null;
-  if (priceId === PADDLE_PRO_PRICE_ID) return "pro";
-  if (priceId === PADDLE_BUSINESS_PRICE_ID) return "business";
+  if (priceId === PADDLE_MEMBER_PRICE_ID) return "member";
   return null;
 }

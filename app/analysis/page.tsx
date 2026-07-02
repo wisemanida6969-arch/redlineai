@@ -238,7 +238,7 @@ export default function AnalysisPage() {
               <h2 className="text-white font-bold text-lg">{t("analysis.relatedPrecedents")}</h2>
             </div>
             <p className="text-slate-400 text-sm mb-4">{t("analysis.relatedPrecedentsIntro")}</p>
-            <PrecedentSearch queries={result.precedentQueries} plan={result.plan} />
+            <PrecedentSearch queries={result.precedentQueries} />
             <p className="text-slate-500 text-[11px] leading-relaxed mt-4">{t("standard.precedentsDisclaimer")}</p>
           </div>
         )}

@@ -20,8 +20,8 @@ export interface AnalysisResult {
   extractionMethod?: string;
   /** AI-suggested keywords for finding related court precedents */
   precedentQueries?: string[];
-  /** User's plan at scan time (gates the precedent 판결요지 view) */
-  plan?: "free" | "pro" | "business";
+  /** User's plan at scan time (kept for reference; precedent access is now pass/quota-gated) */
+  plan?: "free" | "member";
 }
 
 const SEVERITY_LABEL: Record<string, string> = {

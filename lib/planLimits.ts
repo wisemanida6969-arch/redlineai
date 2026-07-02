@@ -1,29 +1,30 @@
 /* ------------------------------------------------------------------ */
 /*  RedlineAI – Plan limits & feature gating                           */
+/*                                                                      */
+/*  Beta period (~2026-08-31): contract review/draft/AI agent/standard */
+/*  library are free & unlimited for everyone. Precedent-view and      */
+/*  vendor risk scan are monetized separately — see lib/passGating.ts  */
+/*  and lib/monetization.ts.                                           */
 /* ------------------------------------------------------------------ */
 
-export type Plan = "free" | "pro" | "business";
-export type FeatureKey = "standard" | "analysis" | "quote" | "vendor" | "agent";
+export type Plan = "free" | "member";
+export type FeatureKey = "standard" | "analysis" | "quote" | "agent";
 
-/** null = unlimited, 0 = locked, number = monthly limit.
- *  `standard` = the standard-contract library (browse + official download); free reference, never metered. */
+/** null = unlimited, 0 = locked, number = monthly limit. */
 export const PLAN_LIMITS: Record<Plan, Record<FeatureKey, number | null>> = {
-  free:     { standard: null, analysis: 3,    quote: 0,    vendor: 0,  agent: 10   },
-  pro:      { standard: null, analysis: 30,   quote: 30,   vendor: 10, agent: 100  },
-  business: { standard: null, analysis: null, quote: null, vendor: 30, agent: null },
+  free:   { standard: null, analysis: null, quote: null, agent: null },
+  member: { standard: null, analysis: null, quote: null, agent: null },
 };
 
 export const PLAN_PRICES = {
-  free:     { price: 0,  label: "Free" },
-  pro:      { price: 49, label: "Pro" },
-  business: { price: 99, label: "Business" },
+  free:   { price: 0,    label: "Free" },
+  member: { price: 9900, label: "Member" },
 };
 
 export const FEATURE_LABELS: Record<FeatureKey, string> = {
   standard: "Standard Contracts",
   analysis: "Contract Review",
   quote:    "Contract Draft",
-  vendor:   "Vendor Risk Scan",
   agent:    "AI Agent",
 };
 

@@ -503,9 +503,8 @@ export async function POST(req: NextRequest) {
     if (editedRaw) {
       const countUsage = formData.get("countUsage") === "true";
       if (countUsage && limit !== null && quoteUsed >= limit) {
-        const upgradeMsg = plan === "pro" ? "Upgrade to Business for unlimited contracts." : "Limit reached.";
         return NextResponse.json({
-          error: `You've used all ${limit} Quote to Contract generations this month. ${upgradeMsg}`,
+          error: `You've used all ${limit} Quote to Contract generations this month.`,
           limitReached: true,
         }, { status: 403 });
       }
@@ -576,11 +575,8 @@ export async function POST(req: NextRequest) {
     }
 
     if (limit !== null && quoteUsed >= limit) {
-      const upgradeMsg = plan === "pro"
-        ? "Upgrade to Business for unlimited contracts."
-        : "Limit reached.";
       return NextResponse.json({
-        error: `You've used all ${limit} Quote to Contract generations this month. ${upgradeMsg}`,
+        error: `You've used all ${limit} Quote to Contract generations this month.`,
         limitReached: true,
       }, { status: 403 });
     }
