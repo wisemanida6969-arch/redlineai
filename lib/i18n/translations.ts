@@ -582,9 +582,10 @@ export const translations = {
 
   /* ── Precedent-view / vendor-scan pass & membership purchase ── */
   pass: {
-    buyPass:    { en: "Buy 24h pass", ko: "24시간 패스 구매" },
-    joinMember: { en: "Join membership", ko: "멤버십 가입" },
-    perMonth:   { en: "mo", ko: "월" },
+    buyPass:     { en: "Buy 24h pass", ko: "24시간 패스 구매" },
+    joinMember:  { en: "Join membership", ko: "멤버십 가입" },
+    perMonth:    { en: "mo", ko: "월" },
+    viewPricing: { en: "See pricing", ko: "가격 보기" },
   },
 };
 

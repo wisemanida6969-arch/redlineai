@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import PaddleCheckout from "@/components/PaddleCheckout";
 import { PADDLE_MEMBER_PRICE_ID } from "@/lib/paddle";
 import { PASS_PRICE_KRW, MEMBER_PRICE_KRW, type PassFeature } from "@/lib/monetization";
@@ -13,6 +14,18 @@ interface Props {
 export default function PassPurchaseButtons({ feature, passPriceId }: Props) {
   const { t } = useT();
   const passPrice = PASS_PRICE_KRW[feature];
+
+  if (!passPriceId && !PADDLE_MEMBER_PRICE_ID) {
+    // Checkout isn't wired up yet (price IDs pending) — point somewhere useful instead of showing nothing.
+    return (
+      <Link
+        href="/#pricing"
+        className="inline-flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+      >
+        {t("pass.viewPricing")}
+      </Link>
+    );
+  }
 
   return (
     <div className="flex flex-wrap gap-2">
