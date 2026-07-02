@@ -30,16 +30,25 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ locked: true }, { status: 403 });
   }
 
+  // Reachable either directly (OC + registered IP) or via the Korea-hosted
+  // law-proxy (LAW_PROXY_URL) — see law-proxy/README.md.
   const oc = process.env.LAW_API_OC;
-  if (!oc) return NextResponse.json({ error: "not_configured" }, { status: 200 });
+  const proxyUrl = process.env.LAW_PROXY_URL;
+  const proxyKey = process.env.LAW_PROXY_KEY;
+  if (!oc && !proxyUrl) return NextResponse.json({ error: "not_configured" }, { status: 200 });
 
   const id = (new URL(req.url).searchParams.get("id") || "").replace(/[^0-9]/g, "");
   if (!id) return NextResponse.json({ error: "missing id" }, { status: 400 });
 
-  const url = `${LAW_BASE}/lawService.do?OC=${encodeURIComponent(oc)}&target=prec&ID=${id}&type=JSON`;
+  const url = proxyUrl
+    ? `${proxyUrl.replace(/\/$/, "")}/prec/detail?id=${id}`
+    : `${LAW_BASE}/lawService.do?OC=${encodeURIComponent(oc ?? "")}&target=prec&ID=${id}&type=JSON`;
   try {
     const res = await fetch(url, {
-      headers: { "User-Agent": "Mozilla/5.0" },
+      headers: {
+        "User-Agent": "Mozilla/5.0",
+        ...(proxyUrl && proxyKey ? { "x-proxy-key": proxyKey } : {}),
+      },
       next: { revalidate: 86400 },
       signal: AbortSignal.timeout(12000),
     });

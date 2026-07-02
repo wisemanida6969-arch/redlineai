@@ -36,12 +36,24 @@ function decodeEntities(s: string): string {
     .replace(/\s+/g, " ").trim();
 }
 
-/* ── 법제처 Open API (official) ── */
+/* ── 법제처 Open API (official) ──
+ * Called either directly (works only if THIS server's outbound IP is registered
+ * with law.go.kr) or via a Korea-hosted proxy (lib/law-proxy) when LAW_PROXY_URL
+ * is set — Railway's outbound IP is US-based and not registrable there, so the
+ * proxy is the real path once deployed. See law-proxy/README.md.
+ */
 async function searchLaw(oc: string, q: string, page: number): Promise<{ results: LiveResult[]; hasMore: boolean } | null> {
-  const url = `${LAW_BASE}/lawSearch.do?OC=${encodeURIComponent(oc)}&target=prec&type=JSON&search=2&display=10&page=${page}&query=${encodeURIComponent(q)}`;
+  const proxyUrl = process.env.LAW_PROXY_URL;
+  const proxyKey = process.env.LAW_PROXY_KEY;
+  const url = proxyUrl
+    ? `${proxyUrl.replace(/\/$/, "")}/prec/search?query=${encodeURIComponent(q)}&page=${page}`
+    : `${LAW_BASE}/lawSearch.do?OC=${encodeURIComponent(oc)}&target=prec&type=JSON&search=2&display=10&page=${page}&query=${encodeURIComponent(q)}`;
   try {
     const res = await fetch(url, {
-      headers: { "User-Agent": "Mozilla/5.0" },
+      headers: {
+        "User-Agent": "Mozilla/5.0",
+        ...(proxyUrl && proxyKey ? { "x-proxy-key": proxyKey } : {}),
+      },
       next: { revalidate: 3600 },
       signal: AbortSignal.timeout(12000),
     });
