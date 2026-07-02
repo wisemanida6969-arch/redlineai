@@ -19,8 +19,8 @@ export const PASS_PRICE_KRW: Record<PassFeature, number> = {
 export const MEMBER_PRICE_KRW = 9900;
 
 export const MEMBER_MONTHLY_QUOTA: Record<PassFeature, number> = {
-  precedent: 50,
-  vendor: 40,
+  precedent: 30,
+  vendor: 30,
 };
 
 export const PASS_DURATION_MS = 24 * 60 * 60 * 1000;

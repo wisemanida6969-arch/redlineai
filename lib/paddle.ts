@@ -14,7 +14,7 @@ export function getPaddle(): Paddle {
   return paddleInstance;
 }
 
-/** Recurring — grants the "member" plan (₩9,900/mo, 판례보기 50건 + 업체스캔 40건 월간 쿼터). */
+/** Recurring — grants the "member" plan (₩9,900/mo; monthly quotas defined in lib/monetization.ts). */
 export const PADDLE_MEMBER_PRICE_ID = process.env.NEXT_PUBLIC_PADDLE_MEMBER_PRICE_ID || "";
 /** One-time — 24-hour passes. Handled in the webhook's transaction.completed branch, not priceIdToPlan. */
 export const PADDLE_PRECEDENT_PASS_PRICE_ID = process.env.NEXT_PUBLIC_PADDLE_PRECEDENT_PASS_PRICE_ID || "";
