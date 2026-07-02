@@ -1,7 +1,7 @@
 "use client";
 import { useState, useCallback } from "react";
 import {
-  Upload, FileText, AlertCircle, Loader2, CheckCircle,
+  Upload, FileText, AlertCircle, AlertTriangle, Loader2, CheckCircle,
   Download, Receipt, Edit3, Eye, ArrowLeft, Building2,
   User, DollarSign, Calendar, Briefcase, Sparkles, FileType,
   Scale, ExternalLink
@@ -264,6 +264,11 @@ export default function QuoteToContract({ onUsed, standard }: QuoteToContractPro
             <h3 className="text-white font-semibold">{t("quote.title")}</h3>
             <p className="text-slate-400 text-sm">{t("quote.intro")}</p>
           </div>
+        </div>
+
+        <div className="mb-6 flex items-start gap-2 bg-yellow-900/15 border border-yellow-700/30 rounded-xl px-4 py-3">
+          <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0 text-yellow-400" />
+          <p className="text-yellow-100/90 text-xs leading-relaxed">{t("quote.autoToolDisclaimer")}</p>
         </div>
 
         {/* Mode tabs */}

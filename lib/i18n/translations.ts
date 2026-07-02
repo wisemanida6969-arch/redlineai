@@ -87,10 +87,10 @@ export const translations = {
     f1Desc:  { en: "Fine art (12), webtoon (8), performance (5), film (5), craft (5) — every official MCST standard form in one place, with a direct link to the authoritative download.", ko: "미술 12종·웹툰 8종·공연 5종·영화 5종·공예 5종 — 문체부 공식 표준양식을 한 곳에서, 원본 다운로드 링크와 함께." },
     f2Title: { en: "Review against the standard", ko: "표준 대비 검토" },
     f2Desc:  { en: "Upload a contract you were offered. AI compares it to the matching standard form and flags missing protections and clauses worse than the standard.", ko: "제안받은 계약서를 올리면, AI가 해당 분야 표준양식과 비교해 빠진 보호 조항과 표준보다 불리한 조항을 표시합니다." },
-    f3Title: { en: "Draft from the standard form", ko: "표준양식 기반 작성" },
-    f3Desc:  { en: "Enter your project details and AI drafts a contract following the official standard structure — no blank-page stress.", ko: "내 프로젝트 조건만 입력하면 AI가 공식 표준 구조에 맞춰 계약서 초안을 만들어 줍니다." },
-    f4Title: { en: "Chat → Contract", ko: "대화 → 계약서" },
-    f4Desc:  { en: "Agreed something over KakaoTalk? Drop a screenshot or paste the chat — AI turns it into a proper contract.", ko: "카톡으로 합의했나요? 스크린샷을 올리거나 대화를 붙여넣으면 AI가 정식 계약서로 만들어 줍니다." },
+    f3Title: { en: "Standard-form draft organizer", ko: "표준양식 기반 초안 정리 툴" },
+    f3Desc:  { en: "Enter your project details and this automation tool organizes them into the official standard structure — no blank-page stress. Not legal advice.", ko: "내 프로젝트 조건만 입력하면 공식 표준 구조에 맞춰 초안을 정리해 드리는 자동화 도구입니다. 법률 자문이 아닙니다." },
+    f4Title: { en: "Chat → Draft", ko: "대화 → 초안 정리" },
+    f4Desc:  { en: "Agreed something over KakaoTalk? Drop a screenshot or paste the chat — this tool organizes it into a standard-form draft for you to review.", ko: "카톡으로 합의했나요? 스크린샷을 올리거나 대화를 붙여넣으면 표준 양식에 맞춰 초안으로 정리해 드립니다." },
     f5Title: { en: "AI legal assistant", ko: "AI 법률 도우미" },
     f5Desc:  { en: "Chat with AI to understand a clause, draft a negotiation message, or ask what a term means in plain Korean.", ko: "AI와 대화하며 조항을 이해하고, 협상 메시지를 작성하고, 어려운 용어를 쉬운 말로 물어보세요." },
 
@@ -122,7 +122,7 @@ export const translations = {
     /* Features list (per plan) */
     featStandardLibrary:   { en: "Standard contract library",  ko: "표준계약서 라이브러리" },
     featContractAnalysis:  { en: "Review against standard",  ko: "표준 대비 검토" },
-    featQuoteToContract:   { en: "Draft from standard / chat",  ko: "표준양식 / 대화 → 작성" },
+    featQuoteToContract:   { en: "Draft organizer (standard / chat)",  ko: "표준양식 / 대화 → 초안 정리" },
     featVendorRiskScan:    { en: "Vendor Risk Scan",   ko: "공급업체 리스크 스캔" },
     featAIAgent:           { en: "AI legal assistant (chat)", ko: "AI 법률 도우미 (채팅)" },
     featChatMessages:      { en: "messages",           ko: "메시지" },
@@ -181,7 +181,7 @@ export const translations = {
     /* Feature tabs */
     tabStandard: { en: "Standard Contracts", ko: "표준계약서" },
     tabAnalysis: { en: "Review",             ko: "계약서 검토" },
-    tabQuote:    { en: "Draft",              ko: "계약서 작성" },
+    tabQuote:    { en: "Draft Organizer",     ko: "초안 정리 툴" },
     tabVendor:   { en: "Vendor Risk Scan",   ko: "공급업체 리스크 스캔" },
     tabEsign:    { en: "E-Signature",        ko: "전자서명" },
     soon:        { en: "Soon", ko: "곧 출시" },
@@ -364,9 +364,13 @@ export const translations = {
 
   /* ── Quote to Contract ── */
   quote: {
-    title:        { en: "Quote to Contract", ko: "견적서 → 계약서" },
-    intro:        { en: "Upload a quote, paste a chat, or drop a screenshot — AI extracts the terms and auto-matches the right MCST standard contract to draft from.", ko: "견적서 업로드, 카톡/슬랙 대화 붙여넣기, 또는 스크린샷 — AI가 핵심 조건을 추출하고 알맞은 문체부 표준계약서를 자동으로 골라 작성합니다." },
-    autoMatchedNote: { en: "AI analysed your content and auto-selected the MCST standard form above. Want a different one? Pick it in the 'Standard Contracts' tab. Verify against the official form before signing.", ko: "AI가 내용을 분석해 위 문체부 표준계약서를 자동 선택했습니다. 다른 양식을 원하면 '표준계약서' 탭에서 직접 고르세요. 서명 전 공식 양식·전문가 검토와 대조하세요." },
+    title:        { en: "Draft Organizer Tool", ko: "초안 정리 툴" },
+    intro:        { en: "Upload a quote, paste a chat, or drop a screenshot — this automation tool extracts the terms and organizes them into a standard-form draft for you to review.", ko: "견적서 업로드, 카톡/슬랙 대화 붙여넣기, 또는 스크린샷 — 핵심 조건을 추출해 표준 양식에 맞춰 초안으로 정리해 드리는 자동화 도구입니다." },
+    autoToolDisclaimer: {
+      en: "This service is an \"automation tool\" that helps organize a standard-form draft based on your KakaoTalk chat content, and does not provide any legal advice. Final contractual responsibility rests with the parties.",
+      ko: "본 서비스는 카톡 대화 내용을 바탕으로 표준 계약서 작성을 돕는 '자동화 도구'이며, 어떠한 법률 자문도 제공하지 않습니다. 최종 계약적 책임은 당사자에게 있습니다.",
+    },
+    autoMatchedNote: { en: "This tool analysed your content and auto-selected the MCST standard form above. Want a different one? Pick it in the 'Standard Contracts' tab. Verify against the official form before signing.", ko: "내용을 분석해 위 문체부 표준계약서를 자동 선택했습니다. 다른 양식을 원하면 '표준계약서' 탭에서 직접 고르세요. 서명 전 공식 양식·전문가 검토와 대조하세요." },
     dropQuote:    { en: "Drop your file here", ko: "파일을 여기에 끌어다 놓으세요" },
     clickBrowse:  { en: "or click to browse", ko: "또는 클릭해서 선택" },
     pdfOrDocx:    { en: "PDF, DOCX, HWPX, PNG, JPG, TXT · Max 20MB", ko: "PDF, DOCX, HWPX, PNG, JPG, TXT · 최대 20MB" },

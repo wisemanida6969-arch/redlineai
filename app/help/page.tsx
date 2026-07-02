@@ -20,7 +20,7 @@ export default function HelpPage() {
   const features: { id: FeatureKey; label: string; icon: typeof FileText; tagline: string }[] = [
     { id: "standard", label: ko ? "표준계약서" : "Standard Contracts", icon: Library, tagline: ko ? "문체부 표준양식 둘러보기" : "Browse official MCST forms" },
     { id: "analysis", label: ko ? "계약서 검토" : "Contract Review",   icon: FileText, tagline: ko ? "표준 대비 위험 조항 찾기" : "Spot risky clauses vs. the standard" },
-    { id: "quote",    label: ko ? "계약서 작성" : "Contract Draft",    icon: Receipt,  tagline: ko ? "표준양식 기반 자동 작성" : "Auto-draft on a standard form" },
+    { id: "quote",    label: ko ? "초안 정리 툴" : "Draft Organizer",  icon: Receipt,  tagline: ko ? "표준양식 기반 자동화 초안 정리" : "Automated draft organizing on a standard form" },
     { id: "vendor",   label: ko ? "공급업체 리스크 스캔" : "Vendor Risk Scan", icon: Building2, tagline: ko ? "회사 실사 자동화" : "Due-diligence on any company" },
     { id: "agent",    label: ko ? "AI 에이전트" : "AI Agent",          icon: Bot,      tagline: ko ? "법률 질문·협상 이메일 챗봇" : "Legal Q&A & negotiation chat" },
   ];
@@ -142,11 +142,16 @@ export default function HelpPage() {
           isOpen={open === "quote"}
           onToggle={() => setOpen(open === "quote" ? null : "quote")}
           icon={Receipt}
-          title={ko ? "계약서 작성" : "Contract Draft"}
-          tagline={ko ? "견적서·대화·직접 입력 → AI가 표준양식 기반 계약서 자동 생성" : "From a quote, chat, or manual entry → AI drafts on the matching standard form"}
+          title={ko ? "초안 정리 툴" : "Draft Organizer"}
+          tagline={ko ? "견적서·대화·직접 입력 → 표준양식 기반 초안 자동 정리 (법률 자문 아님)" : "From a quote, chat, or manual entry → automated draft organizing on the matching standard form (not legal advice)"}
         >
-          <Step n={1} title={ko ? "계약서 작성 탭 열기" : "Open the Contract Draft tab"}>
-            {ko ? <><strong className="text-white">계약서 작성</strong> 탭을 클릭하세요.</> : <>Click the <strong className="text-white">Contract Draft</strong> tab.</>}
+          <p className="text-yellow-200 text-xs leading-relaxed bg-yellow-900/15 border border-yellow-700/30 rounded-lg px-3 py-2">
+            {ko
+              ? "본 서비스는 카톡 대화 내용을 바탕으로 표준 계약서 작성을 돕는 '자동화 도구'이며, 어떠한 법률 자문도 제공하지 않습니다. 최종 계약적 책임은 당사자에게 있습니다."
+              : "This service is an \"automation tool\" that helps organize a standard-form draft based on your chat content, and does not provide any legal advice. Final contractual responsibility rests with the parties."}
+          </p>
+          <Step n={1} title={ko ? "초안 정리 툴 탭 열기" : "Open the Draft Organizer tab"}>
+            {ko ? <><strong className="text-white">초안 정리 툴</strong> 탭을 클릭하세요.</> : <>Click the <strong className="text-white">Draft Organizer</strong> tab.</>}
             <p className="text-yellow-400 text-xs mt-1">{ko ? "⚠️ Pro 플랜 이상 (무료 플랜에서는 잠김)" : "⚠️ Pro plan and above (locked on Free plan)"}</p>
           </Step>
           <Step n={2} title={ko ? "세 가지 시작 방법 중 선택" : "Choose one of three ways to start"} icon={Upload}>
