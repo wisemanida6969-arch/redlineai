@@ -3,7 +3,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import {
   Search, Loader2, AlertCircle, AlertTriangle, CheckCircle,
   Building2, Newspaper, DollarSign, Scale, Shield, Download,
-  ArrowLeft, Copy, Check, ExternalLink, Sparkles, FileText, ChevronDown, Clock
+  ArrowLeft, Copy, Check, ExternalLink, Sparkles, FileText, ChevronDown, Clock, Star
 } from "lucide-react";
 import { downloadVendorPDF, downloadVendorDOCX, type VendorReport } from "@/lib/vendorReportExport";
 import { useT } from "@/lib/i18n/LanguageProvider";
@@ -476,6 +476,23 @@ ${r.recommendations.map((rec, i) => `${i + 1}. ${rec}`).join("\n")}
 
 /* ──────────────── Sub-components ──────────────── */
 
+/** Lower risk → closer to 5 stars. */
+const RISK_STARS: Record<"high" | "medium" | "low", number> = { high: 1, medium: 3, low: 5 };
+
+function StarRating({ score, size = "w-3.5 h-3.5" }: { score: "high" | "medium" | "low"; size?: string }) {
+  const filled = RISK_STARS[score];
+  return (
+    <div className="flex items-center gap-0.5" aria-label={`${filled}/5`}>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <Star
+          key={i}
+          className={`${size} ${i <= filled ? "text-yellow-400 fill-yellow-400" : "text-slate-600"}`}
+        />
+      ))}
+    </div>
+  );
+}
+
 function VendorHistoryItem({
   item, loading, onClick,
 }: {
@@ -483,10 +500,11 @@ function VendorHistoryItem({
   loading: boolean;
   onClick: () => void;
 }) {
+  const { t } = useT();
   const sevConfig = {
-    high:   { color: "text-red-400",    bg: "bg-red-900/30",    label: "HIGH"   },
-    medium: { color: "text-yellow-400", bg: "bg-yellow-900/30", label: "MEDIUM" },
-    low:    { color: "text-blue-400",   bg: "bg-blue-900/30",   label: "LOW"    },
+    high:   { color: "text-red-400",    bg: "bg-red-900/30",    label: t("vendor.highRisk")   },
+    medium: { color: "text-yellow-400", bg: "bg-yellow-900/30", label: t("vendor.mediumRisk") },
+    low:    { color: "text-blue-400",   bg: "bg-blue-900/30",   label: t("vendor.lowRisk")    },
   };
   const c = sevConfig[item.overall_score];
 
@@ -510,6 +528,7 @@ function VendorHistoryItem({
         )}
       </div>
       <div className="flex items-center gap-2 shrink-0">
+        <StarRating score={item.overall_score} />
         <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${c.bg} ${c.color}`}>
           {c.label}
         </span>
@@ -545,6 +564,7 @@ function OverallBadge({ score, t }: { score: "high" | "medium" | "low"; t: (k: s
       <div className="text-left">
         <p className="text-[10px] font-bold uppercase tracking-wider opacity-70">{t("vendor.overall")}</p>
         <p className="font-bold">{c.label}</p>
+        <StarRating score={score} size="w-3 h-3" />
       </div>
     </div>
   );
@@ -571,9 +591,9 @@ function RiskSection({
   t: (k: string) => string;
 }) {
   const config = {
-    high:   { bg: "bg-red-900/10",    border: "border-red-800/40",    badge: "bg-red-900/50 text-red-400",       iconColor: "text-red-400"    },
-    medium: { bg: "bg-yellow-900/10", border: "border-yellow-800/40", badge: "bg-yellow-900/50 text-yellow-400", iconColor: "text-yellow-400" },
-    low:    { bg: "bg-blue-900/10",   border: "border-blue-800/40",   badge: "bg-blue-900/50 text-blue-400",     iconColor: "text-blue-400"   },
+    high:   { bg: "bg-red-900/10",    border: "border-red-800/40",    badge: "bg-red-900/50 text-red-400",       iconColor: "text-red-400",    label: t("vendor.highRisk")   },
+    medium: { bg: "bg-yellow-900/10", border: "border-yellow-800/40", badge: "bg-yellow-900/50 text-yellow-400", iconColor: "text-yellow-400", label: t("vendor.mediumRisk") },
+    low:    { bg: "bg-blue-900/10",   border: "border-blue-800/40",   badge: "bg-blue-900/50 text-blue-400",     iconColor: "text-blue-400",   label: t("vendor.lowRisk")    },
   };
   const c = config[data.severity];
 
@@ -584,7 +604,10 @@ function RiskSection({
           <Icon className={`w-5 h-5 ${c.iconColor}`} />
           <h3 className="text-white font-semibold">{title}</h3>
         </div>
-        <span className={`text-xs font-bold uppercase px-2 py-0.5 rounded ${c.badge}`}>{data.severity} {t("vendor.riskBadge")}</span>
+        <div className="flex items-center gap-2">
+          <StarRating score={data.severity} />
+          <span className={`text-xs font-bold uppercase px-2 py-0.5 rounded ${c.badge}`}>{c.label}</span>
+        </div>
       </div>
 
       <p className="text-slate-300 text-sm leading-relaxed mb-3">{data.summary}</p>
