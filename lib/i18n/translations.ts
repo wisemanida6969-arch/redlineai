@@ -316,6 +316,7 @@ export const translations = {
     precedentsCount:      { en: "cases", ko: "건" },
     precedentsSearchedAs: { en: "Searched for", ko: "검색어" },
     precedentsKeyTitle:   { en: "Key precedents", ko: "주요 판례" },
+    precedentsFreeBadge:  { en: "Free", ko: "무료 제공" },
     precedentsLiveTitle:  { en: "Search court precedents (live)", ko: "법원 판례 실시간 검색" },
     precedentsSearchPlaceholder: { en: "Search by keyword (e.g. webtoon, copyright transfer)", ko: "키워드로 검색 (예: 웹툰, 저작권 양도, 전속계약)" },
     precedentsSearchBtn:  { en: "Search", ko: "검색" },

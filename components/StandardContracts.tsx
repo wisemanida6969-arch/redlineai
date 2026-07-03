@@ -412,7 +412,10 @@ function RelatedPrecedents({ field }: { field: string }) {
       {/* Curated key precedents */}
       {!curatedLoading && curated.length > 0 && (
         <div className="space-y-2 mb-5">
-          <p className="text-slate-300 text-xs font-semibold uppercase tracking-wide">{t("standard.precedentsKeyTitle")}</p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="text-slate-300 text-xs font-semibold uppercase tracking-wide">{t("standard.precedentsKeyTitle")}</p>
+            <span className="text-[10px] font-bold uppercase tracking-wide text-green-300 bg-green-900/20 border border-green-700/30 rounded px-1.5 py-0.5">{t("standard.precedentsFreeBadge")}</span>
+          </div>
           {curated.map((p) => (
             <div key={p.id} className="bg-[#162035] border border-[#1e3050] rounded-xl p-4">
               <div className="flex items-center gap-2 flex-wrap mb-1.5">
