@@ -484,7 +484,7 @@ export async function POST(req: NextRequest) {
 
     if (limit === 0) {
       return NextResponse.json({
-        error: "Quote to Contract is a Pro feature. Upgrade to Pro ($49/mo) or Business ($99/mo) to unlock.",
+        error: "Quote to Contract is currently locked on your plan.",
         limitReached: true,
       }, { status: 403 });
     }

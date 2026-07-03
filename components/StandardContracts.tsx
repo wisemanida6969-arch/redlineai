@@ -10,18 +10,17 @@ import {
   STANDARD_CONTRACTS, OFFICIAL_PORTALS, TOTAL_CONTRACT_COUNT, TOTAL_CATEGORY_COUNT,
   type Bi,
 } from "@/lib/standardContracts";
-import { type Plan } from "@/lib/planLimits";
+import PassPurchaseButtons from "@/components/PassPurchaseButtons";
+import { PADDLE_PRECEDENT_PASS_PRICE_ID } from "@/lib/paddle";
 
 interface Props {
   /** Jump to the Draft (작성) tab seeded with this standard form */
   onDraft?: (categoryId: string, typeId: string) => void;
   /** Jump to the Review (검토) tab seeded with this standard form */
   onReview?: (categoryId: string, typeId: string) => void;
-  /** Plan of the current user — gates the premium "판결요지" view */
-  plan?: Plan;
 }
 
-export default function StandardContracts({ onDraft, onReview, plan }: Props) {
+export default function StandardContracts({ onDraft, onReview }: Props) {
   const { t, lang } = useT();
   const L = (b: Bi) => (lang === "ko" ? b.ko : b.en);
 
@@ -125,7 +124,7 @@ export default function StandardContracts({ onDraft, onReview, plan }: Props) {
           </a>
         </div>
 
-        <RelatedPrecedents field={cat.id} plan={plan} />
+        <RelatedPrecedents field={cat.id} />
 
         <Disclaimer />
       </div>
@@ -259,22 +258,24 @@ interface LiveResult {
   source: "law" | "copyright";
 }
 
-function LiveCard({ p, locked }: { p: LiveResult; locked: boolean }) {
+function LiveCard({ p }: { p: LiveResult }) {
   const { t } = useT();
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState<{ issue: string; summary: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState(false);
+  const [locked, setLocked] = useState(false);
 
   const toggle = async () => {
     if (open) { setOpen(false); return; }
     setOpen(true);
-    if (locked) return;                 // free user → show upsell, don't fetch
     if (detail || loading) return;
-    setLoading(true); setErr(false);
+    setLoading(true); setErr(false); setLocked(false);
     try {
       const r = await fetch(`/api/precedents/detail?id=${encodeURIComponent(p.externalId)}`);
+      if (r.status === 403) { setLocked(true); return; }
       const d = await r.json();
+      if (d?.locked) { setLocked(true); return; }
       if (d && (d.issue || d.summary)) setDetail({ issue: d.issue || "", summary: d.summary || "" });
       else setErr(true);
     } catch { setErr(true); } finally { setLoading(false); }
@@ -298,7 +299,7 @@ function LiveCard({ p, locked }: { p: LiveResult; locked: boolean }) {
             <div>
               <p className="text-yellow-300 text-xs font-bold mb-1 flex items-center gap-1.5"><Lock className="w-3.5 h-3.5" /> {t("standard.precedentsLockedTitle")}</p>
               <p className="text-slate-400 text-xs leading-relaxed mb-2">{t("standard.precedentsLockedBody")}</p>
-              <a href="/#pricing" className="inline-block bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">{t("standard.precedentsUpgrade")}</a>
+              <PassPurchaseButtons feature="precedent" passPriceId={PADDLE_PRECEDENT_PASS_PRICE_ID} />
             </div>
           ) : loading ? (
             <div className="flex items-center gap-2 text-slate-500 text-xs"><Loader2 className="w-3.5 h-3.5 animate-spin" /> {t("standard.precedentsSearching")}</div>
@@ -316,9 +317,7 @@ function LiveCard({ p, locked }: { p: LiveResult; locked: boolean }) {
       <div className="flex items-center justify-between gap-2">
         {p.source === "law" ? (
           <button onClick={toggle} className="flex items-center gap-1 text-red-400 hover:text-red-300 text-xs font-medium">
-            {locked && !open && <Lock className="w-3 h-3" />}
             {open ? t("standard.precedentsHide") : t("standard.precedentsViewHolding")}
-            {locked && !open && <span className="text-[10px] text-yellow-300 font-bold">PRO</span>}
           </button>
         ) : <span />}
         <a href={p.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-red-400 hover:text-red-300 text-xs font-medium shrink-0">
@@ -333,9 +332,8 @@ const FIELD_KEYWORD: Record<string, string> = {
   webtoon: "웹툰", art: "미술", film: "영화", performing: "공연", craft: "공예",
 };
 
-function RelatedPrecedents({ field, plan }: { field: string; plan?: Plan }) {
+function RelatedPrecedents({ field }: { field: string }) {
   const { t } = useT();
-  const locked = !plan || plan === "free";
   const [curated, setCurated] = useState<Precedent[]>([]);
   const [curatedLoading, setCuratedLoading] = useState(true);
   const [searchInput, setSearchInput] = useState(FIELD_KEYWORD[field] ?? "");
@@ -458,6 +456,11 @@ function RelatedPrecedents({ field, plan }: { field: string; plan?: Plan }) {
           </button>
         </div>
 
+        <div className="mb-3 bg-[#162035] border border-[#1e3050] rounded-xl p-3 flex items-center justify-between gap-3 flex-wrap">
+          <p className="text-slate-400 text-xs flex items-center gap-1.5"><Lock className="w-3.5 h-3.5 text-yellow-400 shrink-0" /> {t("standard.precedentsLockedBody")}</p>
+          <PassPurchaseButtons feature="precedent" passPriceId={PADDLE_PRECEDENT_PASS_PRICE_ID} />
+        </div>
+
         {searchedAs && (
           <p className="text-slate-500 text-[11px] mb-2">{t("standard.precedentsSearchedAs")}: ‘{searchedAs}’</p>
         )}
@@ -471,7 +474,7 @@ function RelatedPrecedents({ field, plan }: { field: string; plan?: Plan }) {
         ) : (
           <div className="space-y-2">
             {liveDeduped.map((p) => (
-              <LiveCard key={p.externalId} p={p} locked={locked} />
+              <LiveCard key={p.externalId} p={p} />
             ))}
             {liveHasMore && (
               <button onClick={() => runSearch(activeQuery, livePage + 1, true)} disabled={liveLoading}

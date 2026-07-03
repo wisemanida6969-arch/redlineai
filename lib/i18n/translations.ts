@@ -30,6 +30,7 @@ export const translations = {
     free:           { en: "Free",            ko: "무료" },
     pro:            { en: "Pro",             ko: "프로" },
     business:       { en: "Business",        ko: "비즈니스" },
+    member:         { en: "Member",          ko: "멤버십" },
     plan:           { en: "Plan",            ko: "플랜" },
     poweredBy:      { en: "Powered by",      ko: "제공:" },
     operatedBy:     { en: "Operated by Pactbug.", ko: "운영: Pactbug" },
@@ -328,9 +329,8 @@ export const translations = {
     precedentsIssue:       { en: "Issue", ko: "판시사항" },
     precedentsHolding:     { en: "Holding", ko: "판결요지" },
     precedentsDetailNone:  { en: "Could not load the holding.", ko: "판결요지를 불러올 수 없습니다." },
-    precedentsLockedTitle: { en: "Holdings are a Pro feature", ko: "판결요지는 Pro 기능입니다" },
-    precedentsLockedBody:  { en: "Searching and browsing case lists is free. Upgrade to read the full issue & holding inline.", ko: "검색과 사건 목록 보기는 무료입니다. 판시사항·판결요지 전체를 앱에서 바로 보려면 업그레이드하세요." },
-    precedentsUpgrade:     { en: "Upgrade to Pro →", ko: "Pro로 업그레이드 →" },
+    precedentsLockedTitle: { en: "Holdings need a pass or membership", ko: "판결요지는 패스 또는 멤버십이 필요합니다" },
+    precedentsLockedBody:  { en: "Searching and browsing case lists is free. Buy a 24h pass or join membership to read the full issue & holding inline.", ko: "검색과 사건 목록 보기는 무료입니다. 판시사항·판결요지 전체를 앱에서 바로 보려면 24시간 패스 또는 멤버십이 필요해요." },
     precedentsDisclaimer: { en: "⚠️ Precedents are for reference — outcomes depend on the specific facts. Check the official source and consult a professional for your situation.", ko: "⚠️ 판례는 참고용이며 구체적 사실관계에 따라 결론이 달라질 수 있습니다. 본인 사안은 공식 출처 확인과 전문가 상담이 필요합니다." },
 
     /* Selected-standard banner (shown on Review / Draft tabs) */
@@ -348,7 +348,7 @@ export const translations = {
     onlyLeft:     { en: "Only {n} left — upgrade for more.", ko: "{n}회 남음 — 업그레이드로 더 사용하세요." },
     usedOf:       { en: "Used {used} of {limit} this {month}. Resets on {reset}.", ko: "{month}에 {limit}회 중 {used}회 사용. 갱신일: {reset}." },
     unlimitedUsage: { en: "Unlimited usage", ko: "무제한 사용" },
-    businessNoCap:  { en: "You're on the Business plan — no monthly cap.", ko: "Business 플랜 사용 중 — 월 한도 없음." },
+    businessNoCap:  { en: "Free during the beta period — no monthly cap.", ko: "베타 기간 무료 — 월 한도 없음." },
     lockedOnPlan: { en: "is locked on the {plan} plan", ko: "은(는) {plan} 플랜에서 잠겨 있습니다" },
     upgradeToUnlock: { en: "Upgrade to unlock this feature.", ko: "업그레이드하여 이 기능을 사용하세요." },
   },

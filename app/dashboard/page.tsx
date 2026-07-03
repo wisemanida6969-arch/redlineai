@@ -232,7 +232,6 @@ export default function Dashboard() {
         {/* ── Tab content ── */}
         {feature === "standard" && (
           <StandardContracts
-            plan={plan}
             onDraft={(categoryId, typeId) => { setSeededStandard({ categoryId, typeId }); setFeature("quote"); }}
             onReview={(categoryId, typeId) => { setSeededStandard({ categoryId, typeId }); setFeature("analysis"); }}
           />
