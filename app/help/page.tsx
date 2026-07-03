@@ -104,7 +104,7 @@ export default function HelpPage() {
               </>}
             </ul>
           </Step>
-          <Step n={3} title={ko ? "'계약서 분석하기' 클릭" : "Click 'Analyze Contract'"}>
+          <Step n={3} title={ko ? "'계약서 비교하기' 클릭" : "Click 'Compare Contract'"}>
             {ko ? "Claude AI가 모든 조항을 표준계약서와 비교해 차이 정도별로 분류합니다. 표준양식과 함께 열었다면, 표준 대비 빠지거나 약화된 보호 조항을 우선적으로 표시합니다:" : "Claude AI compares every clause against the standard contract and categorizes them by how much they differ. If a standard form is attached, it prioritizes clauses that are missing or weaker than the standard:"}
             <div className="grid grid-cols-3 gap-2 mt-2">
               <Badge color="red" label={ko ? "높음" : "HIGH"} desc={ko ? "표준과 큰 차이" : "Differs significantly"} />
