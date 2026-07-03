@@ -59,6 +59,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
+      <head>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-V4RD4V1GTP"></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-V4RD4V1GTP');`,
+          }}
+        />
+      </head>
       <body className="antialiased min-h-screen bg-[#0f1a2e] text-slate-200">
         <LanguageProvider>
           <DisclaimerBanner />
