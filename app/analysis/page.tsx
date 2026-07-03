@@ -242,6 +242,12 @@ export default function AnalysisPage() {
             <p className="text-slate-500 text-[11px] leading-relaxed mt-4">{t("standard.precedentsDisclaimer")}</p>
           </div>
         )}
+
+        <div className="mt-12 bg-[#162035] border border-[#1e3050] rounded-2xl p-5">
+          <p className="text-slate-500 text-xs leading-relaxed">
+            RedlineAI 안내: 본 서비스는 프리랜서 권익 보호를 위해 계약서 내 불공정 조항 위험을 탐지하는 표준 가이드 툴입니다. 변호사의 법률 자문이나 대리를 대체하지 않으며, 최종 계약 체결에 대한 법적 책임은 사용자 본인에게 있습니다.
+          </p>
+        </div>
       </div>
       <AppFooter />
     </div>
