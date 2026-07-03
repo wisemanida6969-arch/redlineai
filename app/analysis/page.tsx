@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
-import { AlertTriangle, AlertCircle, CheckCircle, Copy, Check, Download, ArrowLeft, Shield, FileText, Loader2, ChevronDown, MessageCircle } from "lucide-react";
+import { AlertTriangle, Info, CheckCircle, Copy, Check, Download, ArrowLeft, Shield, FileText, Loader2, ChevronDown, MessageCircle } from "lucide-react";
 import { downloadPDF, downloadDOCX, type AnalysisResult } from "@/lib/exportReport";
 import AppFooter from "@/components/AppFooter";
 import PrecedentSearch from "@/components/PrecedentSearch";
@@ -105,8 +105,8 @@ export default function AnalysisPage() {
             <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">{t("analysis.riskReport")}</h1>
             <p className="text-slate-400 text-sm">
               {lang === "ko"
-                ? `${totalIssues}개 이슈 발견 · ${new Date(result.scannedAt).toLocaleString()}`
-                : `${totalIssues} issue${totalIssues !== 1 ? "s" : ""} found · ${new Date(result.scannedAt).toLocaleString()}`}
+                ? `${totalIssues}개 항목 확인 · ${new Date(result.scannedAt).toLocaleString()}`
+                : `${totalIssues} difference${totalIssues !== 1 ? "s" : ""} found · ${new Date(result.scannedAt).toLocaleString()}`}
             </p>
           </div>
 
@@ -175,6 +175,12 @@ export default function AnalysisPage() {
             {exportError}
           </div>
         )}
+
+        {/* Standard-comparison notice */}
+        <div className="mb-6 flex items-center gap-2 text-slate-400 text-sm bg-[#162035] border border-[#1e3050] rounded-xl px-4 py-3">
+          <Info className="w-4 h-4 shrink-0 text-slate-500" />
+          {lang === "ko" ? "아래는 정부 표준계약서와의 비교 정보입니다." : "Below is a comparison against the government standard contract."}
+        </div>
 
         {/* Score cards */}
         <div className="grid grid-cols-3 gap-4 mb-8">
@@ -256,9 +262,9 @@ export default function AnalysisPage() {
 
 function ScoreCard({ count, level, t }: { count: number; level: "high" | "medium" | "low"; t: (k: string) => string }) {
   const config = {
-    high:   { label: t("analysis.highRisk"),   bg: "bg-red-900/20",    border: "border-red-800/50",    text: "text-red-400",    icon: AlertTriangle },
-    medium: { label: t("analysis.mediumRisk"), bg: "bg-yellow-900/20", border: "border-yellow-800/50", text: "text-yellow-400", icon: AlertCircle  },
-    low:    { label: t("analysis.lowRisk"),    bg: "bg-blue-900/20",   border: "border-blue-800/50",   text: "text-blue-400",   icon: CheckCircle  },
+    high:   { label: t("analysis.highRisk"),   bg: "bg-slate-700/20", border: "border-slate-600/50", text: "text-slate-300", icon: Info },
+    medium: { label: t("analysis.mediumRisk"), bg: "bg-slate-800/40", border: "border-slate-700/50", text: "text-slate-400", icon: Info },
+    low:    { label: t("analysis.lowRisk"),    bg: "bg-blue-900/20",  border: "border-blue-800/50",  text: "text-blue-400",  icon: CheckCircle },
   };
   const c = config[level];
   const Icon = c.icon;
@@ -282,9 +288,9 @@ function ClauseCard({ clause, copied, onCopy, copiedMsg, onCopyMessage, t }: {
 }) {
   const [expanded, setExpanded] = useState(true);
   const config = {
-    high:   { bg: "bg-red-900/10",    border: "border-red-800/40",    badge: "bg-red-900/50 text-red-400",       icon: AlertTriangle, iconColor: "text-red-400"    },
-    medium: { bg: "bg-yellow-900/10", border: "border-yellow-800/40", badge: "bg-yellow-900/50 text-yellow-400", icon: AlertCircle,   iconColor: "text-yellow-400" },
-    low:    { bg: "bg-blue-900/10",   border: "border-blue-800/40",   badge: "bg-blue-900/50 text-blue-400",     icon: CheckCircle,   iconColor: "text-blue-400"   },
+    high:   { bg: "bg-slate-700/10", border: "border-slate-600/40", badge: "bg-slate-700/50 text-slate-300", iconColor: "text-slate-300", icon: Info, label: t("analysis.highRisk")   },
+    medium: { bg: "bg-slate-800/20", border: "border-slate-700/40", badge: "bg-slate-800/60 text-slate-400", iconColor: "text-slate-400", icon: Info, label: t("analysis.mediumRisk") },
+    low:    { bg: "bg-blue-900/10",  border: "border-blue-800/40",  badge: "bg-blue-900/50 text-blue-400",   iconColor: "text-blue-400",  icon: CheckCircle, label: t("analysis.lowRisk") },
   };
   const c = config[clause.severity];
   const Icon = c.icon;
@@ -295,7 +301,7 @@ function ClauseCard({ clause, copied, onCopy, copiedMsg, onCopyMessage, t }: {
         <Icon className={`w-4 h-4 ${c.iconColor} shrink-0`} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className={`text-xs font-bold uppercase px-2 py-0.5 rounded ${c.badge}`}>{clause.severity}</span>
+            <span className={`text-xs font-bold uppercase px-2 py-0.5 rounded ${c.badge}`}>{c.label}</span>
             <span className="text-white font-medium text-sm">{clause.title}</span>
           </div>
         </div>

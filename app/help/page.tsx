@@ -7,7 +7,7 @@ import { useT } from "@/lib/i18n/LanguageProvider";
 import {
   FileText, Receipt, Building2, ChevronDown, ChevronRight,
   Mail, Sparkles, Eye, Download, Library, Bot, Scale,
-  Search, BookOpen, Edit3, Upload, MessageSquare, AlertTriangle,
+  Search, BookOpen, Edit3, Upload, MessageSquare, Info,
 } from "lucide-react";
 
 type FeatureKey = "standard" | "analysis" | "quote" | "vendor" | "agent";
@@ -19,7 +19,7 @@ export default function HelpPage() {
 
   const features: { id: FeatureKey; label: string; icon: typeof FileText; tagline: string }[] = [
     { id: "standard", label: ko ? "표준계약서" : "Standard Contracts", icon: Library, tagline: ko ? "문체부 표준양식 둘러보기" : "Browse official MCST forms" },
-    { id: "analysis", label: ko ? "계약서 검토" : "Contract Review",   icon: FileText, tagline: ko ? "표준 대비 위험 조항 찾기" : "Spot risky clauses vs. the standard" },
+    { id: "analysis", label: ko ? "계약서 검토" : "Contract Review",   icon: FileText, tagline: ko ? "표준 대비 다른 조항 확인" : "See clauses that differ vs. the standard" },
     { id: "quote",    label: ko ? "초안 정리 툴" : "Draft Organizer",  icon: Receipt,  tagline: ko ? "표준양식 기반 자동화 초안 정리" : "Automated draft organizing on a standard form" },
     { id: "vendor",   label: ko ? "공급업체 리스크 스캔" : "Vendor Risk Scan", icon: Building2, tagline: ko ? "회사 실사 자동화" : "Due-diligence on any company" },
     { id: "agent",    label: ko ? "AI 에이전트" : "AI Agent",          icon: Bot,      tagline: ko ? "법률 질문·협상 이메일 챗봇" : "Legal Q&A & negotiation chat" },
@@ -86,7 +86,7 @@ export default function HelpPage() {
           onToggle={() => setOpen(open === "analysis" ? null : "analysis")}
           icon={FileText}
           title={ko ? "계약서 검토" : "Contract Review"}
-          tagline={ko ? "계약서 업로드 → AI가 표준 대비 위험 조항 분석 → PDF 리포트" : "Upload a contract → AI flags risk vs. the standard → Export PDF report"}
+          tagline={ko ? "계약서 업로드 → AI가 표준 대비 다른 조항 표시 → PDF 리포트" : "Upload a contract → AI shows how it differs vs. the standard → Export PDF report"}
         >
           <Step n={1} title={ko ? "계약서 검토 탭 열기" : "Open the Contract Review tab"}>
             {ko ? <>대시보드에서 <strong className="text-white">계약서 검토</strong> 탭을 클릭하세요. 표준계약서 라이브러리에서 넘어왔다면 상단에 노란 배너로 어떤 표준과 비교 중인지 표시됩니다.</> : <>Click the <strong className="text-white">Contract Review</strong> tab. If you arrived from the Standard Contracts library, a yellow banner at the top shows which standard you&apos;re comparing against.</>}
@@ -105,38 +105,38 @@ export default function HelpPage() {
             </ul>
           </Step>
           <Step n={3} title={ko ? "'계약서 분석하기' 클릭" : "Click 'Analyze Contract'"}>
-            {ko ? "Claude AI가 모든 조항을 분석하고 심각도별로 분류합니다. 표준양식과 함께 열었다면, 표준 대비 누락되거나 약화된 보호 조항을 우선적으로 지적합니다:" : "Claude AI analyzes every clause and categorizes issues by severity. If a standard form is attached, it prioritizes clauses that are missing or weaker than the standard:"}
+            {ko ? "Claude AI가 모든 조항을 표준계약서와 비교해 차이 정도별로 분류합니다. 표준양식과 함께 열었다면, 표준 대비 빠지거나 약화된 보호 조항을 우선적으로 표시합니다:" : "Claude AI compares every clause against the standard contract and categorizes them by how much they differ. If a standard form is attached, it prioritizes clauses that are missing or weaker than the standard:"}
             <div className="grid grid-cols-3 gap-2 mt-2">
-              <Badge color="red" label={ko ? "높음" : "HIGH"} desc={ko ? "위험·불공정 조항" : "Dangerous, one-sided"} />
-              <Badge color="yellow" label={ko ? "중간" : "MEDIUM"} desc={ko ? "모호한 표현" : "Vague, unclear"} />
-              <Badge color="blue" label={ko ? "낮음" : "LOW"} desc={ko ? "사소한 개선 사항" : "Minor improvements"} />
+              <Badge color="red" label={ko ? "높음" : "HIGH"} desc={ko ? "표준과 큰 차이" : "Differs significantly"} />
+              <Badge color="yellow" label={ko ? "중간" : "MEDIUM"} desc={ko ? "표준과 다소 차이" : "Differs somewhat"} />
+              <Badge color="blue" label={ko ? "낮음" : "LOW"} desc={ko ? "표준과 경미한 차이" : "Differs slightly"} />
             </div>
           </Step>
-          <Step n={4} title={ko ? "한국형 갑질 독소조항 3대장 자동 탐지" : "Auto-detects the 3 most common Korean freelance red flags"} icon={AlertTriangle}>
-            {ko ? "계약서 종류와 무관하게 아래 세 가지를 항상 우선적으로 확인해 HIGH로 표시합니다:" : "Regardless of contract type, these three are always checked first and flagged HIGH when found:"}
+          <Step n={4} title={ko ? "한국 프리랜서 계약서에서 자주 발견되는 3가지 조항 자동 확인" : "Auto-checks the 3 clause patterns most common in Korean freelance contracts"} icon={Info}>
+            {ko ? "계약서 종류와 무관하게 아래 세 가지를 항상 우선적으로 확인해 표시합니다:" : "Regardless of contract type, these three are always checked first and flagged when found:"}
             <ul className="list-disc list-inside space-y-1 text-slate-400 text-sm mt-1">
               {ko ? <>
-                <li>♾️ <strong className="text-slate-300">무한 수정 조항</strong> — &quot;갑이 만족할 때까지 수정&quot; → 수정 횟수 제한 + 초과 시 요율 적용 제안</li>
-                <li>©️ <strong className="text-slate-300">저작권 통째로 먹기 조항</strong> — &quot;모든 권리는 갑에게 귀속&quot; → 대금 완납 전까지 저작권은 을에게 귀속 제안</li>
-                <li>💣 <strong className="text-slate-300">지체상금 폭탄 조항</strong> — 상한 없는 과도한 일일 위약벌 → 상한선 설정 + 갑의 귀책 지연 제외 제안</li>
+                <li>♾️ <strong className="text-slate-300">수정 횟수 제한 없는 조항</strong> — &quot;갑이 만족할 때까지 수정&quot; → 표준계약서 기준 수정 횟수 제한 + 초과 시 요율 적용 제안</li>
+                <li>©️ <strong className="text-slate-300">저작권 전부 귀속 조항</strong> — &quot;모든 권리는 갑에게 귀속&quot; → 표준계약서 기준 대금 완납 전까지 저작권은 을에게 귀속 제안</li>
+                <li>💣 <strong className="text-slate-300">지체상금 상한 없는 조항</strong> — 상한 없는 높은 일일 위약벌 → 표준계약서 기준 상한선 설정 + 갑의 귀책 지연 제외 제안</li>
               </> : <>
-                <li>♾️ <strong className="text-slate-300">Unlimited revisions</strong> — &quot;revise until the client is satisfied&quot; → caps revisions + bills extra rounds</li>
-                <li>©️ <strong className="text-slate-300">Full copyright grab</strong> — &quot;all rights belong to the client&quot; → suggests copyright stays with the freelancer until paid in full</li>
-                <li>💣 <strong className="text-slate-300">Excessive late-delivery penalty</strong> — uncapped daily penalty → suggests a rate cap + excludes client-caused delays</li>
+                <li>♾️ <strong className="text-slate-300">Unlimited-revision clause</strong> — &quot;revise until the client is satisfied&quot; → suggests a standard-based revision cap + billing for extra rounds</li>
+                <li>©️ <strong className="text-slate-300">Full copyright-transfer clause</strong> — &quot;all rights belong to the client&quot; → suggests standard-based wording where copyright stays with the freelancer until paid in full</li>
+                <li>💣 <strong className="text-slate-300">Uncapped late-delivery penalty clause</strong> — uncapped daily penalty → suggests a standard-based rate cap + excludes client-caused delays</li>
               </>}
             </ul>
           </Step>
           <Step n={5} title={ko ? "리포트 검토" : "Review the report"}>
-            {ko ? "각 지적된 조항에는 다음이 포함됩니다:" : "Each flagged clause includes:"}
+            {ko ? "각 표시된 조항에는 다음이 포함됩니다:" : "Each flagged clause includes:"}
             <ul className="list-disc list-inside space-y-1 text-slate-400 text-sm mt-1">
               {ko ? <>
                 <li><strong className="text-slate-300">원문 인용</strong> — 계약서 원문 그대로</li>
-                <li><strong className="text-slate-300">왜 위험한가</strong> — 쉬운 말로 설명</li>
-                <li><strong className="text-slate-300">수정 제안</strong> — 바로 복사해서 사용</li>
+                <li><strong className="text-slate-300">표준과 다른 점</strong> — 쉬운 말로 설명</li>
+                <li><strong className="text-slate-300">표준계약서 기준 제안 문구</strong> — 바로 복사해서 사용</li>
               </> : <>
                 <li><strong className="text-slate-300">Original quote</strong> from the contract</li>
-                <li><strong className="text-slate-300">Why it&apos;s risky</strong> in plain language</li>
-                <li><strong className="text-slate-300">Suggested fix</strong> — copy-paste ready</li>
+                <li><strong className="text-slate-300">How it differs from the standard</strong> in plain language</li>
+                <li><strong className="text-slate-300">Standard-based suggested wording</strong> — copy-paste ready</li>
               </>}
             </ul>
           </Step>

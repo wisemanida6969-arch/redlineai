@@ -23,7 +23,7 @@ interface AnalysisResult {
 
 const SEV_COLOR  = { high: "C53030", medium: "B7791F", low: "1D4ED8" };
 const SEV_BG     = { high: "FEE2E2", medium: "FEF9C3", low: "DBEAFE" };
-const SEV_LABEL  = { high: "HIGH RISK", medium: "MEDIUM RISK", low: "LOW RISK" };
+const SEV_LABEL  = { high: "DIFFERS SIGNIFICANTLY", medium: "DIFFERS SOMEWHAT", low: "DIFFERS SLIGHTLY" };
 const FIX_BG     = "DCFCE7";
 const FIX_COLOR  = "166534";
 const FIX_TEXT   = "14532D";
@@ -59,7 +59,7 @@ function clauseSection(
 
     out.push(new P({
       children: [
-        new TR({ text: "Problem:  ", bold: true, color: SEV_COLOR[sev], size: 19 }),
+        new TR({ text: "Difference:  ", bold: true, color: SEV_COLOR[sev], size: 19 }),
         new TR({ text: c.problem, size: 19, color: "334155" }),
       ],
       spacing: { after: 60 },
@@ -70,7 +70,7 @@ function clauseSection(
       rows: [new TRow({
         children: [new TCell({
           children: [
-            new P({ children: [new TR({ text: "Suggested Fix", bold: true, color: FIX_COLOR, size: 19 })] }),
+            new P({ children: [new TR({ text: "Standard-based Suggested Wording", bold: true, color: FIX_COLOR, size: 19 })] }),
             new P({ children: [new TR({ text: c.fix, size: 18, color: FIX_TEXT })], spacing: { before: 40 } }),
           ],
           shading: { type: ShadingType.SOLID, fill: FIX_BG },
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
           new Paragraph({
             children: [
               new TextRun({ text: "RedlineAI ", bold: true, size: 44, color: "E53E3E" }),
-              new TextRun({ text: "Contract Risk Report", bold: true, size: 44, color: "0F172A" }),
+              new TextRun({ text: "Standard Comparison Report", bold: true, size: 44, color: "0F172A" }),
             ],
             spacing: { after: 60 },
           }),
@@ -118,9 +118,9 @@ export async function POST(req: NextRequest) {
             rows: [new TableRow({
               children: (
                 [
-                  { text: `${result.high.length}  High Risk Issues`,    bg: SEV_BG.high,   color: SEV_COLOR.high   },
-                  { text: `${result.medium.length}  Medium Risk Issues`, bg: SEV_BG.medium, color: SEV_COLOR.medium },
-                  { text: `${result.low.length}  Low Risk Issues`,      bg: SEV_BG.low,    color: SEV_COLOR.low    },
+                  { text: `${result.high.length}  Differ Significantly`, bg: SEV_BG.high,   color: SEV_COLOR.high   },
+                  { text: `${result.medium.length}  Differ Somewhat`,     bg: SEV_BG.medium, color: SEV_COLOR.medium },
+                  { text: `${result.low.length}  Differ Slightly`,        bg: SEV_BG.low,    color: SEV_COLOR.low    },
                 ] as { text: string; bg: string; color: string }[]
               ).map(({ text, bg, color }) =>
                 new TableCell({

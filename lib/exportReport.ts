@@ -25,9 +25,9 @@ export interface AnalysisResult {
 }
 
 const SEVERITY_LABEL: Record<string, string> = {
-  high: "HIGH RISK",
-  medium: "MEDIUM RISK",
-  low: "LOW RISK",
+  high: "DIFFERS SIGNIFICANTLY",
+  medium: "DIFFERS SOMEWHAT",
+  low: "DIFFERS SLIGHTLY",
 };
 
 /* ================================================================== */
@@ -76,7 +76,7 @@ export async function downloadPDF(result: AnalysisResult, filename = "redlineai-
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(180, 195, 215);
-  doc.text("Contract Risk Report", MARGIN + 42, 15.5);
+  doc.text("Standard Comparison Report", MARGIN + 42, 15.5);
 
   const dateStr = new Date(result.scannedAt).toLocaleString("en-US", {
     dateStyle: "medium", timeStyle: "short",
@@ -88,9 +88,9 @@ export async function downloadPDF(result: AnalysisResult, filename = "redlineai-
   /* ── SCORE CARDS ── */
   const cardW = (CONTENT_W - 8) / 3;
   const cards = [
-    { label: "High Risk",   count: result.high.length,   bg: [254,202,202] as [number,number,number], text: [153,27,27]  as [number,number,number] },
-    { label: "Medium Risk", count: result.medium.length, bg: yelBg,                                   text: [146,64,14]  as [number,number,number] },
-    { label: "Low Risk",    count: result.low.length,    bg: bluBg,                                   text: [30,64,175]  as [number,number,number] },
+    { label: "Differs Significantly", count: result.high.length,   bg: [254,202,202] as [number,number,number], text: [153,27,27]  as [number,number,number] },
+    { label: "Differs Somewhat",      count: result.medium.length, bg: yelBg,                                   text: [146,64,14]  as [number,number,number] },
+    { label: "Differs Slightly",      count: result.low.length,    bg: bluBg,                                   text: [30,64,175]  as [number,number,number] },
   ];
   cards.forEach((c, i) => {
     const x = MARGIN + i * (cardW + 4);
@@ -208,7 +208,7 @@ export async function downloadPDF(result: AnalysisResult, filename = "redlineai-
       doc.setTextColor(...sevText[sev]);
       doc.setFontSize(7.5);
       doc.setFont("helvetica", "bold");
-      doc.text("Why it's risky", MARGIN + 7, cy + 4.5);
+      doc.text("How it differs from the standard", MARGIN + 7, cy + 4.5);
       doc.setTextColor(51, 65, 85);
       doc.setFont("helvetica", "normal");
       probLines.forEach((line, i) => doc.text(line, MARGIN + 7, cy + 9 + i * 4.8));
@@ -223,7 +223,7 @@ export async function downloadPDF(result: AnalysisResult, filename = "redlineai-
       doc.setTextColor(...green);
       doc.setFontSize(7.5);
       doc.setFont("helvetica", "bold");
-      doc.text("Suggested fix", MARGIN + 7, cy + 4.5);
+      doc.text("Standard-based suggested wording", MARGIN + 7, cy + 4.5);
       doc.setTextColor(20, 83, 45);
       doc.setFont("helvetica", "normal");
       fixLines.forEach((line, i) => doc.text(line, MARGIN + 7, cy + 9 + i * 4.8));
