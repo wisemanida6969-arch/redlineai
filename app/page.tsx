@@ -57,7 +57,7 @@ export default function Home() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10">
             <h2 className="text-3xl font-bold text-white mb-3">{t("landing.catTitle")}</h2>
-            <p className="text-slate-400 max-w-2xl mx-auto">{t("landing.catSub")}</p>
+            <p className="text-slate-400 max-w-2xl mx-auto break-keep">{t("landing.catSub")}</p>
             <p className="text-slate-600 text-sm mt-3">
               {TOTAL_CATEGORY_COUNT}{t("standard.fieldsLabel")} · {TOTAL_CONTRACT_COUNT}{t("standard.formsLabel")}
             </p>
