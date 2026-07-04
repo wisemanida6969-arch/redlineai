@@ -569,9 +569,9 @@ export const translations = {
     mediumRisk:     { en: "Differs somewhat", ko: "표준과 다소 차이" },
     lowRisk:        { en: "Differs slightly", ko: "표준과 경미한 차이" },
     tabAll:         { en: "all", ko: "전체" },
-    tabHigh:        { en: "high", ko: "높음" },
-    tabMedium:      { en: "medium", ko: "중간" },
-    tabLow:         { en: "low", ko: "낮음" },
+    tabHigh:        { en: "big diff", ko: "큰 차이" },
+    tabMedium:      { en: "some diff", ko: "다소 차이" },
+    tabLow:         { en: "minor diff", ko: "경미한 차이" },
 
     /* Send-to-client message */
     copyKakaoMsg:   { en: "Copy message to send", ko: "카톡 문구 복사하기" },
