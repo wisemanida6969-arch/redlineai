@@ -6,6 +6,7 @@ import { getCategory, getContractType } from "@/lib/standardContracts";
 import { extractTextFromHwpx, looksLikeZip } from "@/lib/hwpxExtract";
 import { extractTextFromHwpBinary } from "@/lib/hwpBinaryExtract";
 import { CLAUDE_MODEL, extractText } from "@/lib/anthropic";
+import { findStandardArticleText } from "@/lib/standardArticles";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -14,6 +15,8 @@ interface StandardCtx {
   categoryKo: string; categoryEn: string;
   typeKo: string;     typeEn: string;
   partiesKo: string;  partiesEn: string;
+  /** Matches lib/standardContracts.ts ids — used to look up real standard_articles rows. */
+  typeId: string;
 }
 
 /** Extra system-prompt guidance that turns analysis into a standard-comparison review. */
@@ -142,7 +145,12 @@ async function extractTextFromDocx(buffer: Buffer): Promise<string> {
   return result.value?.trim() || "";
 }
 
-async function analyzeContract(contractText: string, lang: "en" | "ko" = "en", standard?: StandardCtx): Promise<object> {
+async function analyzeContract(
+  contractText: string,
+  lang: "en" | "ko" = "en",
+  standard: StandardCtx | undefined,
+  service: ReturnType<typeof createServiceClient>,
+): Promise<object> {
   const truncated = contractText.slice(0, 15000);
   const baseSys = lang === "ko" ? SYSTEM_PROMPT_KO : SYSTEM_PROMPT_EN;
   const sys = standard ? baseSys + standardNote(lang, standard) : baseSys;
@@ -162,7 +170,23 @@ async function analyzeContract(contractText: string, lang: "en" | "ko" = "en", s
   const rawText = extractText(message);
   const jsonMatch = rawText.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error("Invalid AI response format");
-  return JSON.parse(jsonMatch[0]);
+  const data = JSON.parse(jsonMatch[0]) as {
+    high: { title: string; problem: string; fix: string }[];
+    medium: { title: string; problem: string; fix: string }[];
+    low: { title: string; problem: string; fix: string }[];
+    [key: string]: unknown;
+  };
+
+  // Fill "fix" with a real verbatim standard-contract quote where one exists —
+  // the AI itself always leaves this empty (see system prompt); we never invent it.
+  if (standard) {
+    for (const clause of [...data.high, ...data.medium, ...data.low]) {
+      const match = await findStandardArticleText(service, standard.typeId, clause.title, clause.problem);
+      if (match) clause.fix = match;
+    }
+  }
+
+  return data;
 }
 
 export async function POST(req: NextRequest) {
@@ -213,6 +237,7 @@ export async function POST(req: NextRequest) {
           categoryKo: cat.title.ko, categoryEn: cat.title.en,
           typeKo: type.title.ko,    typeEn: type.title.en,
           partiesKo: type.parties.ko, partiesEn: type.parties.en,
+          typeId: type.id,
         };
       }
     }
@@ -272,7 +297,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ── AI Analysis ──
-    const analysisData = await analyzeContract(contractText, lang, standard) as {
+    const analysisData = await analyzeContract(contractText, lang, standard, serviceClient) as {
       summary: string;
       high: unknown[];
       medium: unknown[];
