@@ -9,11 +9,15 @@ import PrecedentSearch from "@/components/PrecedentSearch";
 import { Scale } from "lucide-react";
 import { useT } from "@/lib/i18n/LanguageProvider";
 
-function buildClientMessage(clause: { title: string; fix: string }, lang: "en" | "ko"): string {
+function buildClientMessage(clause: { title: string; fix: string; fixSource?: string }, lang: "en" | "ko"): string {
+  const quoteLabel = clause.fixSource ? `${clause.fixSource}` : (lang === "ko" ? "표준계약서 원문" : "Standard contract text");
+  const sourceLine = clause.fixSource
+    ? (lang === "ko" ? `\n\n출처: 문화체육관광부 ${clause.fixSource}` : `\n\nSource: Korea MCST — ${clause.fixSource}`)
+    : "";
   if (lang === "ko") {
-    return `안녕하세요! 계약서를 살펴보다가 문체부 표준계약서와 다른 부분이 있어 공유드려요 😊\n\n"${clause.title}" 조항이 표준계약서 원문과 다음과 같이 다릅니다:\n\n표준계약서 원문: "${clause.fix}"\n\n참고차 말씀드려요. 확인 부탁드립니다 🙏`;
+    return `안녕하세요! 계약서를 살펴보다가 문체부 표준계약서와 다른 부분이 있어 공유드려요 😊\n\n"${clause.title}" 조항이 표준계약서 원문과 다음과 같이 다릅니다:\n\n${quoteLabel}: "${clause.fix}"${sourceLine}\n\n참고차 말씀드려요. 확인 부탁드립니다 🙏`;
   }
-  return `Hi! While going through the contract I noticed this clause differs from the government standard form, wanted to share for reference 😊\n\nThe "${clause.title}" clause differs from the standard as follows:\n\nStandard contract text: "${clause.fix}"\n\nJust sharing for reference. Let me know what you think 🙏`;
+  return `Hi! While going through the contract I noticed this clause differs from the government standard form, wanted to share for reference 😊\n\nThe "${clause.title}" clause differs from the standard as follows:\n\n${quoteLabel}: "${clause.fix}"${sourceLine}\n\nJust sharing for reference. Let me know what you think 🙏`;
 }
 
 export default function AnalysisPage() {
@@ -51,7 +55,7 @@ export default function AnalysisPage() {
     setTimeout(() => setCopied(null), 2000);
   };
 
-  const copyClientMessage = (id: string, clause: { title: string; fix: string }) => {
+  const copyClientMessage = (id: string, clause: { title: string; fix: string; fixSource?: string }) => {
     navigator.clipboard.writeText(buildClientMessage(clause, lang));
     setCopiedMsg(id);
     setTimeout(() => setCopiedMsg(null), 2000);
@@ -279,7 +283,7 @@ function ScoreCard({ count, level, t }: { count: number; level: "high" | "medium
 }
 
 function ClauseCard({ clause, copied, onCopy, copiedMsg, onCopyMessage, t }: {
-  clause: { id: string; severity: "high"|"medium"|"low"; title: string; original: string; problem: string; fix: string };
+  clause: { id: string; severity: "high"|"medium"|"low"; title: string; original: string; problem: string; fix: string; fixSource?: string };
   copied: boolean;
   onCopy: () => void;
   copiedMsg: boolean;
@@ -334,7 +338,15 @@ function ClauseCard({ clause, copied, onCopy, copiedMsg, onCopyMessage, t }: {
                     <span className="hidden sm:inline">{copied ? t("analysis.copied") : t("analysis.copy")}</span>
                   </button>
                 </div>
-                <p className="text-green-300 text-sm">{clause.fix}</p>
+                <p className="text-green-300 text-sm">
+                  {clause.fixSource && <span className="font-semibold">{clause.fixSource}: </span>}
+                  {clause.fix}
+                </p>
+                {clause.fixSource && (
+                  <p className="text-green-500/70 text-xs italic mt-2">
+                    {t("analysis.standardSourcePrefix")} {clause.fixSource}
+                  </p>
+                )}
               </div>
               <button
                 onClick={onCopyMessage}

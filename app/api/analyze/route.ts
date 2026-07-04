@@ -171,18 +171,25 @@ async function analyzeContract(
   const jsonMatch = rawText.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error("Invalid AI response format");
   const data = JSON.parse(jsonMatch[0]) as {
-    high: { title: string; problem: string; fix: string }[];
-    medium: { title: string; problem: string; fix: string }[];
-    low: { title: string; problem: string; fix: string }[];
+    high: { title: string; problem: string; fix: string; fixSource?: string }[];
+    medium: { title: string; problem: string; fix: string; fixSource?: string }[];
+    low: { title: string; problem: string; fix: string; fixSource?: string }[];
     [key: string]: unknown;
   };
 
   // Fill "fix" with a real verbatim standard-contract quote where one exists —
   // the AI itself always leaves this empty (see system prompt); we never invent it.
+  // "fixSource" is app-added citation metadata around the quote, never part of the quote itself.
   if (standard) {
+    const typeName = lang === "ko" ? standard.typeKo : standard.typeEn;
     for (const clause of [...data.high, ...data.medium, ...data.low]) {
       const match = await findStandardArticleText(service, standard.typeId, clause.title, clause.problem);
-      if (match) clause.fix = match;
+      if (match) {
+        clause.fix = match.text;
+        clause.fixSource = lang === "ko"
+          ? `${typeName} 표준계약서 제${match.articleNo}조`
+          : `${typeName} Standard Contract, Article ${match.articleNo}`;
+      }
     }
   }
 

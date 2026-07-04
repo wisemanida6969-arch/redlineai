@@ -9,6 +9,8 @@ export interface RiskClause {
   original: string;
   problem: string;
   fix: string;
+  /** Citation for the verbatim standard-contract quote in "fix", e.g. "OO Standard Contract, Article 4". */
+  fixSource?: string;
 }
 
 export interface AnalysisResult {
@@ -155,12 +157,14 @@ export async function downloadPDF(result: AnalysisResult, filename = "redlineai-
     const origLines   = clause.original ? wrapText(`"${clause.original}"`, CONTENT_W - 12, 8.5) : [];
     const probLines   = wrapText(clause.problem,  CONTENT_W - 12, 8.5);
     const hasFix      = Boolean(clause.fix && clause.fix.trim());
-    const fixLines    = hasFix ? wrapText(clause.fix, CONTENT_W - 12, 8.5) : [];
+    const fixDisplay  = hasFix && clause.fixSource ? `${clause.fixSource}: ${clause.fix}` : clause.fix;
+    const fixLines    = hasFix ? wrapText(fixDisplay, CONTENT_W - 12, 8.5) : [];
+    const sourceLines = hasFix && clause.fixSource ? wrapText(`Source: MCST — ${clause.fixSource}`, CONTENT_W - 12, 7) : [];
     const cardH = 10
       + titleLines.length * 5
       + (origLines.length  > 0 ? origLines.length  * 4.8 + 10 : 0)
       + probLines.length * 4.8 + 10
-      + (hasFix ? fixLines.length * 4.8 + 10 : 0)
+      + (hasFix ? fixLines.length * 4.8 + 10 + sourceLines.length * 4 : 0)
       + 4;
 
     checkPage(cardH + 4);
@@ -216,10 +220,10 @@ export async function downloadPDF(result: AnalysisResult, filename = "redlineai-
       cy += ph + 4;
     }
 
-    // fix (only shown when a real verbatim standard quote is present)
+    // fix (only shown when a real verbatim standard quote is present — text is never rewritten)
     if (hasFix) {
       doc.setFillColor(220, 252, 231);
-      const fh = fixLines.length * 4.8 + 6;
+      const fh = fixLines.length * 4.8 + 6 + sourceLines.length * 4;
       doc.roundedRect(MARGIN + 4, cy, CONTENT_W - 8, fh, 2, 2, "F");
       doc.setTextColor(...green);
       doc.setFontSize(7.5);
@@ -227,7 +231,15 @@ export async function downloadPDF(result: AnalysisResult, filename = "redlineai-
       doc.text("Official Standard Text", MARGIN + 7, cy + 4.5);
       doc.setTextColor(20, 83, 45);
       doc.setFont("helvetica", "normal");
+      // fixDisplay only adds the citation prefix; clause.fix itself is never altered
       fixLines.forEach((line, i) => doc.text(line, MARGIN + 7, cy + 9 + i * 4.8));
+      if (sourceLines.length > 0) {
+        const sy = cy + 9 + fixLines.length * 4.8 + 3;
+        doc.setFontSize(6.5);
+        doc.setFont("helvetica", "italic");
+        doc.setTextColor(...slate);
+        sourceLines.forEach((line, i) => doc.text(line, MARGIN + 7, sy + i * 4));
+      }
     }
 
     y += cardH + 5;

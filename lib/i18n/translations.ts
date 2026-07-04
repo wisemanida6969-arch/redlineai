@@ -562,6 +562,7 @@ export const translations = {
     originalClause: { en: "Original clause", ko: "원문 조항" },
     whyRisky:       { en: "How it differs from the standard", ko: "표준과 다른 점" },
     suggestedFix:   { en: "Official Standard Text", ko: "표준계약서 원문" },
+    standardSourcePrefix: { en: "Source: Korea MCST —", ko: "출처: 문화체육관광부" },
     copied:         { en: "Copied!", ko: "복사됨!" },
     copy:           { en: "Copy", ko: "복사" },
     downloadFailed: { en: "Download failed", ko: "다운로드 실패" },

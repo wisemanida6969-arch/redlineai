@@ -32,6 +32,12 @@ function inferTopics(clauseTitle: string, clauseProblem: string): string[] {
   return tags;
 }
 
+export interface StandardArticleMatch {
+  /** Verbatim article text from the standard_articles table — never altered. */
+  text: string;
+  articleNo: number;
+}
+
 /**
  * Looks up a verbatim standard-contract article matching the topic of a flagged
  * clause, for the specific standard type the user is comparing against. Returns
@@ -43,18 +49,19 @@ export async function findStandardArticleText(
   typeId: string,
   clauseTitle: string,
   clauseProblem: string,
-): Promise<string | null> {
+): Promise<StandardArticleMatch | null> {
   const tags = inferTopics(clauseTitle, clauseProblem);
   if (tags.length === 0) return null;
 
   const { data } = await service
     .from("standard_articles")
-    .select("article_text")
+    .select("article_text, article_no")
     .eq("type_id", typeId)
     .overlaps("topic_tags", tags)
     .order("article_no", { ascending: true })
     .limit(1)
     .maybeSingle();
 
-  return data?.article_text ?? null;
+  if (!data) return null;
+  return { text: data.article_text, articleNo: data.article_no };
 }

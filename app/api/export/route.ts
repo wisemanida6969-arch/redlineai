@@ -11,6 +11,7 @@ interface RiskClause {
   original: string;
   problem: string;
   fix: string;
+  fixSource?: string;
 }
 
 interface AnalysisResult {
@@ -66,15 +67,31 @@ function clauseSection(
     }));
 
     // Official standard text — only shown when a real verbatim quote is present.
+    // c.fix itself is never altered; fixSource is app-added citation metadata shown alongside it.
     if (c.fix?.trim()) {
+      const fixParagraphs = [
+        new P({ children: [new TR({ text: "Official Standard Text", bold: true, color: FIX_COLOR, size: 19 })] }),
+        new P({
+          children: c.fixSource
+            ? [
+                new TR({ text: `${c.fixSource}: `, bold: true, size: 18, color: FIX_TEXT }),
+                new TR({ text: c.fix, size: 18, color: FIX_TEXT }),
+              ]
+            : [new TR({ text: c.fix, size: 18, color: FIX_TEXT })],
+          spacing: { before: 40 },
+        }),
+      ];
+      if (c.fixSource) {
+        fixParagraphs.push(new P({
+          children: [new TR({ text: `Source: MCST — ${c.fixSource}`, italics: true, size: 15, color: "64748B" })],
+          spacing: { before: 60 },
+        }));
+      }
       out.push(new T({
         width: { size: 100, type: WidthType.PERCENTAGE },
         rows: [new TRow({
           children: [new TCell({
-            children: [
-              new P({ children: [new TR({ text: "Official Standard Text", bold: true, color: FIX_COLOR, size: 19 })] }),
-              new P({ children: [new TR({ text: c.fix, size: 18, color: FIX_TEXT })], spacing: { before: 40 } }),
-            ],
+            children: fixParagraphs,
             shading: { type: ShadingType.SOLID, fill: FIX_BG },
             margins: { top: 100, bottom: 100, left: 150, right: 150 },
           })],
