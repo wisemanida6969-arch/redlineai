@@ -52,7 +52,7 @@ export const translations = {
   /* ── Landing Page ── */
   landing: {
     tag:           { en: "Based on Korean Government Standard Contracts", ko: "문화체육관광부 표준계약서 기반" },
-    headline1:     { en: "Standard contracts for", ko: "프리랜서를 위한 계약서," },
+    headline1:     { en: "Standard contracts for", ko: "프리랜서를 위한 계약서" },
     headlineAccent:{ en: "creative freelancers", ko: "정부 표준과 비교합니다" },
     sub:           {
       en: "Fine art · webtoon · performance · film · craft. Draft contracts from the government's official standard forms, and check the contracts you receive against the standard to see how each clause compares — powered by Claude AI.",

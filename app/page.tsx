@@ -27,7 +27,8 @@ export default function Home() {
             {t("landing.tag")}
           </div>
           <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight mb-6">
-            {t("landing.headline1")}{" "}
+            {t("landing.headline1")}
+            <br />
             <span className="text-red-500">{t("landing.headlineAccent")}</span>
           </h1>
           <p className="text-xl text-slate-400 mb-10 max-w-2xl mx-auto">
