@@ -52,12 +52,13 @@ export const translations = {
   /* ── Landing Page ── */
   landing: {
     tag:           { en: "Based on Korean Government Standard Contracts", ko: "문화체육관광부 표준계약서 기반" },
-    headline1:     { en: "Standard contracts for", ko: "창작자를 위한" },
-    headlineAccent:{ en: "creative freelancers", ko: "표준계약서 AI" },
+    headline1:     { en: "Standard contracts for", ko: "프리랜서를 위한 계약서," },
+    headlineAccent:{ en: "creative freelancers", ko: "정부 표준과 비교합니다" },
     sub:           {
       en: "Fine art · webtoon · performance · film · craft. Draft contracts from the government's official standard forms, and check the contracts you receive against the standard to see how each clause compares — powered by Claude AI.",
-      ko: "미술 · 웹툰 · 공연 · 영화 · 공예 — 문화체육관광부가 배포한 공식 표준계약서로 손쉽게 작성하고, 받은 계약서를 표준과 비교해 다른 조항을 보여드립니다. Claude AI 기반.",
+      ko: "미술·웹툰·공연·영화·공예. 문화체육관광부 표준계약서와 비교해 다른 점을 보여드립니다. 판단은 직접, 정보는 RedlineAI가.",
     },
+    ctaHero:       { en: "Start Free →", ko: "무료로 비교해보기" },
     ctaPrimary:    { en: "Start Free →", ko: "무료로 시작하기 →" },
     ctaSecondary:  { en: "Browse standard contracts", ko: "표준계약서 둘러보기" },
     noCard:        { en: "No credit card · Built on official MCST standard forms", ko: "신용카드 불필요 · 문체부 공식 표준양식 기반" },

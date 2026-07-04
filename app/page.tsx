@@ -38,7 +38,7 @@ export default function Home() {
               href="/dashboard"
               className="bg-red-600 hover:bg-red-700 text-white font-semibold px-8 py-4 rounded-xl text-lg transition-colors"
             >
-              {t("landing.ctaPrimary")}
+              {t("landing.ctaHero")}
             </Link>
             <a
               href="#fields"
