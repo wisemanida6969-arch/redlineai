@@ -41,7 +41,7 @@ export const translations = {
 
   /* ── Disclaimer Banner ── */
   disclaimer: {
-    title:   { en: "RedlineAI uses AI to analyze contracts.", ko: "RedlineAI는 AI로 계약서를 분석합니다." },
+    title:   { en: "RedlineAI uses AI to compare contracts against government standard forms.", ko: "RedlineAI는 AI로 계약서를 표준계약서와 비교합니다." },
     body:    {
       en: "Results are for informational purposes only and may contain errors. Always verify the output and consult a legal professional for important decisions.",
       ko: "결과는 참고용이며 오류가 있을 수 있습니다. 중요한 결정 전에는 반드시 법률 전문가와 상담하세요.",
@@ -240,8 +240,8 @@ export const translations = {
 
     /* Empty / welcome screen */
     welcomeTitle:    { en: "Hi! How can I help you today?", ko: "안녕하세요! 무엇을 도와드릴까요?" },
-    welcomeSub:      { en: "I can draft negotiation emails, answer contract questions, suggest clause changes, and more.", ko: "협상 이메일 작성, 계약 질문 답변, 조항 수정 제안 등을 도와드립니다." },
-    suggested:       { en: "Suggested prompts", ko: "추천 질문" },
+    welcomeSub:      { en: "I can draft negotiation emails, answer contract questions, discuss clause wording, and more.", ko: "협상 이메일 작성, 계약 질문 답변, 조항 문구 논의 등을 도와드립니다." },
+    suggested:       { en: "Example prompts", ko: "질문 예시" },
     prompt1:         { en: "Draft a polite email asking to reduce a contract's penalty clause to 50%.", ko: "계약서의 위약금 조항을 50%로 줄여달라는 정중한 이메일을 작성해줘." },
     prompt2:         { en: "What's the difference between a unilateral NDA and a mutual NDA?", ko: "일방 NDA와 상호 NDA의 차이가 뭐야?" },
     prompt3:         { en: "Explain what 'liquidated damages' means in plain language.", ko: "'손해배상예정액'이 무슨 뜻인지 쉬운 말로 설명해줘." },
@@ -268,7 +268,7 @@ export const translations = {
     failedSend:      { en: "Failed to send message", ko: "메시지 전송 실패" },
     onlyPdfDocx:     { en: "Please attach a PDF or DOCX file.", ko: "PDF 또는 DOCX 파일만 첨부 가능합니다." },
     tooLarge:        { en: "File too large. Max 10MB.", ko: "파일이 너무 큽니다. 최대 10MB." },
-    extracting:      { en: "Reading contract…", ko: "계약서 분석 중…" },
+    extracting:      { en: "Reading contract…", ko: "계약서 읽는 중…" },
 
     /* Delete */
     deleteChat:      { en: "Delete conversation", ko: "대화 삭제" },
@@ -427,8 +427,8 @@ export const translations = {
     contractPreview:  { en: "Service Agreement Preview", ko: "용역 계약서 미리보기" },
     pdfReady:         { en: "A4 · PDF Ready", ko: "A4 · PDF 준비됨" },
     legalNotice:      { en: "⚠️ This is a template draft. Have a lawyer review before signing important contracts.", ko: "⚠️ 이것은 템플릿 초안입니다. 중요한 계약 서명 전 변호사 검토를 받으세요." },
-    referencedTitle:  { en: "Disputes this draft guards against", ko: "이 초안이 예방하는 분쟁 사례" },
-    referencedIntro:  { en: "Real court disputes in this field. The clauses above were strengthened to help prevent these — open each official source for details.", ko: "이 분야에서 실제 발생한 법원 분쟁입니다. 위 초안은 이런 위험을 예방하도록 관련 조항을 보강했어요. 자세한 내용은 각 공식 출처에서 확인하세요." },
+    referencedTitle:  { en: "Related dispute cases", ko: "관련 분쟁 사례" },
+    referencedIntro:  { en: "Real court disputes in this field. The clauses above follow the structure of the standard contract form — open each official source for details.", ko: "이 분야에서 실제 발생한 법원 분쟁입니다. 위 초안은 표준계약서 구조를 따라 관련 조항을 포함했어요. 자세한 내용은 각 공식 출처에서 확인하세요." },
     protectionsTitle: { en: "Precedent-based protections", ko: "판례 기반 보호 조항" },
     protectionsIntro: { en: "How specific clauses in this draft protect you — each tied to a real court dispute in your field.", ko: "이 계약서의 어떤 조항이, 실제 법원 분쟁을 근거로, 당신을 어떻게 보호하는지 보여줍니다." },
   },
@@ -579,7 +579,7 @@ export const translations = {
 
     /* Related precedents (after review) */
     relatedPrecedents:      { en: "Related court precedents", ko: "관련 판례" },
-    relatedPrecedentsIntro: { en: "Real precedents from disputes similar to this contract — found using AI-suggested keywords. Tap a keyword or search your own.", ko: "이 계약과 비슷한 분쟁의 실제 판례입니다. AI가 추천한 검색어로 찾았어요. 키워드를 누르거나 직접 검색해 보세요." },
+    relatedPrecedentsIntro: { en: "Real precedents from disputes similar to this contract — found using keywords extracted from your contract. Tap a keyword or search your own.", ko: "이 계약과 비슷한 분쟁의 실제 판례입니다. 계약 내용에서 뽑아낸 검색어로 찾았어요. 키워드를 누르거나 직접 검색해 보세요." },
   },
 
   /* ── Precedent-view / vendor-scan pass & membership purchase ── */

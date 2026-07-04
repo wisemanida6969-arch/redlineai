@@ -116,13 +116,13 @@ export default function HelpPage() {
             {ko ? "계약서 종류와 무관하게 아래 세 가지를 항상 우선적으로 확인해 표시합니다:" : "Regardless of contract type, these three are always checked first and flagged when found:"}
             <ul className="list-disc list-inside space-y-1 text-slate-400 text-sm mt-1">
               {ko ? <>
-                <li>♾️ <strong className="text-slate-300">수정 횟수 제한 없는 조항</strong> — &quot;갑이 만족할 때까지 수정&quot; → 표준계약서 기준 수정 횟수 제한 + 초과 시 요율 적용 제안</li>
-                <li>©️ <strong className="text-slate-300">저작권 전부 귀속 조항</strong> — &quot;모든 권리는 갑에게 귀속&quot; → 표준계약서 기준 대금 완납 전까지 저작권은 을에게 귀속 제안</li>
-                <li>💣 <strong className="text-slate-300">지체상금 상한 없는 조항</strong> — 상한 없는 높은 일일 위약벌 → 표준계약서 기준 상한선 설정 + 갑의 귀책 지연 제외 제안</li>
+                <li>♾️ <strong className="text-slate-300">수정 횟수 제한 없는 조항</strong> — &quot;갑이 만족할 때까지 수정&quot; 등 표준계약서에 있는 수정 횟수·요율 조항이 없는 경우</li>
+                <li>©️ <strong className="text-slate-300">저작권 전부 귀속 조항</strong> — &quot;모든 권리는 갑에게 귀속&quot; 등 표준계약서와 달리 대금 완납 전에도 저작권이 이전되는 경우</li>
+                <li>💣 <strong className="text-slate-300">지체상금 상한 없는 조항</strong> — 표준계약서에 있는 상한선·갑의 귀책 지연 제외 조항이 없는 경우</li>
               </> : <>
-                <li>♾️ <strong className="text-slate-300">Unlimited-revision clause</strong> — &quot;revise until the client is satisfied&quot; → suggests a standard-based revision cap + billing for extra rounds</li>
-                <li>©️ <strong className="text-slate-300">Full copyright-transfer clause</strong> — &quot;all rights belong to the client&quot; → suggests standard-based wording where copyright stays with the freelancer until paid in full</li>
-                <li>💣 <strong className="text-slate-300">Uncapped late-delivery penalty clause</strong> — uncapped daily penalty → suggests a standard-based rate cap + excludes client-caused delays</li>
+                <li>♾️ <strong className="text-slate-300">Unlimited-revision clause</strong> — e.g. &quot;revise until the client is satisfied&quot;, where the standard form&apos;s revision cap and rate for extra rounds is missing</li>
+                <li>©️ <strong className="text-slate-300">Full copyright-transfer clause</strong> — e.g. &quot;all rights belong to the client&quot;, where the standard form&apos;s protection (copyright stays with the freelancer until paid in full) is missing</li>
+                <li>💣 <strong className="text-slate-300">Uncapped late-delivery penalty clause</strong> — where the standard form&apos;s rate cap and client-caused-delay exclusion is missing</li>
               </>}
             </ul>
           </Step>
@@ -132,16 +132,16 @@ export default function HelpPage() {
               {ko ? <>
                 <li><strong className="text-slate-300">원문 인용</strong> — 계약서 원문 그대로</li>
                 <li><strong className="text-slate-300">표준과 다른 점</strong> — 쉬운 말로 설명</li>
-                <li><strong className="text-slate-300">표준계약서 기준 제안 문구</strong> — 바로 복사해서 사용</li>
+                <li><strong className="text-slate-300">표준계약서 원문</strong> — 해당 조항의 실제 표준계약서 문구 (없으면 표시되지 않음)</li>
               </> : <>
                 <li><strong className="text-slate-300">Original quote</strong> from the contract</li>
                 <li><strong className="text-slate-300">How it differs from the standard</strong> in plain language</li>
-                <li><strong className="text-slate-300">Standard-based suggested wording</strong> — copy-paste ready</li>
+                <li><strong className="text-slate-300">Official Standard Text</strong> — the actual standard-contract wording for that clause (shown only when one exists)</li>
               </>}
             </ul>
           </Step>
           <Step n={6} title={ko ? "관련 판례 확인" : "Check related precedents"} icon={Scale}>
-            {ko ? "리포트 하단에 AI가 이 계약과 관련해 추천한 검색어로 실제 법원 판례를 보여줍니다. 검색어 칩을 누르거나 직접 검색할 수 있습니다." : "The bottom of the report surfaces real court precedents using AI-suggested keywords from your contract. Tap a keyword chip or search your own."}
+            {ko ? "리포트 하단에 이 계약 내용에서 뽑아낸 검색어로 실제 법원 판례를 보여줍니다. 검색어 칩을 누르거나 직접 검색할 수 있습니다." : "The bottom of the report surfaces real court precedents using keywords extracted from your contract. Tap a keyword chip or search your own."}
           </Step>
           <Step n={7} title={ko ? "리포트 내보내기" : "Export the report"} icon={Download}>
             {ko ? <><strong className="text-white">리포트 다운로드</strong> 클릭 → <strong>PDF</strong> 또는 <strong>Word</strong> 선택. 팀이나 변호사와 공유하세요.</> : <>Click <strong className="text-white">Download Report</strong> → choose <strong>PDF</strong> or <strong>Word</strong>. Share with your team or lawyer.</>}

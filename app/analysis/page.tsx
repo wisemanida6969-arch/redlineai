@@ -11,9 +11,9 @@ import { useT } from "@/lib/i18n/LanguageProvider";
 
 function buildClientMessage(clause: { title: string; fix: string }, lang: "en" | "ko"): string {
   if (lang === "ko") {
-    return `안녕하세요! 계약서 꼼꼼히 살펴보다가 조율하고 싶은 부분이 있어서 편하게 말씀드려요 😊\n\n"${clause.title}" 부분을 아래처럼 조정해도 괜찮을까요?\n\n"${clause.fix}"\n\n서로 나중에 오해 생기지 않게 미리 명확히 해두면 좋을 것 같아서요. 확인 부탁드립니다 🙏`;
+    return `안녕하세요! 계약서를 살펴보다가 문체부 표준계약서와 다른 부분이 있어 공유드려요 😊\n\n"${clause.title}" 조항이 표준계약서 원문과 다음과 같이 다릅니다:\n\n표준계약서 원문: "${clause.fix}"\n\n참고차 말씀드려요. 확인 부탁드립니다 🙏`;
   }
-  return `Hi! While going through the contract I found a spot I'd like to adjust, if that's okay 😊\n\nCould we revise the "${clause.title}" clause to this?\n\n"${clause.fix}"\n\nJust want to make sure we're both clear upfront so there's no confusion later. Let me know what you think 🙏`;
+  return `Hi! While going through the contract I noticed this clause differs from the government standard form, wanted to share for reference 😊\n\nThe "${clause.title}" clause differs from the standard as follows:\n\nStandard contract text: "${clause.fix}"\n\nJust sharing for reference. Let me know what you think 🙏`;
 }
 
 export default function AnalysisPage() {
@@ -251,7 +251,7 @@ export default function AnalysisPage() {
 
         <div className="mt-12 bg-[#162035] border border-[#1e3050] rounded-2xl p-5">
           <p className="text-slate-500 text-xs leading-relaxed">
-            RedlineAI 안내: 본 서비스는 프리랜서 권익 보호를 위해 계약서 내 불공정 조항 위험을 탐지하는 표준 가이드 툴입니다. 변호사의 법률 자문이나 대리를 대체하지 않으며, 최종 계약 체결에 대한 법적 책임은 사용자 본인에게 있습니다.
+            RedlineAI 안내: 본 서비스는 프리랜서 권익 보호를 위해 계약서 내 조항을 문화체육관광부 표준계약서와 비교해 다른 점을 보여주는 가이드 툴입니다. 변호사의 법률 자문이나 대리를 대체하지 않으며, 최종 계약 체결에 대한 법적 책임은 사용자 본인에게 있습니다.
           </p>
         </div>
       </div>
