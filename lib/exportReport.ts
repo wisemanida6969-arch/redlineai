@@ -154,12 +154,13 @@ export async function downloadPDF(result: AnalysisResult, filename = "redlineai-
     const titleLines  = wrapText(clause.title,    CONTENT_W - 30, 9);
     const origLines   = clause.original ? wrapText(`"${clause.original}"`, CONTENT_W - 12, 8.5) : [];
     const probLines   = wrapText(clause.problem,  CONTENT_W - 12, 8.5);
-    const fixLines    = wrapText(clause.fix,       CONTENT_W - 12, 8.5);
+    const hasFix      = Boolean(clause.fix && clause.fix.trim());
+    const fixLines    = hasFix ? wrapText(clause.fix, CONTENT_W - 12, 8.5) : [];
     const cardH = 10
       + titleLines.length * 5
       + (origLines.length  > 0 ? origLines.length  * 4.8 + 10 : 0)
       + probLines.length * 4.8 + 10
-      + fixLines.length  * 4.8 + 10
+      + (hasFix ? fixLines.length * 4.8 + 10 : 0)
       + 4;
 
     checkPage(cardH + 4);
@@ -215,15 +216,15 @@ export async function downloadPDF(result: AnalysisResult, filename = "redlineai-
       cy += ph + 4;
     }
 
-    // fix
-    {
+    // fix (only shown when a real verbatim standard quote is present)
+    if (hasFix) {
       doc.setFillColor(220, 252, 231);
       const fh = fixLines.length * 4.8 + 6;
       doc.roundedRect(MARGIN + 4, cy, CONTENT_W - 8, fh, 2, 2, "F");
       doc.setTextColor(...green);
       doc.setFontSize(7.5);
       doc.setFont("helvetica", "bold");
-      doc.text("Standard-based suggested wording", MARGIN + 7, cy + 4.5);
+      doc.text("Official Standard Text", MARGIN + 7, cy + 4.5);
       doc.setTextColor(20, 83, 45);
       doc.setFont("helvetica", "normal");
       fixLines.forEach((line, i) => doc.text(line, MARGIN + 7, cy + 9 + i * 4.8));

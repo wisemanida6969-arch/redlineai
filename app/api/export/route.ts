@@ -65,19 +65,22 @@ function clauseSection(
       spacing: { after: 60 },
     }));
 
-    out.push(new T({
-      width: { size: 100, type: WidthType.PERCENTAGE },
-      rows: [new TRow({
-        children: [new TCell({
-          children: [
-            new P({ children: [new TR({ text: "Standard-based Suggested Wording", bold: true, color: FIX_COLOR, size: 19 })] }),
-            new P({ children: [new TR({ text: c.fix, size: 18, color: FIX_TEXT })], spacing: { before: 40 } }),
-          ],
-          shading: { type: ShadingType.SOLID, fill: FIX_BG },
-          margins: { top: 100, bottom: 100, left: 150, right: 150 },
+    // Official standard text — only shown when a real verbatim quote is present.
+    if (c.fix?.trim()) {
+      out.push(new T({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: [new TRow({
+          children: [new TCell({
+            children: [
+              new P({ children: [new TR({ text: "Official Standard Text", bold: true, color: FIX_COLOR, size: 19 })] }),
+              new P({ children: [new TR({ text: c.fix, size: 18, color: FIX_TEXT })], spacing: { before: 40 } }),
+            ],
+            shading: { type: ShadingType.SOLID, fill: FIX_BG },
+            margins: { top: 100, bottom: 100, left: 150, right: 150 },
+          })],
         })],
-      })],
-    }));
+      }));
+    }
 
     out.push(new P({ text: "", spacing: { after: 100 } }));
     return out;

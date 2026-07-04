@@ -320,27 +320,31 @@ function ClauseCard({ clause, copied, onCopy, copiedMsg, onCopyMessage, t }: {
             <p className="text-slate-500 text-xs font-semibold uppercase mb-1">{t("analysis.whyRisky")}</p>
             <p className="text-slate-300 text-sm">{clause.problem}</p>
           </div>
-          <div className="bg-green-900/15 border border-green-800/30 rounded-xl p-3">
-            <div className="flex items-center justify-between mb-1">
-              <p className="text-green-400 text-xs font-semibold uppercase">{t("analysis.suggestedFix")}</p>
+          {clause.fix && clause.fix.trim() && (
+            <>
+              <div className="bg-green-900/15 border border-green-800/30 rounded-xl p-3">
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-green-400 text-xs font-semibold uppercase">{t("analysis.suggestedFix")}</p>
+                  <button
+                    onClick={onCopy}
+                    className="flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors"
+                  >
+                    {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
+                    {/* Icon only on mobile, icon + text on desktop */}
+                    <span className="hidden sm:inline">{copied ? t("analysis.copied") : t("analysis.copy")}</span>
+                  </button>
+                </div>
+                <p className="text-green-300 text-sm">{clause.fix}</p>
+              </div>
               <button
-                onClick={onCopy}
-                className="flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors"
+                onClick={onCopyMessage}
+                className="w-full flex items-center justify-center gap-2 bg-[#FEE500]/10 border border-[#FEE500]/30 hover:bg-[#FEE500]/20 text-[#FEE500] rounded-xl py-2.5 text-sm font-medium transition-colors"
               >
-                {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
-                {/* Icon only on mobile, icon + text on desktop */}
-                <span className="hidden sm:inline">{copied ? t("analysis.copied") : t("analysis.copy")}</span>
+                {copiedMsg ? <Check className="w-4 h-4" /> : <MessageCircle className="w-4 h-4" />}
+                {copiedMsg ? t("analysis.copiedKakaoMsg") : t("analysis.copyKakaoMsg")}
               </button>
-            </div>
-            <p className="text-green-300 text-sm">{clause.fix}</p>
-          </div>
-          <button
-            onClick={onCopyMessage}
-            className="w-full flex items-center justify-center gap-2 bg-[#FEE500]/10 border border-[#FEE500]/30 hover:bg-[#FEE500]/20 text-[#FEE500] rounded-xl py-2.5 text-sm font-medium transition-colors"
-          >
-            {copiedMsg ? <Check className="w-4 h-4" /> : <MessageCircle className="w-4 h-4" />}
-            {copiedMsg ? t("analysis.copiedKakaoMsg") : t("analysis.copyKakaoMsg")}
-          </button>
+            </>
+          )}
         </div>
       )}
     </div>

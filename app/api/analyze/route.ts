@@ -51,7 +51,7 @@ Return this exact structure:
       "title": "Short, neutral title naming the clause pattern",
       "original": "Exact quote from the contract (max 150 chars)",
       "problem": "Factual statement of how this clause differs from what the standard contract provides — no danger/risk language",
-      "fix": "The corresponding standard-based wording, ready to copy-paste"
+      "fix": "Always return an empty string \"\". Do not invent or rewrite wording — this field is reserved for a verbatim quote from the official standard contract, which is not available yet."
     }
   ],
   "medium": [...same structure...],
@@ -65,10 +65,10 @@ Severity guide (degree of difference from the standard, not a danger rating):
 - LOW: Minor difference, or a standard protection is simply missing
 
 [3 clause patterns to always actively check for, regardless of contract type, and flag as HIGH when found]
-1. Unlimited-revision clause — language that lets the client (갑) demand revisions indefinitely with no cap ("revise until the client is satisfied", no stated round limit), where the standard caps revision rounds. Suggested standard-based wording: cap revisions at a fixed number of rounds (e.g. 3); any additional round is billed at an agreed rate.
-2. Full copyright-transfer clause — language transferring all rights (including copyright) to the client regardless of, or before, payment ("all rights to the plan and deliverables belong to the client"), where the standard ties the transfer to payment. Suggested standard-based wording: copyright remains with the freelancer (을) until payment is made in full, transferring to the client only upon full payment.
-3. Uncapped late-delivery penalty clause — a daily penalty rate that is very high (e.g. 5%+ of the contract value per day) or has no overall cap, where the standard caps it. Suggested standard-based wording: cap the daily rate at a small percentage (e.g. 0.1–0.5%/day) with a total cap (e.g. 10% of the contract value), and exclude delays caused by the client (e.g. late feedback/approval) from the penalty period.
-When any of these three appear, name the pattern explicitly in the title (e.g. "Unlimited-revision clause", "Full copyright-transfer clause", "Uncapped late-delivery penalty clause") so it's easy to recognize.
+1. Unlimited-revision clause — language that lets the client (갑) demand revisions indefinitely with no cap ("revise until the client is satisfied", no stated round limit), where the standard caps revision rounds.
+2. Full copyright-transfer clause — language transferring all rights (including copyright) to the client regardless of, or before, payment ("all rights to the plan and deliverables belong to the client"), where the standard ties the transfer to payment.
+3. Uncapped late-delivery penalty clause — a daily penalty rate that is very high (e.g. 5%+ of the contract value per day) or has no overall cap, where the standard caps it.
+When any of these three appear, name the pattern explicitly in the title (e.g. "Unlimited-revision clause", "Full copyright-transfer clause", "Uncapped late-delivery penalty clause") so it's easy to recognize. As with every other clause, leave "fix" as an empty string — do not describe or suggest replacement wording for these either.
 
 Be thorough but practical, and stick to factual comparisons — not opinions about fairness or danger.`;
 
@@ -86,7 +86,7 @@ const SYSTEM_PROMPT_KO = `당신은 계약서 조항을 문화체육관광부(MC
       "title": "조항 패턴을 나타내는 짧고 중립적인 제목 (한국어)",
       "original": "계약서에서 발췌한 정확한 원문 (최대 150자, 원본 언어 유지)",
       "problem": "표준계약서와 어떻게 다른지 사실 위주로 설명 (위험하다/불리하다 등 판단 표현 금지)",
-      "fix": "표준계약서 기준에 맞춘 조항 제안 문구 (복사해서 바로 사용 가능)"
+      "fix": "항상 빈 문자열(\"\")을 반환하세요. 새로운 문장을 짓거나 다시 쓰지 마세요 — 이 필드는 표준계약서 원문을 그대로 인용하기 위한 자리이며, 아직 인용할 원문 데이터가 준비되지 않았습니다."
     }
   ],
   "medium": [...같은 구조...],
@@ -101,14 +101,11 @@ const SYSTEM_PROMPT_KO = `당신은 계약서 조항을 문화체육관광부(MC
 
 [계약서 종류와 무관하게 항상 최우선으로 확인할 3가지 조항 패턴 — 발견 시 반드시 HIGH로 분류]
 1. **수정 횟수 제한 없는 조항** — "갑이 만족할 때까지 수정한다", "수정 횟수 제한 없음" 등 수정 범위·횟수를 명시하지 않은 조항. 표준계약서는 통상 수정 횟수를 제한합니다.
-   → fix 예시: "수정은 총 [3]회로 제한하며, 이를 초과하는 수정 요청은 별도 협의된 요율에 따라 추가 비용을 지급한다."
 2. **저작권 전부 귀속 조항** — "기획 및 결과물에 관한 모든 권리(저작권 포함)는 갑에게 귀속된다" 등 대금 지급 여부와 무관하게 또는 대금 지급 전에 저작권을 전부 이전시키는 조항. 표준계약서는 통상 저작권 이전을 대금 지급과 연동합니다.
-   → fix 예시: "결과물에 대한 저작권은 대금이 전액 지급되기 전까지 을(프리랜서)에게 귀속되며, 대금 완납과 동시에 갑에게 이전한다."
 3. **지체상금 상한 없는 조항** — 하루 지연당 계약금의 높은 비율(예: 1일당 5% 이상)을 부과하거나, 총액 상한이 없는 지체상금 조항. 표준계약서는 통상 상한을 둡니다.
-   → fix 예시: "지체상금은 1일당 계약금의 [0.1~0.5]%로 하되, 총 지체상금은 계약금의 [10]%를 초과할 수 없다. 을의 귀책사유가 아닌 지연(갑의 피드백·승인 지연 등)은 지체일수에서 제외한다."
-위 세 가지가 발견되면 title에 어떤 유형인지 정확히 명시하세요(예: "수정 횟수 제한 없는 조항", "저작권 전부 귀속 조항", "지체상금 상한 없는 조항") — 사용자가 한눈에 알아볼 수 있도록.
+위 세 가지가 발견되면 title에 어떤 유형인지 정확히 명시하세요(예: "수정 횟수 제한 없는 조항", "저작권 전부 귀속 조항", "지체상금 상한 없는 조항") — 사용자가 한눈에 알아볼 수 있도록. 다른 조항과 마찬가지로 fix는 빈 문자열로 두고, 대체 문구를 짓거나 제안하지 마세요.
 
-original 필드는 계약서 원문 그대로 발췌하세요(번역하지 말 것). 나머지(title, problem, fix, summary)는 모두 한국어로 자연스럽게 작성하세요. 철저하되, 판단이나 의견이 아닌 사실 비교에 집중하세요.`;
+original 필드는 계약서 원문 그대로 발췌하세요(번역하지 말 것). 나머지(title, problem, summary)는 모두 한국어로 자연스럽게 작성하세요. 철저하되, 판단이나 의견이 아닌 사실 비교에 집중하세요.`;
 
 async function extractTextFromPdf(buffer: Buffer): Promise<string | null> {
   try {

@@ -561,7 +561,7 @@ export const translations = {
     noIssues:       { en: "No differences from the standard in this category", ko: "이 카테고리에는 표준과 다른 점이 없습니다" },
     originalClause: { en: "Original clause", ko: "원문 조항" },
     whyRisky:       { en: "How it differs from the standard", ko: "표준과 다른 점" },
-    suggestedFix:   { en: "Standard-based suggested wording", ko: "표준계약서 기준 제안 문구" },
+    suggestedFix:   { en: "Official Standard Text", ko: "표준계약서 원문" },
     copied:         { en: "Copied!", ko: "복사됨!" },
     copy:           { en: "Copy", ko: "복사" },
     downloadFailed: { en: "Download failed", ko: "다운로드 실패" },
