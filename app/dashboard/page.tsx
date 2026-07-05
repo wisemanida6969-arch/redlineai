@@ -71,6 +71,37 @@ export default function Dashboard() {
       .finally(() => setHistoryLoading(false));
   }, []);
 
+  // GA4: fire "sign_up" / "purchase" exactly once, only when the URL carries the
+  // one-time marker set by /auth/callback (new signup) or PaddleCheckout's
+  // successUrl (completed purchase) — then strip the marker so a refresh or
+  // back-navigation can't re-fire it.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const gtag = (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag;
+    let fired = false;
+
+    if (params.get("new_signup") === "1") {
+      gtag?.("event", "sign_up", { method: "google" });
+      params.delete("new_signup");
+      fired = true;
+    }
+    if (params.get("upgraded") === "1") {
+      gtag?.("event", "purchase", {
+        transaction_id: `${Date.now()}`,
+        currency: "KRW",
+        items: params.get("price_id") ? [{ item_id: params.get("price_id") }] : undefined,
+      });
+      params.delete("upgraded");
+      params.delete("price_id");
+      fired = true;
+    }
+    if (fired) {
+      const query = params.toString();
+      router.replace(query ? `/dashboard?${query}` : "/dashboard");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const validateFile = (f: File) => {
     const valid = ACCEPTED_EXT.some((ext) => f.name.toLowerCase().endsWith(ext));
     if (!valid) { setError(lang === "ko" ? "PDF, DOCX, HWPX 파일만 가능합니다." : "Please upload a PDF, DOCX, or HWPX file."); return false; }

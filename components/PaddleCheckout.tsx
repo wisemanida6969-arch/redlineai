@@ -46,13 +46,17 @@ export default function PaddleCheckout({ priceId, className, children }: Props) 
       return;
     }
     setLoading(true);
+    (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag?.("event", "begin_checkout", {
+      currency: "KRW",
+      items: [{ item_id: priceId, quantity: 1 }],
+    });
     paddle.Checkout.open({
       items: [{ priceId, quantity: 1 }],
       customer: { email: userInfo.email },
       customData: { user_id: userInfo.userId },
       settings: {
         theme: "dark",
-        successUrl: `${window.location.origin}/dashboard?upgraded=1`,
+        successUrl: `${window.location.origin}/dashboard?upgraded=1&price_id=${encodeURIComponent(priceId)}`,
         displayMode: "overlay",
       },
     });

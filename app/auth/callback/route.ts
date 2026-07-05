@@ -8,13 +8,27 @@ export async function GET(request: NextRequest) {
 
   if (code) {
     const supabase = createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
       const host = request.headers.get("host") || "localhost:8080";
       const isLocal = host.includes("localhost");
       const protocol = isLocal ? "http" : "https";
       const baseUrl = `${protocol}://${host}`;
-      return NextResponse.redirect(`${baseUrl}${next}`);
+
+      // A brand-new account's first session is created at (essentially) the same
+      // instant as the account itself — existing users logging in again will have
+      // a created_at far earlier than this sign-in. Used to fire GA4 "sign_up"
+      // exactly once, only for real signups, from the client (see dashboard page).
+      const user = data.user;
+      const isNewSignup = !!(
+        user?.created_at &&
+        user?.last_sign_in_at &&
+        Math.abs(new Date(user.last_sign_in_at).getTime() - new Date(user.created_at).getTime()) < 10000
+      );
+
+      const redirectUrl = new URL(`${baseUrl}${next}`);
+      if (isNewSignup) redirectUrl.searchParams.set("new_signup", "1");
+      return NextResponse.redirect(redirectUrl);
     }
   }
 
