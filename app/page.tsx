@@ -26,12 +26,12 @@ export default function Home() {
             <Shield className="w-3.5 h-3.5" />
             {t("landing.tag")}
           </div>
-          <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight mb-6">
+          <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight mb-6 animate-fade-in-up">
             {t("landing.headline1")}
             <br />
             <span className="text-red-500">{t("landing.headlineAccent")}</span>
           </h1>
-          <p className="text-xl text-slate-400 mb-10 max-w-2xl mx-auto">
+          <p className="text-xl text-slate-400 mb-10 max-w-2xl mx-auto animate-fade-in-up-delay">
             {t("landing.sub")}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -68,7 +68,7 @@ export default function Home() {
               <Link
                 key={c.id}
                 href="/dashboard"
-                className="bg-[#162035] border border-[#1e3050] hover:border-red-700/50 rounded-2xl p-5 transition-colors group"
+                className="bg-[#162035] border border-[#2a3d5f] hover:border-red-600/60 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/30 rounded-2xl p-5 transition-all duration-300 ease-out group"
               >
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <span className="text-3xl leading-none">{c.emoji}</span>
@@ -84,11 +84,11 @@ export default function Home() {
             {/* CTA tile */}
             <Link
               href="/dashboard"
-              className="bg-gradient-to-br from-red-900/30 to-[#162035] border border-red-700/40 rounded-2xl p-5 flex flex-col justify-center items-start transition-colors hover:border-red-600/60"
+              className="bg-red-700 border border-red-600/50 rounded-2xl p-5 flex flex-col justify-center items-start shadow-lg shadow-red-950/40 transition-all duration-300 ease-out hover:bg-red-600 hover:-translate-y-1 hover:shadow-xl hover:shadow-red-950/50"
             >
-              <Library className="w-7 h-7 text-red-400 mb-2" />
+              <Library className="w-7 h-7 text-white mb-2" />
               <h3 className="text-white font-bold text-base mb-1">{t("landing.catViewAll")}</h3>
-              <span className="text-red-400 text-sm font-medium inline-flex items-center gap-1 mt-1">
+              <span className="text-red-100 text-sm font-medium inline-flex items-center gap-1 mt-1">
                 {t("landing.ctaPrimary")}
               </span>
             </Link>
