@@ -10,21 +10,31 @@ const USED_COLUMN: Record<PassFeature, "precedent_used" | "vendor_used"> = {
 
 export interface FeatureAccessResult {
   allowed: boolean;
-  via: "pass" | "member" | null;
+  via: "pass" | "member" | "admin" | null;
   reason?: "no_access" | "quota_exceeded";
   remaining?: number;
   limit?: number;
 }
 
 /**
- * Access to `feature` is granted if the user has an active 24h pass,
- * OR is on the "member" plan and hasn't hit their monthly quota yet.
+ * Access to `feature` is granted if the caller is an admin account, has an
+ * active 24h pass, OR is on the "member" plan and hasn't hit their monthly
+ * quota yet.
  */
 export async function checkFeatureAccess(
   service: ServiceClient,
   userId: string,
   feature: PassFeature,
 ): Promise<FeatureAccessResult> {
+  const usedColumn = USED_COLUMN[feature];
+  const { data: profile } = await service
+    .from("profiles")
+    .select(`plan, scan_month, is_admin, ${usedColumn}`)
+    .eq("id", userId)
+    .single();
+
+  if (profile?.is_admin) return { allowed: true, via: "admin" };
+
   const { data: pass } = await service
     .from("feature_passes")
     .select("id")
@@ -35,13 +45,6 @@ export async function checkFeatureAccess(
     .maybeSingle();
 
   if (pass) return { allowed: true, via: "pass" };
-
-  const usedColumn = USED_COLUMN[feature];
-  const { data: profile } = await service
-    .from("profiles")
-    .select(`plan, scan_month, ${usedColumn}`)
-    .eq("id", userId)
-    .single();
 
   const plan = profile?.plan ?? "free";
   if (plan !== "member") return { allowed: false, via: null, reason: "no_access" };
