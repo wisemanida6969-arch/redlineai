@@ -20,7 +20,7 @@ export default function Home() {
       <Navbar />
 
       {/* Hero */}
-      <section className="pt-32 pb-16 px-6">
+      <section className="pt-32 pb-16 px-6 bg-gradient-to-b from-[#0f1a2e] to-[#0c1624]">
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-red-900/30 border border-red-800/50 text-red-400 text-sm px-4 py-1.5 rounded-full mb-6">
             <Shield className="w-3.5 h-3.5" />
@@ -29,7 +29,7 @@ export default function Home() {
           <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight mb-6 animate-fade-in-up">
             {t("landing.headline1")}
             <br />
-            <span className="text-red-500">{t("landing.headlineAccent")}</span>
+            <span className="text-red-500 text-glow-red">{t("landing.headlineAccent")}</span>
           </h1>
           <p className="text-xl text-slate-400 mb-10 max-w-2xl mx-auto animate-fade-in-up-delay">
             {t("landing.sub")}
@@ -53,7 +53,7 @@ export default function Home() {
       </section>
 
       {/* Standard contract fields preview */}
-      <section id="fields" className="pb-20 px-6">
+      <section id="fields" className="pb-20 px-6 bg-gradient-to-br from-[#121729] to-[#170f2a]">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10">
             <h2 className="text-3xl font-bold text-white mb-3">{t("landing.catTitle")}</h2>
@@ -97,7 +97,7 @@ export default function Home() {
       </section>
 
       {/* How it works */}
-      <section id="how-it-works" className="py-20 px-6 border-t border-[#1e3050]">
+      <section id="how-it-works" className="py-20 px-6 border-t border-[#1e3050] bg-gradient-to-b from-[#0f1a2e] to-[#0c1624]">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-3xl font-bold text-white text-center mb-12">{t("landing.howTitle")}</h2>
           <div className="grid md:grid-cols-3 gap-8">
@@ -120,7 +120,7 @@ export default function Home() {
       </section>
 
       {/* Features */}
-      <section className="py-20 px-6 border-t border-[#1e3050]">
+      <section className="py-20 px-6 border-t border-[#2a1d33] bg-gradient-to-br from-[#121729] to-[#170f2a]">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-3xl font-bold text-white text-center mb-12">{t("landing.featuresTitle")}</h2>
           <div className="grid md:grid-cols-2 gap-6">
@@ -149,7 +149,7 @@ export default function Home() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="py-20 px-6 border-t border-[#1e3050]">
+      <section id="pricing" className="py-20 px-6 border-t border-[#1e3050] bg-gradient-to-b from-[#0f1a2e] to-[#0c1624]">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-3xl font-bold text-white text-center mb-4">{t("landing.pricingTitle")}</h2>
           <p className="text-slate-400 text-center mb-3">{t("landing.pricingSub")}</p>
@@ -217,7 +217,7 @@ export default function Home() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 px-6 border-t border-[#1e3050]">
+      <section className="py-20 px-6 border-t border-[#2a1d33] bg-gradient-to-br from-[#121729] to-[#170f2a]">
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-3xl font-bold text-white mb-4">{t("landing.ctaSectionTitle")}</h2>
           <p className="text-slate-400 mb-8">{t("landing.ctaSectionSub")}</p>
@@ -231,7 +231,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[#1e3050] py-10 px-6">
+      <footer className="border-t border-[#2a1d33] bg-[#0c1120] py-10 px-6">
         <div className="max-w-6xl mx-auto flex flex-col items-center gap-4 text-center">
           <div className="flex items-center gap-2">
             <Shield className="w-5 h-5 text-red-500" />

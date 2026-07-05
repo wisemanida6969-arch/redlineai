@@ -40,3 +40,7 @@ body {
 .animate-fade-in-up-delay {
   animation: fadeInUp 0.7s ease-out 0.15s both;
 }
+
+.text-glow-red {
+  text-shadow: 0 0 20px rgba(239, 68, 68, 0.35), 0 0 6px rgba(239, 68, 68, 0.25);
+}
