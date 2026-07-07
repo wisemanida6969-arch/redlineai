@@ -48,7 +48,7 @@ export default function Navbar() {
         <Link href="/" className="flex items-center gap-2">
           <Shield className="w-6 h-6 text-red-500" />
           <span className="text-xl font-bold text-white">
-            Redline<span className="text-red-500">AI</span>
+            레드라인<span className="text-red-500">AI</span>
           </span>
         </Link>
 
