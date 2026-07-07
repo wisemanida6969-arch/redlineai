@@ -24,8 +24,8 @@ export default function RefundPage() {
               </p>
               <p className="text-slate-300 mt-2">14일이 지난 환불 요청은 개별적으로 검토됩니다.</p>
               <p className="text-slate-400 text-sm mt-3">
-                참고: RedlineAI는 Pactbug이 운영합니다. 결제는 저희의 Merchant of Record(판매자)인
-                Paddle이 &ldquo;Trytimeback&rdquo;이라는 상호로 처리합니다. RedlineAI 관련 결제 시
+                참고: 레드라인AI는 Pactbug이 운영합니다. 결제는 저희의 Merchant of Record(판매자)인
+                Paddle이 &ldquo;Trytimeback&rdquo;이라는 상호로 처리합니다. 레드라인AI 관련 결제 시
                 카드 명세서에는 &ldquo;Trytimeback&rdquo; 또는 &ldquo;Paddle.net&rdquo;으로 표시될 수 있습니다.
               </p>
             </div>

@@ -51,7 +51,7 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-lg font-semibold text-white mb-3">2. 정보 이용 방법</h2>
               <ul className="list-disc list-inside space-y-2 text-slate-400 text-sm">
-                <li>RedlineAI 서비스 제공, 운영 및 개선을 위해</li>
+                <li>레드라인AI 서비스 제공, 운영 및 개선을 위해</li>
                 <li>귀하의 신원을 인증하고 계정을 유지하기 위해</li>
                 <li>업로드하신 문서를 처리하고 AI 비교 리포트를 생성하기 위해</li>
                 <li>구독 요금제 및 이용 한도를 관리하기 위해</li>
@@ -105,7 +105,7 @@ export default function PrivacyPage() {
 
             <section>
               <h2 className="text-lg font-semibold text-white mb-3">9. 아동의 개인정보 보호</h2>
-              <p className="text-slate-400 text-sm">RedlineAI는 만 18세 미만의 이용을 위한 서비스가 아닙니다. 저희는 아동의 개인정보를 고의로 수집하지 않습니다.</p>
+              <p className="text-slate-400 text-sm">레드라인AI는 만 18세 미만의 이용을 위한 서비스가 아닙니다. 저희는 아동의 개인정보를 고의로 수집하지 않습니다.</p>
             </section>
 
             <section>

@@ -10,7 +10,7 @@ export default function AppFooter() {
       <div className="max-w-6xl mx-auto flex flex-col items-center gap-3 text-center">
         <div className="flex items-center gap-2">
           <Shield className="w-4 h-4 text-red-500" />
-          <span className="text-white font-bold text-sm">RedlineAI</span>
+          <span className="text-white font-bold text-sm">레드라인AI</span>
         </div>
 
         <a
@@ -29,7 +29,7 @@ export default function AppFooter() {
         </div>
 
         <p className="text-slate-500 text-xs max-w-2xl leading-relaxed">
-          RedlineAI 안내: 본 서비스는 프리랜서 권익 보호를 위해 계약서 내 조항을 문화체육관광부 표준계약서와 비교해 다른 점을 보여주는 가이드 툴입니다. 변호사의 법률 자문이나 대리를 대체하지 않으며, 최종 계약 체결에 대한 법적 책임은 사용자 본인에게 있습니다.
+          레드라인AI 안내: 본 서비스는 프리랜서 권익 보호를 위해 계약서 내 조항을 문화체육관광부 표준계약서와 비교해 다른 점을 보여주는 가이드 툴입니다. 변호사의 법률 자문이나 대리를 대체하지 않으며, 최종 계약 체결에 대한 법적 책임은 사용자 본인에게 있습니다.
         </p>
 
         <p className="text-slate-600 text-xs">{t("common.copyright")}</p>

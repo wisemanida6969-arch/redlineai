@@ -328,7 +328,7 @@ export default function SignPage() {
 
         <div className="text-center mt-8">
           <p className="text-slate-600 text-xs">
-            Powered by <a href="https://getredlineai.com" className="text-slate-500 hover:text-slate-400">RedlineAI</a>
+            Powered by <a href="https://getredlineai.com" className="text-slate-500 hover:text-slate-400">레드라인AI</a>
           </p>
         </div>
       </div>

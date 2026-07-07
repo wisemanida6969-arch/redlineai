@@ -34,14 +34,14 @@ export const translations = {
     plan:           { en: "Plan",            ko: "플랜" },
     poweredBy:      { en: "Powered by",      ko: "제공:" },
     operatedBy:     { en: "Operated by Pactbug.", ko: "운영: Pactbug" },
-    copyright:      { en: "© 2026 RedlineAI. Operated by Pactbug.", ko: "© 2026 RedlineAI. 운영: Pactbug" },
+    copyright:      { en: "© 2026 RedlineAI. Operated by Pactbug.", ko: "© 2026 레드라인AI. 운영: Pactbug" },
     backToHome:     { en: "Back to Home",    ko: "홈으로 돌아가기" },
     backToDashboard:{ en: "Back to Dashboard →", ko: "대시보드로 돌아가기 →" },
   },
 
   /* ── Disclaimer Banner ── */
   disclaimer: {
-    title:   { en: "RedlineAI uses AI to compare contracts against government standard forms.", ko: "RedlineAI는 AI로 계약서를 표준계약서와 비교합니다." },
+    title:   { en: "RedlineAI uses AI to compare contracts against government standard forms.", ko: "레드라인AI는 AI로 계약서를 표준계약서와 비교합니다." },
     body:    {
       en: "Results are for informational purposes only and may contain errors. Always verify the output and consult a legal professional for important decisions.",
       ko: "결과는 참고용이며 오류가 있을 수 있습니다. 중요한 결정 전에는 반드시 법률 전문가와 상담하세요.",
@@ -56,7 +56,7 @@ export const translations = {
     headlineAccent:{ en: "creative freelancers", ko: "정부 표준과 비교합니다" },
     sub:           {
       en: "Fine art · webtoon · performance · film · craft. Draft contracts from the government's official standard forms, and check the contracts you receive against the standard to see how each clause compares — powered by Claude AI.",
-      ko: "미술·웹툰·공연·영화·공예. 문화체육관광부 표준계약서와 비교해 다른 점을 보여드립니다. 판단은 직접, 정보는 RedlineAI가.",
+      ko: "미술·웹툰·공연·영화·공예. 문화체육관광부 표준계약서와 비교해 다른 점을 보여드립니다. 판단은 직접, 정보는 레드라인AI가.",
     },
     ctaHero:       { en: "Start Free →", ko: "무료로 비교해보기" },
     ctaPrimary:    { en: "Start Free →", ko: "무료로 시작하기 →" },
@@ -101,7 +101,7 @@ export const translations = {
     signNeededTitle: { en: "Need to sign your contract?", ko: "계약서에 서명이 필요하신가요?" },
     signNeededBody:  {
       en: "RedlineAI focuses on drafting and reviewing contracts. For legally binding e-signatures, we recommend trusted Korean services like ModuSign or eformsign. Once your contract is reviewed and ready, you can sign it securely there.",
-      ko: "RedlineAI는 계약서 작성과 검토에 집중하는 도구입니다. 법적 효력이 있는 전자서명은 모두싸인, 이폼사인 같은 검증된 서비스 이용을 권장드립니다. 검토와 수정이 끝난 계약서를 해당 서비스에서 안전하게 서명하실 수 있습니다." },
+      ko: "레드라인AI는 계약서 작성과 검토에 집중하는 도구입니다. 법적 효력이 있는 전자서명은 모두싸인, 이폼사인 같은 검증된 서비스 이용을 권장드립니다. 검토와 수정이 끝난 계약서를 해당 서비스에서 안전하게 서명하실 수 있습니다." },
     signNeededLinkModoosign:   { en: "모두싸인 →", ko: "모두싸인 →" },
     signNeededLinkEformsign:   { en: "이폼사인 →", ko: "이폼사인 →" },
     signNeededLinkDocusign:    { en: "DocuSign →", ko: "DocuSign →" },
@@ -114,7 +114,7 @@ export const translations = {
     perMonth:     { en: "/month", ko: "/월" },
 
     /* Plan descriptions */
-    planFreeDesc:     { en: "For creators trying RedlineAI", ko: "RedlineAI를 처음 써보는 창작자용" },
+    planFreeDesc:     { en: "For creators trying RedlineAI", ko: "레드라인AI를 처음 써보는 창작자용" },
     planProDesc:      { en: "For active freelance creators",  ko: "활동 중인 프리랜서 창작자를 위한" },
     planBusinessDesc: { en: "For studios and agencies", ko: "스튜디오·에이전시를 위한" },
     planPrecedentPassDesc: { en: "One-time, 24-hour access", ko: "1회 구매, 24시간 이용 가능" },
@@ -156,7 +156,7 @@ export const translations = {
   /* ── Auth ── */
   auth: {
     welcomeBack:      { en: "Welcome back", ko: "다시 오신 것을 환영합니다" },
-    signInSubtitle:   { en: "Sign in to your RedlineAI account", ko: "RedlineAI 계정으로 로그인하세요" },
+    signInSubtitle:   { en: "Sign in to your RedlineAI account", ko: "레드라인AI 계정으로 로그인하세요" },
     continueGoogle:   { en: "Continue with Google", ko: "Google로 계속하기" },
     signingIn:        { en: "Signing in…", ko: "로그인 중…" },
     noAccount:        { en: "Don't have an account? Just sign in with Google — we'll create one automatically.", ko: "계정이 없으신가요? Google로 로그인하면 자동으로 계정이 생성됩니다." },
@@ -201,7 +201,7 @@ export const translations = {
     maxSize:          { en: "Max 20MB", ko: "최대 20MB" },
     pasteContract:    { en: "Paste your contract text here…", ko: "계약서 내용을 여기에 붙여넣으세요…" },
     scannedPdf:       { en: "Scanned PDF?", ko: "스캔된 PDF인가요?" },
-    scannedPdfDesc:   { en: "RedlineAI uses Claude Vision to read it automatically.", ko: "RedlineAI가 Claude Vision으로 자동 인식합니다." },
+    scannedPdfDesc:   { en: "RedlineAI uses Claude Vision to read it automatically.", ko: "레드라인AI가 Claude Vision으로 자동 인식합니다." },
 
     /* Analyze */
     analyze:          { en: "Compare Contract →", ko: "계약서 비교하기 →" },
@@ -358,7 +358,7 @@ export const translations = {
   /* ── Help Page ── */
   help: {
     badge:        { en: "User Guide",        ko: "사용 가이드" },
-    title:        { en: "How RedlineAI works", ko: "RedlineAI 사용법" },
+    title:        { en: "How RedlineAI works", ko: "레드라인AI 사용법" },
     sub:          { en: "Step-by-step guide for every feature.", ko: "기능별 단계별 가이드." },
     stillQuestions: { en: "Still have questions?", ko: "더 궁금한 점이 있으신가요?" },
     emailUs:      { en: "Email us anytime — we usually reply within 24 hours.", ko: "언제든 이메일 보내주세요 — 보통 24시간 내 답변드립니다." },

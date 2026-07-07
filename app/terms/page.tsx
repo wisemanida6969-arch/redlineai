@@ -20,9 +20,9 @@ export default function TermsPage() {
             <div className="bg-[#1e3050] rounded-xl p-4 border border-[#2a4070]">
               <p className="text-white font-semibold">본 서비스는 Pactbug이 운영합니다.</p>
               <p className="text-slate-400 text-sm mt-2">
-                RedlineAI는 Pactbug이 운영합니다. 결제는 저희의 Merchant of Record(판매자)인{" "}
+                레드라인AI는 Pactbug이 운영합니다. 결제는 저희의 Merchant of Record(판매자)인{" "}
                 <span className="text-white">Paddle.com Market Limited</span>가{" "}
-                <span className="text-white">Trytimeback</span>이라는 상호로 처리합니다. RedlineAI 관련 결제 시
+                <span className="text-white">Trytimeback</span>이라는 상호로 처리합니다. 레드라인AI 관련 결제 시
                 카드 명세서에는 &ldquo;Trytimeback&rdquo; 또는 &ldquo;Paddle.net&rdquo;으로 표시될 수 있습니다.
               </p>
             </div>
@@ -30,7 +30,7 @@ export default function TermsPage() {
             <div className="bg-yellow-900/15 border border-yellow-700/30 rounded-xl p-4">
               <p className="text-yellow-200 font-semibold mb-1">면책 조항</p>
               <p className="text-yellow-200/90 text-sm">
-                RedlineAI는 프리랜서 권익 보호를 위해 계약서 내 조항을 문화체육관광부 표준계약서와 비교해
+                레드라인AI는 프리랜서 권익 보호를 위해 계약서 내 조항을 문화체육관광부 표준계약서와 비교해
                 다른 점을 보여주는 가이드 툴이며, 변호사의 법률 자문이나 대리를 대체하지 않습니다. AI가 제공하는
                 모든 결과물은 참고용 정보이며 법적 효력이 없습니다. 최종 계약 체결 여부와 그에 따른 법적 책임은
                 전적으로 사용자 본인에게 있으며, 중요한 계약은 반드시 변호사 등 법률 전문가와 상담 후 결정하시기
@@ -40,17 +40,17 @@ export default function TermsPage() {
 
             <section>
               <h2 className="text-lg font-semibold text-white mb-2">1. 약관의 동의</h2>
-              <p>RedlineAI(이하 &ldquo;본 서비스&rdquo;)에 접속하거나 이를 이용함으로써 귀하는 본 이용약관에 동의하는 것으로 간주됩니다. 본 약관에 동의하지 않으시는 경우 본 서비스를 이용하실 수 없습니다.</p>
+              <p>레드라인AI(이하 &ldquo;본 서비스&rdquo;)에 접속하거나 이를 이용함으로써 귀하는 본 이용약관에 동의하는 것으로 간주됩니다. 본 약관에 동의하지 않으시는 경우 본 서비스를 이용하실 수 없습니다.</p>
             </section>
 
             <section>
               <h2 className="text-lg font-semibold text-white mb-2">2. 서비스 설명</h2>
-              <p>RedlineAI는 사용자가 계약서 등 법률 문서 내에서 표준계약서와 다른 조항을 파악할 수 있도록 돕는 AI 기반 계약서 비교 도구입니다. 본 서비스는 참고용 정보 제공을 목적으로 하며, 법률 자문에 해당하지 않습니다.</p>
+              <p>레드라인AI는 사용자가 계약서 등 법률 문서 내에서 표준계약서와 다른 조항을 파악할 수 있도록 돕는 AI 기반 계약서 비교 도구입니다. 본 서비스는 참고용 정보 제공을 목적으로 하며, 법률 자문에 해당하지 않습니다.</p>
             </section>
 
             <section>
               <h2 className="text-lg font-semibold text-white mb-2">3. 법률 자문이 아님</h2>
-              <p>RedlineAI는 법률사무소가 아니며 법률 자문을 제공하지 않습니다. 저희 AI가 생성하는 분석·비교 결과는 참고용 정보일 뿐입니다. 본 서비스의 결과물을 근거로 법적 판단을 내리기 전에 반드시 자격을 갖춘 변호사와 상담하시기 바랍니다.</p>
+              <p>레드라인AI는 법률사무소가 아니며 법률 자문을 제공하지 않습니다. 저희 AI가 생성하는 분석·비교 결과는 참고용 정보일 뿐입니다. 본 서비스의 결과물을 근거로 법적 판단을 내리기 전에 반드시 자격을 갖춘 변호사와 상담하시기 바랍니다.</p>
             </section>
 
             <section>
