@@ -38,8 +38,10 @@ const SEVERITY_LABEL: Record<string, string> = {
 export async function downloadPDF(result: AnalysisResult, filename = "redlineai-report") {
   const { default: jsPDF } = await import("jspdf");
   await import("jspdf-autotable");
+  const { loadKoreanFont } = await import("./pdfKoreanFont");
 
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  await loadKoreanFont(doc);
   const PAGE_W = 210;
   const MARGIN = 18;
   const CONTENT_W = PAGE_W - MARGIN * 2;
@@ -72,11 +74,11 @@ export async function downloadPDF(result: AnalysisResult, filename = "redlineai-
   doc.roundedRect(MARGIN, 7, 38, 13, 2, 2, "F");
   doc.setTextColor(...white);
   doc.setFontSize(11);
-  doc.setFont("helvetica", "bold");
+  doc.setFont("NanumGothic", "bold");
   doc.text("레드라인AI", MARGIN + 5, 15.5);
 
   doc.setFontSize(8);
-  doc.setFont("helvetica", "normal");
+  doc.setFont("NanumGothic", "normal");
   doc.setTextColor(180, 195, 215);
   doc.text("Standard Comparison Report", MARGIN + 42, 15.5);
 
@@ -100,10 +102,10 @@ export async function downloadPDF(result: AnalysisResult, filename = "redlineai-
     doc.roundedRect(x, y, cardW, 20, 3, 3, "F");
     doc.setTextColor(...c.text);
     doc.setFontSize(18);
-    doc.setFont("helvetica", "bold");
+    doc.setFont("NanumGothic", "bold");
     doc.text(String(c.count), x + cardW / 2, y + 11, { align: "center" });
     doc.setFontSize(7.5);
-    doc.setFont("helvetica", "normal");
+    doc.setFont("NanumGothic", "normal");
     doc.text(c.label, x + cardW / 2, y + 17, { align: "center" });
   });
   y += 28;
@@ -113,7 +115,7 @@ export async function downloadPDF(result: AnalysisResult, filename = "redlineai-
   doc.roundedRect(MARGIN, y, CONTENT_W, 6, 2, 2, "F");
   doc.setTextColor(...white);
   doc.setFontSize(9);
-  doc.setFont("helvetica", "bold");
+  doc.setFont("NanumGothic", "bold");
   doc.text("AI SUMMARY", MARGIN + 4, y + 4.2);
   y += 9;
 
@@ -122,7 +124,7 @@ export async function downloadPDF(result: AnalysisResult, filename = "redlineai-
   const summaryH = summaryLines.length * 5 + 6;
   doc.roundedRect(MARGIN, y, CONTENT_W, summaryH, 2, 2, "F");
   doc.setTextColor(51, 65, 85);
-  doc.setFont("helvetica", "normal");
+  doc.setFont("NanumGothic", "normal");
   summaryLines.forEach((line, i) => doc.text(line, MARGIN + 4, y + 5 + i * 5));
   y += summaryH + 8;
 
@@ -182,7 +184,7 @@ export async function downloadPDF(result: AnalysisResult, filename = "redlineai-
     doc.roundedRect(MARGIN + 3, cy - 3.2, 22, 5, 1, 1, "F");
     doc.setTextColor(...white);
     doc.setFontSize(6.5);
-    doc.setFont("helvetica", "bold");
+    doc.setFont("NanumGothic", "bold");
     doc.text(SEVERITY_LABEL[sev], MARGIN + 14, cy + 0.5, { align: "center" });
 
     // title
@@ -198,9 +200,9 @@ export async function downloadPDF(result: AnalysisResult, filename = "redlineai-
       doc.roundedRect(MARGIN + 4, cy, CONTENT_W - 8, oh, 2, 2, "F");
       doc.setTextColor(...slate);
       doc.setFontSize(7.5);
-      doc.setFont("helvetica", "bolditalic");
+      doc.setFont("NanumGothic", "bolditalic");
       doc.text("Original clause", MARGIN + 7, cy + 4.5);
-      doc.setFont("helvetica", "italic");
+      doc.setFont("NanumGothic", "italic");
       origLines.forEach((line, i) => doc.text(line, MARGIN + 7, cy + 9 + i * 4.8));
       cy += oh + 4;
     }
@@ -212,10 +214,10 @@ export async function downloadPDF(result: AnalysisResult, filename = "redlineai-
       doc.roundedRect(MARGIN + 4, cy, CONTENT_W - 8, ph, 2, 2, "F");
       doc.setTextColor(...sevText[sev]);
       doc.setFontSize(7.5);
-      doc.setFont("helvetica", "bold");
+      doc.setFont("NanumGothic", "bold");
       doc.text("How it differs from the standard", MARGIN + 7, cy + 4.5);
       doc.setTextColor(51, 65, 85);
-      doc.setFont("helvetica", "normal");
+      doc.setFont("NanumGothic", "normal");
       probLines.forEach((line, i) => doc.text(line, MARGIN + 7, cy + 9 + i * 4.8));
       cy += ph + 4;
     }
@@ -227,16 +229,16 @@ export async function downloadPDF(result: AnalysisResult, filename = "redlineai-
       doc.roundedRect(MARGIN + 4, cy, CONTENT_W - 8, fh, 2, 2, "F");
       doc.setTextColor(...green);
       doc.setFontSize(7.5);
-      doc.setFont("helvetica", "bold");
+      doc.setFont("NanumGothic", "bold");
       doc.text("Official Standard Text", MARGIN + 7, cy + 4.5);
       doc.setTextColor(20, 83, 45);
-      doc.setFont("helvetica", "normal");
+      doc.setFont("NanumGothic", "normal");
       // fixDisplay only adds the citation prefix; clause.fix itself is never altered
       fixLines.forEach((line, i) => doc.text(line, MARGIN + 7, cy + 9 + i * 4.8));
       if (sourceLines.length > 0) {
         const sy = cy + 9 + fixLines.length * 4.8 + 3;
         doc.setFontSize(6.5);
-        doc.setFont("helvetica", "italic");
+        doc.setFont("NanumGothic", "italic");
         doc.setTextColor(...slate);
         sourceLines.forEach((line, i) => doc.text(line, MARGIN + 7, sy + i * 4));
       }
@@ -254,7 +256,7 @@ export async function downloadPDF(result: AnalysisResult, filename = "redlineai-
     doc.line(MARGIN, 288, PAGE_W - MARGIN, 288);
     doc.setFontSize(7);
     doc.setTextColor(...slate);
-    doc.setFont("helvetica", "normal");
+    doc.setFont("NanumGothic", "normal");
     doc.text("Generated by 레드라인AI · redlineai.com", MARGIN, 293);
     doc.text(`Page ${p} of ${pageCount}`, PAGE_W - MARGIN, 293, { align: "right" });
   }

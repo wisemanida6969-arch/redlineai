@@ -6,8 +6,8 @@ import { LanguageProvider } from "@/lib/i18n/LanguageProvider";
 export const metadata: Metadata = {
   metadataBase: new URL("https://getredlineai.com"),
   title: {
-    default: "RedlineAI – 창작자를 위한 표준계약서 AI",
-    template: "%s | RedlineAI",
+    default: "레드라인AI – 창작자를 위한 표준계약서 AI",
+    template: "%s | 레드라인AI",
   },
   description: "미술·웹툰·공연·영화·공예 — 문화체육관광부 표준계약서로 계약서를 작성하고, 받은 계약서를 표준과 비교 검토하세요. 관련 법원 판례까지 한 곳에서. Claude AI 기반.",
   keywords: [
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Pactbug" }],
   creator: "Pactbug",
-  publisher: "RedlineAI",
+  publisher: "레드라인AI",
   robots: {
     index: true,
     follow: true,
@@ -31,14 +31,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: "https://getredlineai.com",
-    title: "RedlineAI – 창작자를 위한 표준계약서 AI",
+    title: "레드라인AI – 창작자를 위한 표준계약서 AI",
     description: "문화체육관광부 표준계약서로 작성·검토하고, 관련 판례까지. 미술·웹툰·공연·영화·공예 창작자를 위한 AI.",
-    siteName: "RedlineAI",
+    siteName: "레드라인AI",
     locale: "ko_KR",
   },
   twitter: {
     card: "summary_large_image",
-    title: "RedlineAI – 창작자를 위한 표준계약서 AI",
+    title: "레드라인AI – 창작자를 위한 표준계약서 AI",
     description: "문체부 표준계약서로 작성·검토하고 관련 판례까지. Claude AI 기반.",
   },
   alternates: {

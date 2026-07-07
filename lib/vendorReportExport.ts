@@ -18,8 +18,10 @@ const SEV_LABEL: Record<string, string> = { high: "HIGH RISK", medium: "MEDIUM R
 
 export async function downloadVendorPDF(report: VendorReport, scannedAt: string, filename = "vendor-risk-report") {
   const { default: jsPDF } = await import("jspdf");
+  const { loadKoreanFont } = await import("./pdfKoreanFont");
 
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  await loadKoreanFont(doc);
   const PAGE_W = 210;
   const PAGE_H = 297;
   const MARGIN = 18;
@@ -63,11 +65,11 @@ export async function downloadVendorPDF(report: VendorReport, scannedAt: string,
   doc.roundedRect(MARGIN, 7, 38, 13, 2, 2, "F");
   doc.setTextColor(...white);
   doc.setFontSize(11);
-  doc.setFont("helvetica", "bold");
+  doc.setFont("NanumGothic", "bold");
   doc.text("레드라인AI", MARGIN + 5, 15.5);
 
   doc.setFontSize(8);
-  doc.setFont("helvetica", "normal");
+  doc.setFont("NanumGothic", "normal");
   doc.setTextColor(180, 195, 215);
   doc.text("Vendor Risk Report", MARGIN + 42, 15.5);
 
@@ -79,7 +81,7 @@ export async function downloadVendorPDF(report: VendorReport, scannedAt: string,
   /* ── Vendor name ── */
   doc.setTextColor(15, 23, 42);
   doc.setFontSize(18);
-  doc.setFont("helvetica", "bold");
+  doc.setFont("NanumGothic", "bold");
   doc.text(report.vendorName, MARGIN, y);
   y += 8;
 
@@ -90,14 +92,14 @@ export async function downloadVendorPDF(report: VendorReport, scannedAt: string,
   doc.roundedRect(MARGIN, y, 50, 9, 2, 2, "F");
   doc.setTextColor(...white);
   doc.setFontSize(10);
-  doc.setFont("helvetica", "bold");
+  doc.setFont("NanumGothic", "bold");
   doc.text(`OVERALL: ${scoreLabel}`, MARGIN + 25, y + 6, { align: "center" });
   y += 14;
 
   /* ── Overview ── */
   doc.setTextColor(60, 70, 90);
   doc.setFontSize(9.5);
-  doc.setFont("helvetica", "italic");
+  doc.setFont("NanumGothic", "italic");
   const overviewLines = wrap(report.overview, CONTENT_W, 9.5);
   overviewLines.forEach((l) => { checkPage(6); doc.text(l, MARGIN, y); y += 5; });
   y += 6;
@@ -108,7 +110,7 @@ export async function downloadVendorPDF(report: VendorReport, scannedAt: string,
   doc.roundedRect(MARGIN, y, CONTENT_W, 6, 2, 2, "F");
   doc.setTextColor(...white);
   doc.setFontSize(9);
-  doc.setFont("helvetica", "bold");
+  doc.setFont("NanumGothic", "bold");
   doc.text("EXECUTIVE SUMMARY", MARGIN + 4, y + 4.2);
   y += 9;
 
@@ -118,7 +120,7 @@ export async function downloadVendorPDF(report: VendorReport, scannedAt: string,
   doc.setFillColor(240, 244, 250);
   doc.roundedRect(MARGIN, y, CONTENT_W, summaryH, 2, 2, "F");
   doc.setTextColor(51, 65, 85);
-  doc.setFont("helvetica", "normal");
+  doc.setFont("NanumGothic", "normal");
   summaryLines.forEach((l, i) => doc.text(l, MARGIN + 4, y + 5 + i * 5));
   y += summaryH + 8;
 
@@ -148,18 +150,18 @@ export async function downloadVendorPDF(report: VendorReport, scannedAt: string,
     doc.roundedRect(MARGIN + 4, y + 4, 26, 5.5, 1, 1, "F");
     doc.setTextColor(...white);
     doc.setFontSize(7);
-    doc.setFont("helvetica", "bold");
+    doc.setFont("NanumGothic", "bold");
     doc.text(SEV_LABEL[sev], MARGIN + 17, y + 7.8, { align: "center" });
 
     // Section title
     doc.setTextColor(15, 23, 42);
     doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
+    doc.setFont("NanumGothic", "bold");
     doc.text(section.title, MARGIN + 33, y + 8);
 
     // Summary
     doc.setTextColor(40, 50, 65);
-    doc.setFont("helvetica", "normal");
+    doc.setFont("NanumGothic", "normal");
     doc.setFontSize(9);
     let cy = y + 14;
     sumLines.forEach((l) => { doc.text(l, MARGIN + 4, cy); cy += 5; });
@@ -169,11 +171,11 @@ export async function downloadVendorPDF(report: VendorReport, scannedAt: string,
       cy += 2;
       doc.setTextColor(...sevText[sev]);
       doc.setFontSize(7.5);
-      doc.setFont("helvetica", "bold");
+      doc.setFont("NanumGothic", "bold");
       doc.text("KEY FINDINGS", MARGIN + 4, cy);
       cy += 4;
       doc.setTextColor(40, 50, 65);
-      doc.setFont("helvetica", "normal");
+      doc.setFont("NanumGothic", "normal");
       doc.setFontSize(9);
       itemLines.forEach((l) => { doc.text(l, MARGIN + 4, cy); cy += 5; });
     }
@@ -187,7 +189,7 @@ export async function downloadVendorPDF(report: VendorReport, scannedAt: string,
   doc.roundedRect(MARGIN, y, CONTENT_W, 6, 2, 2, "F");
   doc.setTextColor(...white);
   doc.setFontSize(9);
-  doc.setFont("helvetica", "bold");
+  doc.setFont("NanumGothic", "bold");
   doc.text("RECOMMENDATIONS", MARGIN + 4, y + 4.2);
   y += 9;
 
@@ -197,7 +199,7 @@ export async function downloadVendorPDF(report: VendorReport, scannedAt: string,
   const recH = recLines.length * 5 + 6;
   doc.roundedRect(MARGIN, y, CONTENT_W, recH, 2, 2, "FD");
   doc.setTextColor(20, 83, 45);
-  doc.setFont("helvetica", "normal");
+  doc.setFont("NanumGothic", "normal");
   doc.setFontSize(9);
   recLines.forEach((l, i) => doc.text(l, MARGIN + 4, y + 5 + i * 5));
   y += recH + 8;
@@ -207,10 +209,10 @@ export async function downloadVendorPDF(report: VendorReport, scannedAt: string,
     checkPage(15 + report.sources.length * 4);
     doc.setTextColor(...slate);
     doc.setFontSize(8);
-    doc.setFont("helvetica", "bold");
+    doc.setFont("NanumGothic", "bold");
     doc.text("SOURCES", MARGIN, y);
     y += 4;
-    doc.setFont("helvetica", "normal");
+    doc.setFont("NanumGothic", "normal");
     doc.setFontSize(7.5);
     report.sources.forEach((s) => {
       const lines = wrap(s, CONTENT_W, 7.5);
@@ -227,7 +229,7 @@ export async function downloadVendorPDF(report: VendorReport, scannedAt: string,
     doc.line(MARGIN, FOOTER_Y - 4, PAGE_W - MARGIN, FOOTER_Y - 4);
     doc.setFontSize(7);
     doc.setTextColor(...slate);
-    doc.setFont("helvetica", "normal");
+    doc.setFont("NanumGothic", "normal");
     doc.text("Generated by 레드라인AI · getredlineai.com", MARGIN, FOOTER_Y);
     doc.text(`Page ${p} of ${pageCount}`, PAGE_W - MARGIN, FOOTER_Y, { align: "right" });
   }
