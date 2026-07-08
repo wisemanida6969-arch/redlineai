@@ -55,13 +55,13 @@ export const translations = {
     headline1:     { en: "Standard contracts for", ko: "프리랜서를 위한 계약서" },
     headlineAccent:{ en: "creative freelancers", ko: "정부 표준과 비교합니다" },
     sub:           {
-      en: "Fine art · webtoon · performance · film · craft. Draft contracts from the government's official standard forms, and check the contracts you receive against the standard to see how each clause compares — powered by Claude AI.",
-      ko: "미술·웹툰·공연·영화·공예. 문화체육관광부 표준계약서와 비교해 다른 점을 보여드립니다. 판단은 직접, 정보는 레드라인AI가.",
+      en: "Fine art · webtoon · performance · film · craft. We compare your contract against the government standard and quote the official standard text verbatim — not AI-generated opinions. You decide; we show the source.",
+      ko: "미술·웹툰·공연·영화·공예. 받은 계약서를 문체부 표준계약서와 비교해, AI가 지어낸 의견이 아닌 표준계약서 원문 그대로 보여드립니다. 판단은 직접, 근거는 원문으로.",
     },
     ctaHero:       { en: "Start Free →", ko: "무료로 비교해보기" },
     ctaPrimary:    { en: "Start Free →", ko: "무료로 시작하기 →" },
     ctaSecondary:  { en: "Browse standard contracts", ko: "표준계약서 둘러보기" },
-    noCard:        { en: "No credit card · Built on official MCST standard forms", ko: "신용카드 불필요 · 문체부 공식 표준양식 기반" },
+    noCard:        { en: "No credit card · 35 official MCST standard forms · 715 verbatim articles in our database", ko: "신용카드 불필요 · 문체부 표준계약서 35종 · 원문 조항 715개 DB 구축" },
 
     /* Category preview */
     catTitle:      { en: "Official standard contracts, organized by field", ko: "분야별 공식 표준계약서를 한 곳에" },
@@ -88,7 +88,7 @@ export const translations = {
     f1Title: { en: "Standard contract library", ko: "표준계약서 라이브러리" },
     f1Desc:  { en: "Fine art (12), webtoon (8), performance (5), film (5), craft (5) — every official MCST standard form in one place, with a direct link to the authoritative download.", ko: "미술 12종·웹툰 8종·공연 5종·영화 5종·공예 5종 — 문체부 공식 표준양식을 한 곳에서, 원본 다운로드 링크와 함께." },
     f2Title: { en: "Review against the standard", ko: "표준 대비 검토" },
-    f2Desc:  { en: "Upload a contract you were offered. AI compares it to the matching standard form and shows missing protections and clauses that differ from the standard.", ko: "제안받은 계약서를 올리면, AI가 해당 분야 표준양식과 비교해 빠진 보호 조항과 표준과 다른 조항을 표시합니다." },
+    f2Desc:  { en: "Upload a contract you were offered. AI compares it to the matching standard form, flags clauses that differ, and quotes the official standard article verbatim — with its article number — so you can show the counterparty the source, not an AI's opinion.", ko: "제안받은 계약서를 올리면 해당 분야 표준양식과 비교해 다른 조항을 표시하고, 그 자리에서 표준계약서 원문을 조항 번호와 함께 그대로 인용해 드립니다. 상대방에게 AI 의견이 아닌 '출처'를 보여주세요." },
     f3Title: { en: "Standard-form draft organizer", ko: "표준양식 기반 초안 정리 툴" },
     f3Desc:  { en: "Enter your project details and this automation tool organizes them into the official standard structure — no blank-page stress. Not legal advice.", ko: "내 프로젝트 조건만 입력하면 공식 표준 구조에 맞춰 초안을 정리해 드리는 자동화 도구입니다. 법률 자문이 아닙니다." },
     f4Title: { en: "Chat → Draft", ko: "대화 → 초안 정리" },
