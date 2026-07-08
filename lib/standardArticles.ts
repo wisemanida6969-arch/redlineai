@@ -1,4 +1,5 @@
 import type { createServiceClient } from "@/lib/supabase/server";
+import { STANDARD_CONTRACTS } from "@/lib/standardContracts";
 
 type ServiceClient = ReturnType<typeof createServiceClient>;
 
@@ -64,4 +65,91 @@ export async function findStandardArticleText(
 
   if (!data) return null;
   return { text: data.article_text, articleNo: data.article_no };
+}
+
+export interface StandardArticleSearchResult {
+  categoryTitle: string;
+  typeTitle: string;
+  articleNo: number;
+  articleTitle: string;
+  articleText: string;
+}
+
+function norm(s: string): string {
+  return s.toLowerCase().trim();
+}
+
+function titleMatches(query: string, title: { ko: string; en: string }): boolean {
+  const q = norm(query);
+  if (!q) return false;
+  const ko = norm(title.ko);
+  const en = norm(title.en);
+  return ko.includes(q) || q.includes(ko) || en.includes(q) || q.includes(en);
+}
+
+/**
+ * Free-text search over the real standard-contract article database, for the
+ * AI legal-assistant chat's search tool. Resolves `category`/`contractType`
+ * against the STANDARD_CONTRACTS catalog by fuzzy name match (the model only
+ * knows field/type names, not internal ids), infers a topic from `topic`
+ * using the same keyword mapping used to populate the table, then returns up
+ * to `limit` verbatim articles. Returns [] (never invents) when nothing
+ * resolves — the caller should tell the user no match was found.
+ */
+export async function searchStandardArticles(
+  service: ServiceClient,
+  params: { category?: string; contractType?: string; topic: string },
+  lang: "en" | "ko",
+  limit = 5,
+): Promise<StandardArticleSearchResult[]> {
+  const categories = params.category
+    ? STANDARD_CONTRACTS.filter((c) => titleMatches(params.category!, c.title))
+    : STANDARD_CONTRACTS;
+  const candidateCategories = categories.length > 0 ? categories : STANDARD_CONTRACTS;
+
+  const typeIds: string[] = [];
+  const typeById = new Map<string, { categoryTitle: string; typeTitle: string }>();
+  for (const cat of candidateCategories) {
+    const types = params.contractType
+      ? cat.types.filter((t) => titleMatches(params.contractType!, t.title))
+      : cat.types;
+    for (const t of types) {
+      typeIds.push(t.id);
+      typeById.set(t.id, {
+        categoryTitle: lang === "ko" ? cat.title.ko : cat.title.en,
+        typeTitle: lang === "ko" ? t.title.ko : t.title.en,
+      });
+    }
+  }
+  if (typeIds.length === 0) return [];
+
+  const tags = inferTopics(params.topic, "");
+  if (tags.length === 0) return [];
+
+  let query = service
+    .from("standard_articles")
+    .select("type_id, article_no, article_title, article_text")
+    .overlaps("topic_tags", tags)
+    .order("article_no", { ascending: true })
+    .limit(limit);
+
+  // Only constrain by type when the model resolved to a specific subset —
+  // searching the full catalog (all 35 types) for a topic is still useful.
+  if (typeIds.length < STANDARD_CONTRACTS.flatMap((c) => c.types).length) {
+    query = query.in("type_id", typeIds);
+  }
+
+  const { data } = await query;
+  if (!data) return [];
+
+  return data.map((row) => {
+    const meta = typeById.get(row.type_id);
+    return {
+      categoryTitle: meta?.categoryTitle ?? "",
+      typeTitle: meta?.typeTitle ?? row.type_id,
+      articleNo: row.article_no,
+      articleTitle: row.article_title,
+      articleText: row.article_text,
+    };
+  });
 }
