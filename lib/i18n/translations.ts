@@ -61,7 +61,7 @@ export const translations = {
     ctaHero:       { en: "Start Free →", ko: "무료로 비교해보기" },
     ctaPrimary:    { en: "Start Free →", ko: "무료로 시작하기 →" },
     ctaSecondary:  { en: "Browse standard contracts", ko: "표준계약서 둘러보기" },
-    noCard:        { en: "No credit card · 35 official MCST standard forms · 715 verbatim articles in our database", ko: "신용카드 불필요 · 문체부 표준계약서 35종 · 원문 조항 715개 DB 구축" },
+    noCard:        { en: "No credit card · Built on the verbatim text of official MCST standard forms", ko: "신용카드 불필요 · 문체부 표준계약서 원문 기반" },
 
     /* Category preview */
     catTitle:      { en: "Official standard contracts, organized by field", ko: "분야별 공식 표준계약서를 한 곳에" },
