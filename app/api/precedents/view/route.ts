@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { checkFeatureAccess, recordFeatureUsage } from "@/lib/passGating";
+import { checkPackageAccess } from "@/lib/packageAccess";
 
 /**
  * Serves the official 법제처 precedent HTML view. law.go.kr gates this page by
@@ -17,7 +18,17 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.redirect(new URL("/auth/login", req.url));
 
   const service = createServiceClient();
-  const access = await checkFeatureAccess(service, user.id, "precedent");
+  let access = await checkFeatureAccess(service, user.id, "precedent");
+
+  // Links inside a purchased package PDF carry ?scan=<scanId>: owning the
+  // package for that contract grants permanent precedent viewing for its
+  // links (the 24h pass alone would expire and lock the buyer's own report).
+  const scanParam = new URL(req.url).searchParams.get("scan");
+  if (!access.allowed && scanParam) {
+    const pkg = await checkPackageAccess(service, user.id, scanParam);
+    if (pkg.unlocked) access = { allowed: true, via: "pass" };
+  }
+
   if (!access.allowed) {
     return new NextResponse(lockedPage(), {
       status: 403,

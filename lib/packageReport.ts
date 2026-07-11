@@ -48,7 +48,7 @@ const DISCLAIMER = REPORT_DISCLAIMER;
 export async function buildReportPdf(
   service: ReturnType<typeof createServiceClient>,
   userId: string,
-  scan: { filename: string; summary: string; result: ScanResult; created_at: string },
+  scan: { id: string; filename: string; summary: string; result: ScanResult; created_at: string },
 ): Promise<Buffer> {
   const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
@@ -255,7 +255,9 @@ export async function buildReportPdf(
       doc.setTextColor(...slate);
       if (head) { doc.text(head, MARGIN, y); y += 4.5; }
       doc.setTextColor(29, 78, 216);
-      doc.text(`원문 보기: https://getredlineai.com/api/precedents/view?id=${r.externalId}`, MARGIN, y);
+      // ?scan= ties the link to this purchased report: the package owner can
+      // open it even after the 24h precedent pass expires (see precedents/view).
+      doc.text(`원문 보기: https://getredlineai.com/api/precedents/view?id=${r.externalId}&scan=${scan.id}`, MARGIN, y);
       y += 8;
     }
   } else if (fallbackRefs.length > 0) {
