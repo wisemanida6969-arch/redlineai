@@ -26,20 +26,28 @@ export async function GET() {
   since.setDate(since.getDate() - (WINDOW_DAYS - 1));
   since.setHours(0, 0, 0, 0);
 
-  const [{ data: events }, { count: totalUsers }, { data: recentUsers }] = await Promise.all([
+  // Admin accounts' own activity would pollute every metric (the admin is on
+  // the site constantly while building it) — exclude them everywhere.
+  const { data: adminRows } = await service.from("profiles").select("id").eq("is_admin", true);
+  const adminIds = new Set((adminRows ?? []).map((r) => r.id));
+
+  const [{ data: rawEvents }, { count: totalUsers }, { data: recentUsers }] = await Promise.all([
     service
       .from("usage_events")
       .select("user_id, email, event, created_at")
       .gte("created_at", since.toISOString())
       .order("created_at", { ascending: false })
       .limit(5000),
-    service.from("profiles").select("id", { count: "exact", head: true }),
+    service.from("profiles").select("id", { count: "exact", head: true }).not("is_admin", "is", true),
     service
       .from("profiles")
       .select("email, plan, created_at, scans_used, quote_used, agent_used, vendor_used, precedent_used")
+      .not("is_admin", "is", true)
       .order("created_at", { ascending: false })
       .limit(50),
   ]);
+
+  const events = (rawEvents ?? []).filter((e) => !adminIds.has(e.user_id));
 
   /* ── Aggregate events by day ── */
   const days: string[] = [];
