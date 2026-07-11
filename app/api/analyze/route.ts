@@ -6,7 +6,7 @@ import { getCategory, getContractType } from "@/lib/standardContracts";
 import { extractTextFromHwpx, looksLikeZip } from "@/lib/hwpxExtract";
 import { extractTextFromHwpBinary } from "@/lib/hwpBinaryExtract";
 import { CLAUDE_MODEL, extractText } from "@/lib/anthropic";
-import { findStandardArticleText } from "@/lib/standardArticles";
+import { findStandardArticleText, listArticleTitles, getArticleText } from "@/lib/standardArticles";
 import { logUsageEvent } from "@/lib/usageEvents";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -21,7 +21,18 @@ interface StandardCtx {
 }
 
 /** Extra system-prompt guidance that turns analysis into a standard-comparison review. */
-function standardNote(lang: "en" | "ko", s: StandardCtx): string {
+function standardNote(lang: "en" | "ko", s: StandardCtx, articles: { no: number; title: string }[]): string {
+  const articleList = articles.map((a) => `제${a.no}조(${a.title})`).join(", ");
+  const mappingNoteKo = articles.length > 0
+    ? `
+- 아래는 「${s.typeKo}」 표준계약서의 실제 조항 목록입니다: ${articleList}
+- 표시하는 각 조항 객체에 "stdArticleNo" 필드(숫자)를 추가하세요: 위 목록에서 해당 조항과 주제가 대응하는 표준계약서 조항 번호입니다. 대응하는 조항이 목록에 없으면 null을 넣으세요. 목록에 없는 번호를 지어내지 마세요.`
+    : "";
+  const mappingNoteEn = articles.length > 0
+    ? `
+- The actual article list of the "${s.typeEn}" standard contract: ${articleList}
+- Add a "stdArticleNo" field (number) to every flagged clause object: the article number from the list above whose subject corresponds to the clause. Use null when no listed article corresponds. Never invent numbers not in the list.`
+    : "";
   return lang === "ko"
     ? `
 
@@ -30,7 +41,7 @@ function standardNote(lang: "en" | "ko", s: StandardCtx): string {
 - 표준계약서가 통상 두는 보호 조항이 이 계약서에 없거나 약화되어 있는지 적극적으로 찾아 분류하세요: 대금 및 지급 시기·방법, 저작권·2차적저작물작성권 등 권리 귀속, 저작인격권(성명표시·동일성유지), 수정·재작업 범위와 횟수, 납품·계약 기간, 비밀유지, 계약 해지, 손해배상, 분쟁 해결.
 - 표준과 차이가 있는 조항을 우선적으로 표시하세요.
 - summary는 표준과 다른 점을 항목별로 나열하되, 「${s.typeKo}」 표준 대비 총평(예: "위험합니다", "불리합니다")은 포함하지 마세요.
-- 표준계약서 원문을 그대로 인용하지 말고, 일반적으로 알려진 표준계약서의 보호 취지를 기준으로 비교하세요. 결과는 참고용이며 사용자는 공식 표준양식과 대조해야 합니다.`
+- 표준계약서 원문을 그대로 인용하지 말고, 일반적으로 알려진 표준계약서의 보호 취지를 기준으로 비교하세요. 결과는 참고용이며 사용자는 공식 표준양식과 대조해야 합니다.${mappingNoteKo}`
     : `
 
 [Standard comparison mode]
@@ -38,7 +49,7 @@ Compare this contract against Korea MCST's "${s.categoryEn} standard contract �
 - Actively flag protections the standard usually guarantees that are missing or weakened in this contract: payment & timing, ownership of copyright / derivative-work rights, moral rights, revision scope & count, delivery/term, confidentiality, termination, damages, dispute resolution.
 - Prioritise clauses that differ from the standard.
 - List the differences from the standard in "summary" item by item — do not include an overall verdict (e.g. "this contract is risky" or "unfavorable").
-- Do not quote the official form verbatim; compare by the standard's general protective intent. Results are for reference and must be checked against the official form.`;
+- Do not quote the official form verbatim; compare by the standard's general protective intent. Results are for reference and must be checked against the official form.${mappingNoteEn}`;
 }
 
 const SYSTEM_PROMPT_EN = `You are a standard-contract comparison tool. You compare a contract's clauses against Korean government (MCST) standard-contract norms and report factual differences — you do not render legal judgments or opinions.
@@ -154,7 +165,11 @@ async function analyzeContract(
 ): Promise<object> {
   const truncated = contractText.slice(0, 15000);
   const baseSys = lang === "ko" ? SYSTEM_PROMPT_KO : SYSTEM_PROMPT_EN;
-  const sys = standard ? baseSys + standardNote(lang, standard) : baseSys;
+  // Real article list of the chosen standard: the AI maps each flagged clause
+  // to an article NUMBER only — the text itself is always quoted from the DB.
+  const articles = standard ? await listArticleTitles(service, standard.typeId) : [];
+  const validArticleNos = new Set(articles.map((a) => a.no));
+  const sys = standard ? baseSys + standardNote(lang, standard, articles) : baseSys;
   const stdLine = standard
     ? (lang === "ko" ? `(기준 표준: 문체부 「${standard.typeKo}」)\n\n` : `(Benchmark standard: MCST "${standard.typeEn}")\n\n`)
     : "";
@@ -172,24 +187,39 @@ async function analyzeContract(
   const jsonMatch = rawText.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error("Invalid AI response format");
   const data = JSON.parse(jsonMatch[0]) as {
-    high: { title: string; problem: string; fix: string; fixSource?: string }[];
-    medium: { title: string; problem: string; fix: string; fixSource?: string }[];
-    low: { title: string; problem: string; fix: string; fixSource?: string }[];
+    high: { title: string; problem: string; fix: string; fixSource?: string; stdArticleNo?: number | null }[];
+    medium: { title: string; problem: string; fix: string; fixSource?: string; stdArticleNo?: number | null }[];
+    low: { title: string; problem: string; fix: string; fixSource?: string; stdArticleNo?: number | null }[];
     [key: string]: unknown;
   };
 
   // Fill "fix" with a real verbatim standard-contract quote where one exists —
-  // the AI itself always leaves this empty (see system prompt); we never invent it.
+  // the AI never writes this text itself (see system prompt). Primary path: the
+  // AI picked an article NUMBER from the real article list; we validate it and
+  // quote that article verbatim from the DB. Fallback: keyword-topic matching.
   // "fixSource" is app-added citation metadata around the quote, never part of the quote itself.
   if (standard) {
     const typeName = lang === "ko" ? standard.typeKo : standard.typeEn;
+    const cite = (articleNo: number) => lang === "ko"
+      ? `${typeName} 표준계약서 제${articleNo}조`
+      : `${typeName} Standard Contract, Article ${articleNo}`;
+
     for (const clause of [...data.high, ...data.medium, ...data.low]) {
+      const pickedNo = typeof clause.stdArticleNo === "number" && validArticleNos.has(clause.stdArticleNo)
+        ? clause.stdArticleNo
+        : null;
+      if (pickedNo !== null) {
+        const text = await getArticleText(service, standard.typeId, pickedNo);
+        if (text) {
+          clause.fix = text;
+          clause.fixSource = cite(pickedNo);
+          continue;
+        }
+      }
       const match = await findStandardArticleText(service, standard.typeId, clause.title, clause.problem);
       if (match) {
         clause.fix = match.text;
-        clause.fixSource = lang === "ko"
-          ? `${typeName} 표준계약서 제${match.articleNo}조`
-          : `${typeName} Standard Contract, Article ${match.articleNo}`;
+        clause.fixSource = cite(match.articleNo);
       }
     }
   }

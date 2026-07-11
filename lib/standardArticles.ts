@@ -67,6 +67,34 @@ export async function findStandardArticleText(
   return { text: data.article_text, articleNo: data.article_no };
 }
 
+/** All article numbers + titles for one standard-contract type (for AI article mapping). */
+export async function listArticleTitles(
+  service: ServiceClient,
+  typeId: string,
+): Promise<{ no: number; title: string }[]> {
+  const { data } = await service
+    .from("standard_articles")
+    .select("article_no, article_title")
+    .eq("type_id", typeId)
+    .order("article_no", { ascending: true });
+  return (data ?? []).map((r) => ({ no: r.article_no, title: r.article_title }));
+}
+
+/** Verbatim text of one specific article. Null when it doesn't exist — never invented. */
+export async function getArticleText(
+  service: ServiceClient,
+  typeId: string,
+  articleNo: number,
+): Promise<string | null> {
+  const { data } = await service
+    .from("standard_articles")
+    .select("article_text")
+    .eq("type_id", typeId)
+    .eq("article_no", articleNo)
+    .maybeSingle();
+  return data?.article_text ?? null;
+}
+
 export interface StandardArticleSearchResult {
   categoryTitle: string;
   typeTitle: string;
