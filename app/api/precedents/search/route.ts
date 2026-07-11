@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { checkFeatureAccess } from "@/lib/passGating";
 
 /**
  * LIVE precedent search.
@@ -170,14 +171,21 @@ export async function GET(req: NextRequest) {
   const page = Math.max(1, Math.min(50, parseInt(sp.get("page") || "1", 10) || 1));
   if (!q) return NextResponse.json({ results: [], page, hasMore: false, source: null });
 
+  // Case numbers are part of the paid offering: without them a visitor can't
+  // just copy the number and read the ruling elsewhere. Strip them from the
+  // response (not merely hide in the UI) unless the user has precedent access.
+  const access = await checkFeatureAccess(createServiceClient(), user.id, "precedent");
+  const stripCaseNos = (results: LiveResult[]): LiveResult[] =>
+    access.allowed ? results : results.map((r) => ({ ...r, caseNo: null }));
+
   const oc = process.env.LAW_API_OC;
   if (oc) {
     const law = await searchLaw(oc, q, page);
     if (law && law.results.length > 0) {
-      return NextResponse.json({ ...law, page, source: "law", effectiveQuery: q });
+      return NextResponse.json({ ...law, results: stripCaseNos(law.results), page, source: "law", effectiveQuery: q });
     }
   }
 
   const cr = await searchCopyright(q, page);
-  return NextResponse.json({ ...cr, page, source: "copyright" });
+  return NextResponse.json({ ...cr, results: stripCaseNos(cr.results), page, source: "copyright" });
 }

@@ -284,11 +284,8 @@ function LiveCard({ p }: { p: LiveResult }) {
   return (
     <div className="bg-[#162035] border border-[#1e3050] rounded-xl p-4">
       <div className="flex items-center gap-2 flex-wrap mb-1.5">
-        {p.caseNo ? (
-          <span className="text-xs font-bold text-red-300 bg-red-900/20 border border-red-800/40 rounded px-2 py-0.5">{p.court ? `${p.court} ` : ""}{p.caseNo}</span>
-        ) : (
-          <span className="text-[10px] font-bold uppercase tracking-wide text-slate-300 bg-[#0f1a2e] border border-[#1e3050] rounded px-1.5 py-0.5">{p.court ?? t("standard.precedentsRef")}</span>
-        )}
+        {/* Case numbers are intentionally not shown in the library — full details are pass-gated. */}
+        <span className="text-[10px] font-bold uppercase tracking-wide text-slate-300 bg-[#0f1a2e] border border-[#1e3050] rounded px-1.5 py-0.5">{t("standard.precedentsRef")}</span>
         {p.date && <span className="flex items-center gap-1 text-[11px] text-slate-500"><Calendar className="w-3 h-3" />{p.date}</span>}
       </div>
       <p className="text-white text-sm font-medium mb-2">{p.title}</p>
@@ -419,8 +416,9 @@ function RelatedPrecedents({ field }: { field: string }) {
           {curated.map((p) => (
             <div key={p.id} className="bg-[#162035] border border-[#1e3050] rounded-xl p-4">
               <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                {/* Case numbers are intentionally not shown in the library — full details are pass-gated. */}
                 <span className="text-xs font-bold text-red-300 bg-red-900/20 border border-red-800/40 rounded px-2 py-0.5">
-                  {p.case_no ? `${p.court ?? ""} ${p.case_no}`.trim() : t("standard.precedentsRef")}
+                  {t("standard.precedentsRef")}
                 </span>
                 {(p.decided_on || p.registered_on) && (
                   <span className="flex items-center gap-1 text-[11px] text-slate-500"><Calendar className="w-3 h-3" />{p.decided_on || p.registered_on}</span>
