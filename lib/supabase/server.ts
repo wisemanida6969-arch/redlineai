@@ -36,6 +36,12 @@ export function createServiceClient() {
         autoRefreshToken: false,
         persistSession: false,
       },
+      global: {
+        // Next.js patches global fetch and can cache GETs made inside route
+        // handlers — a stale "empty" result would keep a paid unlock invisible.
+        // Database reads must never be served from the fetch cache.
+        fetch: (url, init) => fetch(url, { ...init, cache: "no-store" }),
+      },
     }
   );
 }

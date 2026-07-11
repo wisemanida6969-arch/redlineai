@@ -53,6 +53,64 @@ export async function fetchPrecedentTitles(query: string, limit = 6): Promise<Pr
   }
 }
 
+export interface LawPrecedentRef {
+  /** 법제처 판례일련번호 */
+  externalId: string;
+  caseNo: string | null;
+  title: string;
+  court: string | null;
+  date: string | null;
+}
+
+/**
+ * Search the official 법제처 국가법령정보 precedent API (directly or via the
+ * Korea-hosted proxy) and return rich rows including case numbers. Returns []
+ * when the API is not configured or fails — callers should fall back to
+ * fetchPrecedentTitles.
+ */
+export async function fetchLawPrecedents(query: string, limit = 5): Promise<LawPrecedentRef[]> {
+  const oc = process.env.LAW_API_OC;
+  const proxyUrl = process.env.LAW_PROXY_URL;
+  const proxyKey = process.env.LAW_PROXY_KEY;
+  if (!query.trim() || (!oc && !proxyUrl)) return [];
+
+  const url = proxyUrl
+    ? `${proxyUrl.replace(/\/$/, "")}/prec/search?query=${encodeURIComponent(query)}&page=1`
+    : `https://www.law.go.kr/DRF/lawSearch.do?OC=${encodeURIComponent(oc!)}&target=prec&type=JSON&search=2&display=${limit}&page=1&query=${encodeURIComponent(query)}`;
+
+  try {
+    const res = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0", ...(proxyUrl && proxyKey ? { "x-proxy-key": proxyKey } : {}) },
+      next: { revalidate: 3600 },
+      signal: AbortSignal.timeout(12000),
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    const root = data?.PrecSearch ?? data?.precSearch;
+    if (!root) return [];
+    let precs = root.prec ?? root.Prec ?? [];
+    if (!Array.isArray(precs)) precs = precs ? [precs] : [];
+
+    const fmtDate = (s: string) => {
+      const m = (s || "").match(/^(\d{4})(\d{2})(\d{2})$/);
+      return m ? `${m[1]}-${m[2]}-${m[3]}` : (s || null);
+    };
+
+    return (precs as Record<string, unknown>[])
+      .map((p): LawPrecedentRef => ({
+        externalId: String(p["판례일련번호"] ?? "").trim(),
+        caseNo: String(p["사건번호"] ?? "").trim() || null,
+        title: String(p["사건명"] ?? "").trim(),
+        court: String(p["법원명"] ?? "").trim() || null,
+        date: fmtDate(String(p["선고일자"] ?? "").trim()),
+      }))
+      .filter((r) => r.externalId && r.title)
+      .slice(0, limit);
+  } catch {
+    return [];
+  }
+}
+
 /** Catalog field id → a good copyright-DB search keyword. */
 export const FIELD_PRECEDENT_KEYWORD: Record<string, string> = {
   art: "미술",

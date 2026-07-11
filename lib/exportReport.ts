@@ -23,7 +23,11 @@ export interface AnalysisResult {
   /** AI-suggested keywords for finding related court precedents */
   precedentQueries?: string[];
   /** User's plan at scan time (kept for reference; precedent access is now pass/quota-gated) */
-  plan?: "free" | "member";
+  plan?: "free" | "member" | "pro";
+  /** DB id of the saved scan — ties 사인 전 패키지 purchases/PDF downloads to this contract. */
+  scanId?: string | null;
+  articleCount?: number;
+  standardInfo?: { typeId: string; typeKo: string; categoryKo: string } | null;
 }
 
 const SEVERITY_LABEL: Record<string, string> = {

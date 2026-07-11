@@ -312,16 +312,26 @@ export async function POST(req: NextRequest) {
       low: unknown[];
     };
 
+    // Count "제N조" article headings in the uploaded contract (for the report summary).
+    const articleCount = (contractText.match(/(?:^|\n)\s*제\s*\d+\s*조/g) ?? []).length;
+    const resultToSave = {
+      ...analysisData,
+      articleCount,
+      standardInfo: standard
+        ? { typeId: standard.typeId, typeKo: standard.typeKo, categoryKo: standard.categoryKo }
+        : null,
+    };
+
     // ── Save scan to DB ──
-    await serviceClient.from("scans").insert({
+    const { data: savedScan } = await serviceClient.from("scans").insert({
       user_id: user.id,
       filename,
       high_count: analysisData.high?.length ?? 0,
       medium_count: analysisData.medium?.length ?? 0,
       low_count: analysisData.low?.length ?? 0,
       summary: analysisData.summary,
-      result: analysisData,
-    });
+      result: resultToSave,
+    }).select("id").single();
 
     // ── Update scan count ──
     await serviceClient.from("profiles").update({
@@ -335,7 +345,8 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({
-      ...analysisData,
+      ...resultToSave,
+      scanId: savedScan?.id ?? null,
       plan,
       scannedAt: new Date().toISOString(),
       extractionMethod,

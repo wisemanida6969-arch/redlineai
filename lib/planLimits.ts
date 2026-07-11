@@ -7,18 +7,20 @@
 /*  and lib/monetization.ts.                                           */
 /* ------------------------------------------------------------------ */
 
-export type Plan = "free" | "member";
+export type Plan = "free" | "member" | "pro";
 export type FeatureKey = "standard" | "analysis" | "quote" | "agent";
 
 /** null = unlimited, 0 = locked, number = monthly limit. */
 export const PLAN_LIMITS: Record<Plan, Record<FeatureKey, number | null>> = {
   free:   { standard: null, analysis: null, quote: null, agent: null },
   member: { standard: null, analysis: null, quote: null, agent: null },
+  pro:    { standard: null, analysis: null, quote: null, agent: null },
 };
 
 export const PLAN_PRICES = {
-  free:   { price: 0,    label: "Free" },
-  member: { price: 9900, label: "Member" },
+  free:   { price: 0,     label: "Free" },
+  member: { price: 9900,  label: "Member" },
+  pro:    { price: 49900, label: "Pro" },
 };
 
 export const FEATURE_LABELS: Record<FeatureKey, string> = {

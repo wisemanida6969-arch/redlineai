@@ -8,8 +8,8 @@ import {
 } from "lucide-react";
 import { useT } from "@/lib/i18n/LanguageProvider";
 import { STANDARD_CONTRACTS, TOTAL_CONTRACT_COUNT, TOTAL_CATEGORY_COUNT, type Bi } from "@/lib/standardContracts";
-import { PADDLE_MEMBER_PRICE_ID, PADDLE_PRECEDENT_PASS_PRICE_ID, PADDLE_VENDOR_PASS_PRICE_ID } from "@/lib/paddle";
-import { PASS_PRICE_KRW, MEMBER_PRICE_KRW, MEMBER_MONTHLY_QUOTA, BETA_END_DATE } from "@/lib/monetization";
+import { PADDLE_PRO_PRICE_ID, PADDLE_PRECEDENT_PASS_PRICE_ID, PADDLE_VENDOR_PASS_PRICE_ID } from "@/lib/paddle";
+import { PASS_PRICE_KRW, PACKAGE_PRICE_KRW, PRO_PRICE_KRW, BETA_END_DATE } from "@/lib/monetization";
 
 export default function Home() {
   const { t, lang } = useT();
@@ -198,20 +198,47 @@ export default function Home() {
               paddlePriceId={PADDLE_VENDOR_PASS_PRICE_ID}
             />
             <PricingCard
-              name={t("pass.joinMember")}
-              price={`₩${MEMBER_PRICE_KRW.toLocaleString()}`}
-              period={`/ ${t("pass.perMonth")}`}
-              desc={t("landing.planMemberDesc")}
+              name={t("landing.planPackageName")}
+              price={`₩${PACKAGE_PRICE_KRW.toLocaleString()}`}
+              period={t("landing.planPackagePer")}
+              desc={t("landing.planPackageDesc")}
               features={[
-                `${t("landing.featPrecedentHolding")}: ${MEMBER_MONTHLY_QUOTA.precedent}${t("landing.featPerMonth")}`,
-                `${t("landing.featVendorRiskScan")}: ${MEMBER_MONTHLY_QUOTA.vendor}${t("landing.featPerMonth")}`,
+                t("landing.featPackagePdf"),
+                t("landing.featPackageStandard"),
+                t("landing.featPackagePrecedent"),
+                t("landing.featPackageVendor"),
+                t("landing.featPackageUnlock"),
               ]}
-              cta={t("pass.joinMember")}
+              cta={t("landing.ctaPackage")}
               href="/dashboard"
               highlighted={true}
-              paddlePriceId={PADDLE_MEMBER_PRICE_ID}
-              mostPopular={t("landing.mostPopular")}
+              mostPopular={t("landing.recommended")}
             />
+          </div>
+
+          {/* ── Pro plan (agencies/teams) — visually separated from the personal tiers ── */}
+          <div className="mt-10 pt-8 border-t border-[#1e3050]">
+            <div className="bg-[#162035] border border-[#2a3d5f] rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center gap-5 justify-between">
+              <div>
+                <p className="text-slate-400 text-sm mb-1">{t("landing.proBanner")}</p>
+                <div className="flex items-baseline gap-2 flex-wrap mb-2">
+                  <h3 className="text-white font-bold text-xl">{t("landing.proName")}</h3>
+                  <span className="text-white font-bold text-lg">₩{PRO_PRICE_KRW.toLocaleString()}</span>
+                  <span className="text-slate-400 text-sm">{t("pass.perMonth")}</span>
+                </div>
+                <ul className="text-slate-400 text-sm space-y-1">
+                  <li className="flex items-center gap-2"><CheckCircle className="w-3.5 h-3.5 text-green-400 shrink-0" />{t("landing.featProQuota")}</li>
+                  <li className="flex items-center gap-2"><CheckCircle className="w-3.5 h-3.5 text-green-400 shrink-0" />{t("landing.featProOverage")}</li>
+                  <li className="flex items-center gap-2"><CheckCircle className="w-3.5 h-3.5 text-green-400 shrink-0" />{t("landing.featProReset")}</li>
+                </ul>
+              </div>
+              <PaddleCheckout
+                priceId={PADDLE_PRO_PRICE_ID}
+                className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-xl text-sm transition-colors shrink-0"
+              >
+                {t("landing.ctaProPlan")}
+              </PaddleCheckout>
+            </div>
           </div>
         </div>
       </section>

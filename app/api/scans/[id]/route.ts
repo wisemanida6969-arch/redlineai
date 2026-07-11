@@ -20,6 +20,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   const result = scan.result as { high?: unknown[]; medium?: unknown[]; low?: unknown[]; summary?: string };
   return NextResponse.json({
     ...result,
+    scanId: scan.id,
     scannedAt: scan.created_at,
     filename: scan.filename,
   });

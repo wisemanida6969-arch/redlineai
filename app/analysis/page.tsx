@@ -1,13 +1,23 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
-import { AlertTriangle, Info, CheckCircle, Copy, Check, Download, ArrowLeft, Shield, FileText, Loader2, ChevronDown, MessageCircle } from "lucide-react";
+import { AlertTriangle, Info, CheckCircle, Copy, Check, Download, ArrowLeft, Shield, FileText, Loader2, ChevronDown, MessageCircle, Package } from "lucide-react";
 import { downloadPDF, downloadDOCX, type AnalysisResult } from "@/lib/exportReport";
 import AppFooter from "@/components/AppFooter";
 import PrecedentSearch from "@/components/PrecedentSearch";
+import PaddleCheckout from "@/components/PaddleCheckout";
+import { PADDLE_PACKAGE_PRICE_ID, PADDLE_PRO_OVERAGE_PRICE_ID } from "@/lib/paddle";
+import { PACKAGE_PRICE_KRW, PRO_MONTHLY_QUOTA, PRO_OVERAGE_PRICE_KRW } from "@/lib/monetization";
 import { Scale } from "lucide-react";
 import { useT } from "@/lib/i18n/LanguageProvider";
+
+interface PackageAccess {
+  unlocked: boolean;
+  via: "purchase" | "pro" | "admin" | null;
+  proRemaining?: number;
+  proQuotaExceeded?: boolean;
+}
 
 function buildClientMessage(clause: { title: string; fix: string; fixSource?: string }, lang: "en" | "ko"): string {
   const quoteLabel = clause.fixSource ? `${clause.fixSource}` : (lang === "ko" ? "표준계약서 원문" : "Standard contract text");
@@ -32,11 +42,94 @@ export default function AnalysisPage() {
   const [dropOpen, setDropOpen] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
 
+  const [pkg, setPkg] = useState<PackageAccess | null>(null);
+  const [pkgBusy, setPkgBusy] = useState(false);
+  const [pkgError, setPkgError] = useState("");
+
   useEffect(() => {
     const raw = sessionStorage.getItem("redlineai_result");
     if (!raw) { router.push("/dashboard"); return; }
     try { setResult(JSON.parse(raw)); } catch { router.push("/dashboard"); }
   }, [router]);
+
+  const refreshPkg = useCallback(async (scanId: string) => {
+    try {
+      const r = await fetch(`/api/report/${scanId}?check=1`);
+      if (r.ok) setPkg(await r.json());
+    } catch { /* leave pkg as-is */ }
+  }, []);
+
+  // Check package unlock status once the result (with its scan id) is loaded.
+  useEffect(() => {
+    if (result?.scanId) refreshPkg(result.scanId);
+  }, [result?.scanId, refreshPkg]);
+
+  // Returning from a completed package checkout (?purchased=1): the webhook can
+  // lag a few seconds behind the redirect, so poll the unlock status briefly.
+  useEffect(() => {
+    if (!result?.scanId) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("purchased") !== "1") return;
+    (window as unknown as { gtag?: (...a: unknown[]) => void }).gtag?.("event", "purchase", {
+      transaction_id: `${Date.now()}`,
+      currency: "KRW",
+      items: [{ item_id: "package" }],
+    });
+    router.replace("/analysis");
+    const scanId = result.scanId;
+    let tries = 0;
+    const timer = setInterval(async () => {
+      tries += 1;
+      await refreshPkg(scanId);
+      if (tries >= 6) clearInterval(timer);
+    }, 2500);
+    return () => clearInterval(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result?.scanId]);
+
+  const usePro = async () => {
+    if (!result?.scanId) return;
+    setPkgBusy(true); setPkgError("");
+    try {
+      const r = await fetch(`/api/report/${result.scanId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "use_pro" }),
+      });
+      if (!r.ok) {
+        setPkgError(lang === "ko" ? "잠금 해제에 실패했습니다. 잠시 후 다시 시도해 주세요." : "Unlock failed. Please try again.");
+        return;
+      }
+      await refreshPkg(result.scanId);
+    } finally {
+      setPkgBusy(false);
+    }
+  };
+
+  const downloadPackageReport = async () => {
+    if (!result?.scanId) return;
+    setPkgBusy(true); setPkgError("");
+    try {
+      const r = await fetch(`/api/report/${result.scanId}`);
+      if (!r.ok) {
+        setPkgError(lang === "ko" ? "리포트 생성에 실패했습니다. 잠시 후 다시 시도해 주세요." : "Report generation failed. Please try again shortly.");
+        return;
+      }
+      const blob = await r.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `redlineai-package-report-${new Date(result.scannedAt).toISOString().slice(0, 10)}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch {
+      setPkgError(lang === "ko" ? "리포트 생성에 실패했습니다. 잠시 후 다시 시도해 주세요." : "Report generation failed. Please try again shortly.");
+    } finally {
+      setPkgBusy(false);
+    }
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -201,6 +294,100 @@ export default function AnalysisPage() {
           </div>
           <p className="text-slate-300 text-sm leading-relaxed">{result.summary}</p>
         </div>
+
+        {/* ── 사인 전 패키지 ── */}
+        {result.scanId && (
+          <div className={`mb-8 rounded-2xl p-5 border ${pkg?.unlocked ? "bg-green-900/10 border-green-800/40" : "bg-gradient-to-br from-red-900/20 to-[#162035] border-red-700/40"}`}>
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <Package className={`w-4 h-4 ${pkg?.unlocked ? "text-green-400" : "text-red-400"}`} />
+              <span className="text-white font-bold text-sm">{lang === "ko" ? "사인 전 패키지" : "Pre-sign Package"}</span>
+              {!pkg?.unlocked && (
+                <span className="text-[10px] font-bold uppercase tracking-wide text-red-300 bg-red-900/40 border border-red-700/40 rounded px-1.5 py-0.5">
+                  {lang === "ko" ? "추천" : "Recommended"}
+                </span>
+              )}
+              {pkg?.unlocked && (
+                <span className="text-[10px] font-bold uppercase tracking-wide text-green-300 bg-green-900/30 border border-green-700/40 rounded px-1.5 py-0.5">
+                  {lang === "ko" ? "이 계약서 건 이용 가능" : "Unlocked for this contract"}
+                </span>
+              )}
+            </div>
+
+            {pkg?.unlocked ? (
+              <div>
+                <p className="text-slate-300 text-sm mb-3">
+                  {lang === "ko"
+                    ? "이 계약서 건의 전체 PDF 리포트를 내려받을 수 있습니다. 조항별 표준계약서 원문, 관련 판례, 리스크 검색 결과가 포함됩니다."
+                    : "Download the full PDF report for this contract — standard-contract article text per clause, related precedents, and the vendor-risk result."}
+                </p>
+                <button
+                  onClick={downloadPackageReport}
+                  disabled={pkgBusy}
+                  className="flex items-center gap-2 bg-green-700 hover:bg-green-600 disabled:opacity-60 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-colors"
+                >
+                  {pkgBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                  {lang === "ko" ? "PDF 리포트 다운로드" : "Download PDF report"}
+                </button>
+              </div>
+            ) : (
+              <div>
+                <ul className="text-slate-300 text-sm space-y-1 mb-3">
+                  {(lang === "ko"
+                    ? ["비교 결과 전체 PDF 리포트", "상이 조항별 문체부 표준계약서 원문 첨부", "관련 판례 정보 포함", "리스크 검색 결과 포함", "판례·리스크 기능 24시간 잠금 해제"]
+                    : ["Full comparison PDF report", "Verbatim MCST standard article per differing clause", "Related court precedents", "Vendor-risk result included", "Precedent & risk features unlocked for 24h"]
+                  ).map((f) => (
+                    <li key={f} className="flex items-center gap-2">
+                      <CheckCircle className="w-3.5 h-3.5 text-green-400 shrink-0" /> {f}
+                    </li>
+                  ))}
+                </ul>
+
+                {pkg?.proRemaining !== undefined && !pkg?.proQuotaExceeded ? (
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <button
+                      onClick={usePro}
+                      disabled={pkgBusy}
+                      className="flex items-center gap-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-colors"
+                    >
+                      {pkgBusy && <Loader2 className="w-4 h-4 animate-spin" />}
+                      {lang === "ko" ? "프로 플랜으로 잠금 해제" : "Unlock with Pro plan"}
+                    </button>
+                    <span className="text-slate-400 text-xs">
+                      {lang === "ko" ? `이번 달 잔여 ${pkg.proRemaining} / ${PRO_MONTHLY_QUOTA}건` : `${pkg.proRemaining} / ${PRO_MONTHLY_QUOTA} left this month`}
+                    </span>
+                  </div>
+                ) : pkg?.proQuotaExceeded ? (
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <PaddleCheckout
+                      priceId={PADDLE_PRO_OVERAGE_PRICE_ID}
+                      scanId={result.scanId}
+                      className="bg-red-600 hover:bg-red-700 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-colors"
+                    >
+                      {lang === "ko" ? `이 계약서 건 잠금 해제 — ₩${PRO_OVERAGE_PRICE_KRW.toLocaleString()}` : `Unlock this contract — ₩${PRO_OVERAGE_PRICE_KRW.toLocaleString()}`}
+                    </PaddleCheckout>
+                    <span className="text-slate-400 text-xs">
+                      {lang === "ko" ? `이번 달 ${PRO_MONTHLY_QUOTA}건을 모두 사용했습니다` : `All ${PRO_MONTHLY_QUOTA} monthly unlocks used`}
+                    </span>
+                  </div>
+                ) : (
+                  <PaddleCheckout
+                    priceId={PADDLE_PACKAGE_PRICE_ID}
+                    scanId={result.scanId}
+                    className="bg-red-600 hover:bg-red-700 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-colors"
+                  >
+                    {lang === "ko" ? `이 계약서 1건 — ₩${PACKAGE_PRICE_KRW.toLocaleString()}` : `This contract — ₩${PACKAGE_PRICE_KRW.toLocaleString()}`}
+                  </PaddleCheckout>
+                )}
+              </div>
+            )}
+
+            {pkgError && (
+              <p className="mt-3 text-red-400 text-xs flex items-center gap-1.5">
+                <AlertTriangle className="w-3.5 h-3.5 shrink-0" /> {pkgError}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Filter tabs — scrollable on mobile */}
         <div className="overflow-x-auto mb-6">

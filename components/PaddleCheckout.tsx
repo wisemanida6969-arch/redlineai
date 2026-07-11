@@ -8,9 +8,11 @@ interface Props {
   priceId: string;
   className?: string;
   children: React.ReactNode;
+  /** Ties a one-time package purchase to a specific scan (webhook reads customData.scan_id). */
+  scanId?: string;
 }
 
-export default function PaddleCheckout({ priceId, className, children }: Props) {
+export default function PaddleCheckout({ priceId, className, children, scanId }: Props) {
   const [paddle, setPaddle] = useState<Paddle | undefined>();
   const [loading, setLoading] = useState(false);
   const [userInfo, setUserInfo] = useState<{ email: string; userId: string } | null>(null);
@@ -53,16 +55,18 @@ export default function PaddleCheckout({ priceId, className, children }: Props) 
     paddle.Checkout.open({
       items: [{ priceId, quantity: 1 }],
       customer: { email: userInfo.email },
-      customData: { user_id: userInfo.userId },
+      customData: scanId ? { user_id: userInfo.userId, scan_id: scanId } : { user_id: userInfo.userId },
       settings: {
         theme: "dark",
-        successUrl: `${window.location.origin}/dashboard?upgraded=1&price_id=${encodeURIComponent(priceId)}`,
+        successUrl: scanId
+          ? `${window.location.origin}/analysis?purchased=1`
+          : `${window.location.origin}/dashboard?upgraded=1&price_id=${encodeURIComponent(priceId)}`,
         displayMode: "overlay",
       },
     });
     // Paddle.js will overlay; reset loading after a moment
     setTimeout(() => setLoading(false), 1500);
-  }, [paddle, priceId, userInfo]);
+  }, [paddle, priceId, userInfo, scanId]);
 
   return (
     <button

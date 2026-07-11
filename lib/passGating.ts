@@ -10,7 +10,7 @@ const USED_COLUMN: Record<PassFeature, "precedent_used" | "vendor_used"> = {
 
 export interface FeatureAccessResult {
   allowed: boolean;
-  via: "pass" | "member" | "admin" | null;
+  via: "pass" | "member" | "pro" | "admin" | null;
   reason?: "no_access" | "quota_exceeded";
   remaining?: number;
   limit?: number;
@@ -34,6 +34,10 @@ export async function checkFeatureAccess(
     .single();
 
   if (profile?.is_admin) return { allowed: true, via: "admin" };
+
+  // Pro subscribers get precedent/vendor access as part of the plan
+  // (the monthly 10-unlock quota applies to PDF package unlocks, not these).
+  if (profile?.plan === "pro") return { allowed: true, via: "pro" };
 
   const { data: pass } = await service
     .from("feature_passes")
