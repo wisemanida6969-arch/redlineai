@@ -19,7 +19,7 @@ interface LiveResult {
 function LiveCard({ p }: { p: LiveResult }) {
   const { t } = useT();
   const [open, setOpen] = useState(false);
-  const [detail, setDetail] = useState<{ issue: string; summary: string } | null>(null);
+  const [detail, setDetail] = useState<{ issue: string; summary: string; body: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState(false);
   const [locked, setLocked] = useState(false);
@@ -34,7 +34,7 @@ function LiveCard({ p }: { p: LiveResult }) {
       if (r.status === 403) { setLocked(true); return; }
       const d = await r.json();
       if (d?.locked) { setLocked(true); return; }
-      if (d && (d.issue || d.summary)) setDetail({ issue: d.issue || "", summary: d.summary || "" });
+      if (d && (d.issue || d.summary || d.body)) setDetail({ issue: d.issue || "", summary: d.summary || "", body: d.body || "" });
       else setErr(true);
     } catch { setErr(true); } finally { setLoading(false); }
   };
@@ -67,6 +67,7 @@ function LiveCard({ p }: { p: LiveResult }) {
             <div className="space-y-2">
               {detail.issue && (<div><p className="text-slate-400 text-[11px] font-bold mb-0.5">{t("standard.precedentsIssue")}</p><p className="text-slate-300 text-xs whitespace-pre-wrap leading-relaxed">{detail.issue}</p></div>)}
               {detail.summary && (<div><p className="text-slate-400 text-[11px] font-bold mb-0.5">{t("standard.precedentsHolding")}</p><p className="text-slate-300 text-xs whitespace-pre-wrap leading-relaxed">{detail.summary}</p></div>)}
+              {!detail.issue && !detail.summary && detail.body && (<div><p className="text-slate-400 text-[11px] font-bold mb-0.5">{t("standard.precedentsBody")}</p><p className="text-slate-300 text-xs whitespace-pre-wrap leading-relaxed">{detail.body}</p></div>)}
             </div>
           )}
         </div>

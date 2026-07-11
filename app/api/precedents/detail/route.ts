@@ -64,9 +64,14 @@ export async function GET(req: NextRequest) {
     const issue = clean(root["판시사항"]).slice(0, 2000);
     const summary = clean(root["판결요지"]).slice(0, 4000);
     const refLaw = clean(root["참조조문"]).slice(0, 1500);
+    // Lower-court precedents often have no 판시사항/판결요지 in the source data
+    // (those digests mostly exist for Supreme Court cases) — fall back to an
+    // excerpt of the full ruling text so the reader still gets real content.
+    const body = !issue && !summary ? clean(root["판례내용"]).slice(0, 3000) : "";
     return NextResponse.json({
       issue,
       summary,
+      body,
       refLaw,
       caseNo: clean(root["사건번호"]) || null,
       court: clean(root["법원명"]) || null,

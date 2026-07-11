@@ -334,6 +334,7 @@ export const translations = {
     precedentsLoading:    { en: "Loading precedents…", ko: "판례 불러오는 중…" },
     precedentsNone:       { en: "No precedents registered for this field yet.", ko: "이 분야에 등록된 판례가 아직 없습니다." },
     precedentsSource:     { en: "View official source", ko: "공식 출처에서 보기" },
+    precedentsBody:       { en: "Ruling text (excerpt)", ko: "판결문 전문 (일부)" },
     precedentsGeneral:    { en: "All fields", ko: "전 분야 공통" },
     precedentsRef:        { en: "Precedent", ko: "판례" },
     precedentsCount:      { en: "cases", ko: "건" },
