@@ -274,9 +274,16 @@ export default function AnalysisPage() {
         )}
 
         {/* Standard-comparison notice */}
-        <div className="mb-6 flex items-center gap-2 text-slate-400 text-sm bg-[#162035] border border-[#1e3050] rounded-xl px-4 py-3">
+        <div className="mb-6 flex items-center gap-2 text-slate-400 text-sm bg-[#162035] border border-[#1e3050] rounded-xl px-4 py-3 flex-wrap">
           <Info className="w-4 h-4 shrink-0 text-slate-500" />
-          {lang === "ko" ? "아래는 정부 표준계약서와의 비교 정보입니다." : "Below is a comparison against the government standard contract."}
+          <span>{lang === "ko" ? "아래는 정부 표준계약서와의 비교 정보입니다." : "Below is a comparison against the government standard contract."}</span>
+          {result.standardInfo && (
+            <span className="text-xs text-slate-300 bg-[#0f1a2e] border border-[#1e3050] rounded-full px-2.5 py-1">
+              {lang === "ko"
+                ? `비교 기준: ${result.standardInfo.categoryKo} · ${result.standardInfo.typeKo}${result.standardInfo.autoMatched ? " (자동 선택)" : ""}`
+                : `Benchmark: ${result.standardInfo.categoryKo} · ${result.standardInfo.typeKo}${result.standardInfo.autoMatched ? " (auto-selected)" : ""}`}
+            </span>
+          )}
         </div>
 
         {/* Score cards */}

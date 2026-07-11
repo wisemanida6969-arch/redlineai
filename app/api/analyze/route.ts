@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { PLAN_LIMITS, type Plan } from "@/lib/planLimits";
-import { getCategory, getContractType } from "@/lib/standardContracts";
+import { STANDARD_CONTRACTS, getCategory, getContractType } from "@/lib/standardContracts";
 import { extractTextFromHwpx, looksLikeZip } from "@/lib/hwpxExtract";
 import { extractTextFromHwpBinary } from "@/lib/hwpBinaryExtract";
 import { CLAUDE_MODEL, extractText } from "@/lib/anthropic";
@@ -155,6 +155,49 @@ async function extractTextFromDocx(buffer: Buffer): Promise<string> {
   const mammoth = (await import("mammoth")).default;
   const result = await mammoth.extractRawText({ buffer });
   return result.value?.trim() || "";
+}
+
+/**
+ * Auto-detect which MCST standard contract the uploaded contract corresponds
+ * to (same catalog-classification pattern as quote-to-contract). Returns null
+ * for deals unrelated to the creative fields — the review then runs in the
+ * generic mode without standard-text quoting.
+ */
+async function detectStandardFromContract(contractText: string): Promise<{ categoryId: string; typeId: string } | null> {
+  const catalog = STANDARD_CONTRACTS.flatMap((c) =>
+    c.types.map((tp) => ({ categoryId: c.id, typeId: tp.id, label: `${c.title.ko} / ${tp.title.ko} — ${tp.desc.ko}` })),
+  );
+  const list = catalog.map((x) => `[${x.categoryId}/${x.typeId}] ${x.label}`).join("\n");
+
+  const sys = `당신은 한국 창작 분야 계약 분류 전문가입니다. 아래 문화체육관광부 표준계약서 목록 중에서 주어진 계약서에 가장 적합한 표준계약서 하나를 고릅니다.
+
+목록:
+${list}
+
+규칙:
+- 반드시 JSON만 반환: {"categoryId":"<값>","typeId":"<값>"}
+- categoryId/typeId 는 위 목록의 대괄호 안 값과 정확히 일치해야 합니다.
+- 창작 분야(미술/웹툰/공연/영화/공예)와 명백히 무관한 일반 거래(예: 순수 소프트웨어 개발, 단순 물품 구매, 마케팅 대행 등)면 {"categoryId":null,"typeId":null} 을 반환하세요.
+- 설명 금지, JSON만.`;
+
+  try {
+    const msg = await client.messages.create({
+      model: CLAUDE_MODEL,
+      max_tokens: 200,
+      thinking: { type: "disabled" },
+      system: sys,
+      messages: [{ role: "user", content: `계약서 내용:\n${contractText.slice(0, 3000)}` }],
+    });
+    const raw = extractText(msg);
+    const m = raw.match(/\{[\s\S]*\}/);
+    if (!m) return null;
+    const parsed = JSON.parse(m[0]) as { categoryId?: string | null; typeId?: string | null };
+    if (!parsed.categoryId || !parsed.typeId) return null;
+    if (!getContractType(parsed.categoryId, parsed.typeId)) return null; // validate against catalog
+    return { categoryId: parsed.categoryId, typeId: parsed.typeId };
+  } catch {
+    return null;
+  }
 }
 
 async function analyzeContract(
@@ -334,6 +377,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Could not extract text from the document" }, { status: 400 });
     }
 
+    // ── No standard chosen → auto-detect the matching MCST form from the text ──
+    let autoMatched = false;
+    if (!standard) {
+      const detected = await detectStandardFromContract(contractText);
+      if (detected) {
+        const cat = getCategory(detected.categoryId);
+        const type = getContractType(detected.categoryId, detected.typeId);
+        if (cat && type) {
+          standard = {
+            categoryKo: cat.title.ko, categoryEn: cat.title.en,
+            typeKo: type.title.ko,    typeEn: type.title.en,
+            partiesKo: type.parties.ko, partiesEn: type.parties.en,
+            typeId: type.id,
+          };
+          autoMatched = true;
+        }
+      }
+    }
+
     // ── AI Analysis ──
     const analysisData = await analyzeContract(contractText, lang, standard, serviceClient) as {
       summary: string;
@@ -348,7 +410,7 @@ export async function POST(req: NextRequest) {
       ...analysisData,
       articleCount,
       standardInfo: standard
-        ? { typeId: standard.typeId, typeKo: standard.typeKo, categoryKo: standard.categoryKo }
+        ? { typeId: standard.typeId, typeKo: standard.typeKo, categoryKo: standard.categoryKo, autoMatched }
         : null,
     };
 

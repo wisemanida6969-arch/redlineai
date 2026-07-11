@@ -27,7 +27,7 @@ export interface AnalysisResult {
   /** DB id of the saved scan — ties 사인 전 패키지 purchases/PDF downloads to this contract. */
   scanId?: string | null;
   articleCount?: number;
-  standardInfo?: { typeId: string; typeKo: string; categoryKo: string } | null;
+  standardInfo?: { typeId: string; typeKo: string; categoryKo: string; autoMatched?: boolean } | null;
 }
 
 const SEVERITY_LABEL: Record<string, string> = {

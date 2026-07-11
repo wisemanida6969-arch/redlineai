@@ -16,7 +16,7 @@ import UsageCounter from "@/components/UsageCounter";
 import AppFooter from "@/components/AppFooter";
 import { useT } from "@/lib/i18n/LanguageProvider";
 import { type Plan, type FeatureKey, hasAccess, isOverLimit } from "@/lib/planLimits";
-import { getCategory, getContractType } from "@/lib/standardContracts";
+import { STANDARD_CONTRACTS, getCategory, getContractType } from "@/lib/standardContracts";
 
 interface ScanRecord {
   id: string;
@@ -45,6 +45,8 @@ export default function Dashboard() {
   const [feature, setFeature] = useState<Feature>("standard");
   // Standard form chosen from the library, carried into Review / Draft tabs.
   const [seededStandard, setSeededStandard] = useState<{ categoryId: string; typeId: string } | null>(null);
+  // Manual standard picker on the review tab (category half of the two-step select).
+  const [pickerCat, setPickerCat] = useState("");
   const [mode, setMode] = useState<"upload" | "paste">("upload");
   const [file, setFile] = useState<File | null>(null);
   const [text, setText] = useState("");
@@ -272,6 +274,40 @@ export default function Dashboard() {
           <>
             <UsageCounter plan={plan} feature="analysis" used={usage.analysis} />
             {renderStandardBanner("review")}
+
+            {/* No standard picked → auto-detect notice + manual picker */}
+            {!seededStandard && (
+              <div className="mb-5 bg-[#162035] border border-[#1e3050] rounded-xl px-4 py-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <Library className="w-4 h-4 text-red-400 shrink-0" />
+                  <p className="text-white text-sm font-medium">{t("dashboard.autoDetectTitle")}</p>
+                </div>
+                <p className="text-slate-400 text-xs mb-3">{t("dashboard.autoDetectDesc")}</p>
+                <div className="flex gap-2 flex-wrap">
+                  <select
+                    value={pickerCat}
+                    onChange={(e) => setPickerCat(e.target.value)}
+                    className="bg-[#0f1a2e] border border-[#1e3050] rounded-lg px-3 py-2 text-slate-300 text-xs focus:outline-none focus:border-red-700/50"
+                  >
+                    <option value="">{t("dashboard.pickField")}</option>
+                    {STANDARD_CONTRACTS.map((c) => (
+                      <option key={c.id} value={c.id}>{lang === "ko" ? c.title.ko : c.title.en}</option>
+                    ))}
+                  </select>
+                  <select
+                    value=""
+                    disabled={!pickerCat}
+                    onChange={(e) => { if (e.target.value) setSeededStandard({ categoryId: pickerCat, typeId: e.target.value }); }}
+                    className="bg-[#0f1a2e] border border-[#1e3050] rounded-lg px-3 py-2 text-slate-300 text-xs focus:outline-none focus:border-red-700/50 disabled:opacity-50 max-w-full"
+                  >
+                    <option value="">{t("dashboard.pickForm")}</option>
+                    {pickerCat && getCategory(pickerCat)?.types.map((tp) => (
+                      <option key={tp.id} value={tp.id}>{lang === "ko" ? tp.title.ko : tp.title.en}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
 
             {/* Mode tabs */}
             <div className="flex gap-1 bg-[#162035] p-1 rounded-xl border border-[#1e3050] mb-6 w-fit">

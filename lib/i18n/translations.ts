@@ -288,6 +288,10 @@ export const translations = {
     onlyPdfDocx:     { en: "Please attach a PDF or DOCX file.", ko: "PDF 또는 DOCX 파일만 첨부 가능합니다." },
     tooLarge:        { en: "File too large. Max 10MB.", ko: "파일이 너무 큽니다. 최대 10MB." },
     extracting:      { en: "Reading contract…", ko: "계약서 읽는 중…" },
+    autoDetectTitle: { en: "Comparison standard: auto-detect", ko: "비교 기준: AI 자동 감지" },
+    autoDetectDesc:  { en: "The matching MCST standard form is selected automatically from your contract. Pick one manually below if you prefer.", ko: "업로드한 계약서 내용을 보고 알맞은 문체부 표준계약서를 자동으로 선택합니다. 원하면 아래에서 직접 고를 수 있어요." },
+    pickField:       { en: "Field", ko: "분야 선택" },
+    pickForm:        { en: "Standard form", ko: "표준계약서 선택" },
 
     /* Delete */
     deleteChat:      { en: "Delete conversation", ko: "대화 삭제" },
