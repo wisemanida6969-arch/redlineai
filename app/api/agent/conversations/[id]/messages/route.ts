@@ -4,6 +4,7 @@ import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { PLAN_LIMITS, type Plan } from "@/lib/planLimits";
 import { CLAUDE_MODEL } from "@/lib/anthropic";
 import { searchStandardArticles } from "@/lib/standardArticles";
+import { logUsageEvent } from "@/lib/usageEvents";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -257,6 +258,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       agent_used: sameMonth ? agentUsed + 1 : 1,
       scan_month: currentMonth,
     }).eq("id", user.id);
+
+    logUsageEvent(service, user.id, user.email, "agent_message");
 
     return NextResponse.json({
       assistant: assistantText,

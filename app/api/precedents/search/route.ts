@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { checkFeatureAccess } from "@/lib/passGating";
+import { logUsageEvent } from "@/lib/usageEvents";
 
 /**
  * LIVE precedent search.
@@ -174,7 +175,9 @@ export async function GET(req: NextRequest) {
   // Case numbers are part of the paid offering: without them a visitor can't
   // just copy the number and read the ruling elsewhere. Strip them from the
   // response (not merely hide in the UI) unless the user has precedent access.
-  const access = await checkFeatureAccess(createServiceClient(), user.id, "precedent");
+  const service = createServiceClient();
+  const access = await checkFeatureAccess(service, user.id, "precedent");
+  if (page === 1) logUsageEvent(service, user.id, user.email, "precedent_search", { q });
   const stripCaseNos = (results: LiveResult[]): LiveResult[] =>
     access.allowed ? results : results.map((r) => ({ ...r, caseNo: null }));
 

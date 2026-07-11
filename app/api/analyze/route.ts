@@ -7,6 +7,7 @@ import { extractTextFromHwpx, looksLikeZip } from "@/lib/hwpxExtract";
 import { extractTextFromHwpBinary } from "@/lib/hwpBinaryExtract";
 import { CLAUDE_MODEL, extractText } from "@/lib/anthropic";
 import { findStandardArticleText } from "@/lib/standardArticles";
+import { logUsageEvent } from "@/lib/usageEvents";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -327,6 +328,11 @@ export async function POST(req: NextRequest) {
       scans_used: profile?.scan_month === currentMonth ? scansUsed + 1 : 1,
       scan_month: currentMonth,
     }).eq("id", user.id);
+
+    logUsageEvent(serviceClient, user.id, user.email, "analysis", {
+      method: extractionMethod,
+      standard: standard ? standard.typeId : null,
+    });
 
     return NextResponse.json({
       ...analysisData,

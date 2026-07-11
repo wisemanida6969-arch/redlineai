@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { CLAUDE_MODEL } from "@/lib/anthropic";
 import { checkFeatureAccess, recordFeatureUsage } from "@/lib/passGating";
+import { logUsageEvent } from "@/lib/usageEvents";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -295,6 +296,8 @@ export async function POST(req: NextRequest) {
     if (access.via === "member") {
       await recordFeatureUsage(service, user.id, "vendor");
     }
+
+    logUsageEvent(service, user.id, user.email, "vendor_scan");
 
     return NextResponse.json({
       report,

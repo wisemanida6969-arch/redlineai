@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { logUsageEvent } from "@/lib/usageEvents";
 
 export async function GET() {
   const supabase = createClient();
@@ -7,6 +8,7 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const service = createServiceClient();
+  logUsageEvent(service, user.id, user.email, "dashboard_visit");
   const { data: scans } = await service
     .from("scans")
     .select("id, filename, high_count, medium_count, low_count, summary, created_at")

@@ -7,6 +7,7 @@ import { fetchPrecedentTitles, FIELD_PRECEDENT_KEYWORD, type PrecedentRef } from
 import { extractTextFromHwpx, looksLikeZip } from "@/lib/hwpxExtract";
 import { extractTextFromHwpBinary } from "@/lib/hwpBinaryExtract";
 import { CLAUDE_MODEL, extractText } from "@/lib/anthropic";
+import { logUsageEvent } from "@/lib/usageEvents";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -522,6 +523,7 @@ export async function POST(req: NextRequest) {
           scan_month: currentMonth,
         }).eq("id", user.id);
       }
+      logUsageEvent(service, user.id, user.email, "quote_draft", { step: "draft", standard: typeId ?? null });
 
       if (!cat || !type) {
         // Generic — no standard selected (manual entry without a field).
@@ -737,6 +739,8 @@ export async function POST(req: NextRequest) {
       quote_used: sameMonth ? quoteUsed + 1 : 1,
       scan_month: currentMonth,
     }).eq("id", user.id);
+
+    logUsageEvent(service, user.id, user.email, "quote_draft", { step: "extract", method: extractionMethod });
 
     return NextResponse.json({
       extracted,

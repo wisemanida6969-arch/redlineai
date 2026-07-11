@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { checkFeatureAccess, recordFeatureUsage } from "@/lib/passGating";
+import { logUsageEvent } from "@/lib/usageEvents";
 
 /**
  * Fetch 판시사항 / 판결요지 for one precedent from the official 법제처 API.
@@ -33,6 +34,7 @@ export async function GET(req: NextRequest) {
   if (access.via === "member") {
     await recordFeatureUsage(service, user.id, "precedent");
   }
+  logUsageEvent(service, user.id, user.email, "precedent_detail");
 
   // Reachable either directly (OC + registered IP) or via the Korea-hosted
   // law-proxy (LAW_PROXY_URL) — see law-proxy/README.md.
