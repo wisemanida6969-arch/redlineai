@@ -93,15 +93,25 @@ body {
 [class*="border-blue-800/"] { border-color: #b6d3f7 !important; }
 
 /* Accent text on the new pastel chips — needs darker, bolder shades for contrast.
-   Green was especially hard to read at the original tint, so it goes darkest. */
-.text-red-300   { color: #b91c1c !important; font-weight: 600; }
-.text-red-400   { color: #b91c1c !important; font-weight: 600; }
-.text-yellow-200, .text-yellow-300 { color: #92400e !important; font-weight: 600; }
-.text-yellow-400 { color: #92400e !important; font-weight: 600; }
-.text-green-200, .text-green-300 { color: #14532d !important; font-weight: 600; }
-.text-green-400 { color: #14532d !important; font-weight: 600; }
-.text-blue-300  { color: #1e3a8a !important; font-weight: 600; }
-.text-blue-400  { color: #1e3a8a !important; font-weight: 600; }
+   Tailwind's opacity-suffixed classes (e.g. text-green-200/90) compile to a
+   DIFFERENT class name than text-green-200, so a plain selector misses them —
+   attribute selectors below catch every /NN variant too. */
+.text-red-300, [class*="text-red-300/"]     { color: #b91c1c !important; font-weight: 600; }
+.text-red-400, [class*="text-red-400/"]     { color: #b91c1c !important; font-weight: 600; }
+.text-yellow-200, .text-yellow-300,
+[class*="text-yellow-200/"], [class*="text-yellow-300/"] { color: #92400e !important; font-weight: 600; }
+.text-yellow-400, [class*="text-yellow-400/"] { color: #92400e !important; font-weight: 600; }
+.text-blue-300, [class*="text-blue-300/"]   { color: #1e3a8a !important; font-weight: 600; }
+.text-blue-400, [class*="text-blue-400/"]   { color: #1e3a8a !important; font-weight: 600; }
+
+/* Green was unreadable even after darkening (opacity-suffix bug above) —
+   switching the quote text itself off green entirely to the page's normal
+   dark ink, and keeping a solid dark teal only for the small label/source. */
+.text-green-200, .text-green-300,
+[class*="text-green-200/"], [class*="text-green-300/"] { color: #1e293b !important; font-weight: 500; }
+.text-green-400, [class*="text-green-400/"] { color: #0f766e !important; font-weight: 700; }
+.text-green-600, [class*="text-green-600/"] { color: #475569 !important; }
+
 /* …but keep them light where they sit on solid colored backgrounds */
 .bg-red-700 .text-red-100, .bg-red-600 .text-red-100 { color: #fee2e2 !important; }
 
