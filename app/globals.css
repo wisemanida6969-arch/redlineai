@@ -14,6 +14,10 @@ body {
   background-color: #0f1a2e;
   color: #e2e8f0;
   font-family: 'Inter', system-ui, sans-serif;
+  /* Korean text must wrap at word boundaries, never mid-word ("검토하 / 세요").
+     overflow-wrap keeps long unbroken strings (URLs, ids) from overflowing. */
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 @layer utilities {

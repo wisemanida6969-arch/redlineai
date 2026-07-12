@@ -220,7 +220,7 @@ export default function Dashboard() {
               <span className="capitalize">{plan} Plan</span>
             </div>
             {plan === "free" ? (
-              <a href="/#pricing" className="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1.5 rounded-xl transition-colors flex items-center gap-1">
+              <a href="/pricing" className="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1.5 rounded-xl transition-colors flex items-center gap-1">
                 <Crown className="w-3 h-3" /> {t("common.upgrade")}
               </a>
             ) : (

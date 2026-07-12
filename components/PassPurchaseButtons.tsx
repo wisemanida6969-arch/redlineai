@@ -23,7 +23,7 @@ export default function PassPurchaseButtons({ feature, passPriceId }: Props) {
     // Checkout isn't wired up yet (price IDs pending) — point somewhere useful instead of showing nothing.
     return (
       <Link
-        href="/#pricing"
+        href="/pricing"
         className="inline-flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
       >
         {t("pass.viewPricing")}

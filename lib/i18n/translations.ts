@@ -111,6 +111,7 @@ export const translations = {
     pricingTitle: { en: "Simple, transparent pricing", ko: "투명하고 단순한 가격" },
     pricingSub:   { en: "Start free. Upgrade when you need more.", ko: "무료로 시작하고 필요할 때 업그레이드하세요." },
     mostPopular:  { en: "Most Popular", ko: "가장 인기" },
+    pricingViewAll: { en: "View full pricing →", ko: "전체 가격 보기 →" },
     perMonth:     { en: "/month", ko: "/월" },
 
     /* Plan descriptions */
@@ -141,7 +142,7 @@ export const translations = {
     ctaFree:          { en: "Get started free", ko: "무료로 시작" },
     ctaPro:           { en: "Start Pro",        ko: "Pro 시작" },
     ctaBusiness:      { en: "Start Business",   ko: "Business 시작" },
-    betaNotice:       { en: "Beta pricing through", ko: "베타 기간 가격, ~" },
+    betaNotice:       { en: "Beta pricing through", ko: "베타 기간 가격 —" },
     pass24h:          { en: "24h pass", ko: "24시간" },
 
     /* Features list (per plan) */

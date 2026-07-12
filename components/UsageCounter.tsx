@@ -43,7 +43,7 @@ export default function UsageCounter({ plan, feature, used }: Props) {
           </div>
         </div>
         <Link
-          href="/#pricing"
+          href="/pricing"
           className="bg-red-600 hover:bg-red-700 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors flex items-center gap-2"
         >
           <Crown className="w-4 h-4" /> {t("common.upgrade")}
@@ -139,7 +139,7 @@ export default function UsageCounter({ plan, feature, used }: Props) {
 
         {empty && (
           <Link
-            href="/#pricing"
+            href="/pricing"
             className="bg-red-600 hover:bg-red-700 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors flex items-center gap-2 shrink-0"
           >
             <Crown className="w-4 h-4" /> {t("common.upgrade")}
@@ -148,7 +148,7 @@ export default function UsageCounter({ plan, feature, used }: Props) {
 
         {warning && (
           <Link
-            href="/#pricing"
+            href="/pricing"
             className="bg-yellow-500 hover:bg-yellow-400 text-black font-semibold text-sm px-4 py-2 rounded-xl transition-colors flex items-center gap-2 shrink-0"
           >
             <Crown className="w-4 h-4" /> {t("common.upgrade")}

@@ -58,7 +58,7 @@ export default function Navbar() {
           <Link href="/help" className="text-slate-400 hover:text-white text-sm transition-colors hidden sm:block">
             {t("common.help")}
           </Link>
-          <Link href="/#pricing" className="text-slate-400 hover:text-white text-sm transition-colors hidden sm:block">
+          <Link href="/pricing" className="text-slate-400 hover:text-white text-sm transition-colors hidden sm:block">
             {t("common.pricing")}
           </Link>
 
@@ -138,7 +138,7 @@ export default function Navbar() {
               <BookOpen className="w-4 h-4" /> {t("common.helpGuide")}
             </Link>
             <Link
-              href="/#pricing"
+              href="/pricing"
               onClick={() => setMobileOpen(false)}
               className="flex items-center gap-2 px-3 py-2.5 text-sm text-slate-300 hover:text-white hover:bg-[#162035] rounded-lg transition-colors"
             >
