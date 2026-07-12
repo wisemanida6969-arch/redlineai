@@ -44,3 +44,27 @@ body {
 .text-glow-red {
   text-shadow: 0 0 20px rgba(239, 68, 68, 0.35), 0 0 6px rgba(239, 68, 68, 0.25);
 }
+
+/* Hero decorative texture: faint grid fading toward the bottom */
+.hero-grid {
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), transparent 75%);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), transparent 75%);
+}
+
+/* Hero product mockup: gentle float + slight perspective tilt */
+@keyframes heroFloat {
+  0%, 100% { transform: rotate(1.2deg) translateY(0); }
+  50% { transform: rotate(1.2deg) translateY(-10px); }
+}
+
+.hero-mock {
+  animation: heroFloat 7s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-mock { animation: none; }
+}

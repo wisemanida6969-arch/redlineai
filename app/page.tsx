@@ -20,35 +20,98 @@ export default function Home() {
       <Navbar />
 
       {/* Hero */}
-      <section className="pt-32 pb-16 px-6 bg-gradient-to-b from-[#0f1a2e] to-[#0c1624]">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-red-900/30 border border-red-800/50 text-red-400 text-sm px-4 py-1.5 rounded-full mb-6">
-            <Shield className="w-3.5 h-3.5" />
-            {t("landing.tag")}
+      <section className="relative pt-32 pb-20 px-6 bg-gradient-to-b from-[#0f1a2e] to-[#0c1624] overflow-hidden">
+        {/* Decorative background: soft glow + faint grid */}
+        <div aria-hidden className="pointer-events-none absolute inset-0">
+          <div className="absolute -top-32 right-[8%] w-[560px] h-[560px] rounded-full bg-red-600/10 blur-[140px]" />
+          <div className="absolute inset-0 hero-grid" />
+        </div>
+
+        <div className="relative max-w-6xl mx-auto grid lg:grid-cols-[1.05fr_0.95fr] gap-14 items-center">
+          {/* Left: copy */}
+          <div className="text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 bg-red-900/30 border border-red-800/50 text-red-400 text-sm px-4 py-1.5 rounded-full mb-6">
+              <Shield className="w-3.5 h-3.5" />
+              {t("landing.tag")}
+            </div>
+            <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight mb-6 animate-fade-in-up">
+              {t("landing.headline1")}
+              <br />
+              <span className="text-red-500 text-glow-red">{t("landing.headlineAccent")}</span>
+            </h1>
+            <p className="text-xl text-slate-400 mb-10 animate-fade-in-up-delay break-keep">
+              {t("landing.sub")}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+              <Link
+                href="/dashboard"
+                className="bg-red-600 hover:bg-red-700 text-white font-semibold px-8 py-4 rounded-xl text-lg transition-colors shadow-lg shadow-red-950/40"
+              >
+                {t("landing.ctaHero")}
+              </Link>
+              <a
+                href="#fields"
+                className="border border-[#2a3d5f] hover:border-slate-500 text-slate-300 font-medium px-8 py-4 rounded-xl text-lg transition-colors"
+              >
+                {t("landing.ctaSecondary")}
+              </a>
+            </div>
+            <p className="text-slate-500 text-sm mt-4">{t("landing.noCard")}</p>
           </div>
-          <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight mb-6 animate-fade-in-up">
-            {t("landing.headline1")}
-            <br />
-            <span className="text-red-500 text-glow-red">{t("landing.headlineAccent")}</span>
-          </h1>
-          <p className="text-xl text-slate-400 mb-10 max-w-2xl mx-auto animate-fade-in-up-delay">
-            {t("landing.sub")}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/dashboard"
-              className="bg-red-600 hover:bg-red-700 text-white font-semibold px-8 py-4 rounded-xl text-lg transition-colors"
-            >
-              {t("landing.ctaHero")}
-            </Link>
-            <a
-              href="#fields"
-              className="border border-[#1e3050] hover:border-slate-500 text-slate-300 font-medium px-8 py-4 rounded-xl text-lg transition-colors"
-            >
-              {t("landing.ctaSecondary")}
-            </a>
+
+          {/* Right: product mockup (decorative) */}
+          <div aria-hidden className="hidden lg:block animate-fade-in-up-delay">
+            <div className="hero-mock relative bg-[#141e33] border border-[#2a3d5f] rounded-2xl shadow-2xl shadow-black/50 p-5">
+              {/* window bar */}
+              <div className="flex items-center gap-2 mb-4">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#3a4a68]" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#3a4a68]" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#3a4a68]" />
+                <span className="ml-3 text-slate-500 text-xs truncate">{t("landing.sampleDoc")}</span>
+              </div>
+              {/* score chips */}
+              <div className="grid grid-cols-3 gap-2 mb-4">
+                <div className="bg-red-900/20 border border-red-800/40 rounded-lg py-2.5 text-center">
+                  <div className="text-red-300 font-bold text-xl leading-none">2</div>
+                  <div className="text-red-300/70 text-[10px] mt-1">{t("analysis.highRisk")}</div>
+                </div>
+                <div className="bg-yellow-900/15 border border-yellow-700/40 rounded-lg py-2.5 text-center">
+                  <div className="text-yellow-300 font-bold text-xl leading-none">1</div>
+                  <div className="text-yellow-300/70 text-[10px] mt-1">{t("analysis.mediumRisk")}</div>
+                </div>
+                <div className="bg-blue-900/15 border border-blue-800/40 rounded-lg py-2.5 text-center">
+                  <div className="text-blue-300 font-bold text-xl leading-none">1</div>
+                  <div className="text-blue-300/70 text-[10px] mt-1">{t("analysis.lowRisk")}</div>
+                </div>
+              </div>
+              {/* flagged clause */}
+              <div className="bg-[#0f1a2e] border border-[#1e3050] rounded-xl p-3.5 mb-3">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="text-[9px] font-bold uppercase bg-red-900/40 text-red-300 rounded px-1.5 py-0.5">{t("analysis.highRisk")}</span>
+                  <span className="text-slate-200 text-xs font-semibold">{lang === "ko" ? "수정 횟수 제한 없는 조항" : "Unlimited-revision clause"}</span>
+                </div>
+                <p className="text-slate-400 text-[11px] italic leading-relaxed">
+                  {lang === "ko" ? "“을은 갑이 만족할 때까지 원고를 수정하여야 한다.”" : "“The contractor shall revise until the client is satisfied.”"}
+                </p>
+              </div>
+              {/* verbatim standard quote */}
+              <div className="bg-green-900/10 border border-green-800/30 rounded-xl p-3.5">
+                <p className="text-green-400 text-[10px] font-bold uppercase mb-1.5">{t("analysis.suggestedFix")}</p>
+                <p className="text-green-200/90 text-[11px] leading-relaxed">
+                  {lang === "ko"
+                    ? "제7조(작품의 검수) ① 서비스 제공업자는 원고를 인도받은 날로부터 __일 이내에 검수 결과를 통지한다…"
+                    : "Article 7 (Inspection) ① The service provider shall notify the inspection result within __ days of delivery…"}
+                </p>
+                <p className="text-green-600/80 text-[10px] italic mt-1.5">
+                  {lang === "ko" ? "출처: 문화체육관광부 웹툰 연재계약서 표준계약서 제7조" : "Source: MCST Webtoon Serialization Standard Contract, Art. 7"}
+                </p>
+              </div>
+              {/* floating badge */}
+              <div className="absolute -right-4 -top-4 bg-red-600 text-white text-xs font-bold rounded-xl px-3.5 py-2 shadow-lg shadow-red-950/50 rotate-3">
+                {lang === "ko" ? "원문 그대로 인용" : "Quoted verbatim"}
+              </div>
+            </div>
           </div>
-          <p className="text-slate-500 text-sm mt-4">{t("landing.noCard")}</p>
         </div>
       </section>
 
