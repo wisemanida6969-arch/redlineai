@@ -10,15 +10,103 @@
   --red-light: #fc8181;
 }
 
+html {
+  color-scheme: light;
+}
+
 body {
-  background-color: #0f1a2e;
-  color: #e2e8f0;
+  background-color: #f4f6fa;
+  color: #334155;
   font-family: 'Inter', system-ui, sans-serif;
   /* Korean text must wrap at word boundaries, never mid-word ("검토하 / 세요").
      overflow-wrap keeps long unbroken strings (URLs, ids) from overflowing. */
   word-break: keep-all;
   overflow-wrap: break-word;
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   LIGHT THEME OVERRIDE LAYER
+   The markup still uses the original dark-navy utility classes
+   (bg-[#0f1a2e], text-white, …). Instead of editing hundreds of
+   call sites, this single layer remaps every dark token to a light
+   equivalent — zero markup/functional changes, one place to tune.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Page & card surfaces ── */
+.bg-\[\#0f1a2e\]            { background-color: #f4f6fa !important; }
+.bg-\[\#0f1a2e\]\/90,
+.bg-\[\#0f1a2e\]\/95        { background-color: rgba(255, 255, 255, 0.92) !important; }
+.bg-\[\#0f1a2e\]\/60        { background-color: #f1f5f9 !important; }
+.bg-\[\#162035\],
+.bg-\[\#141e33\]            { background-color: #ffffff !important; }
+.bg-\[\#1e3050\]            { background-color: #e6ebf3 !important; }
+.bg-\[\#26395c\]            { background-color: #dbe3ee !important; }
+.bg-\[\#3a4a68\]            { background-color: #cbd5e1 !important; }
+.bg-\[\#0c1120\]            { background-color: #eef1f6 !important; }
+[class*="bg-slate-700/"],
+[class*="bg-slate-800/"]    { background-color: #eef2f7 !important; }
+
+/* ── Borders ── */
+.border-\[\#1e3050\],
+.border-\[\#1e3050\]\/50,
+.border-\[\#2a1d33\],
+[class*="border-slate-600/"],
+[class*="border-slate-700/"] { border-color: #e2e8f0 !important; }
+.border-\[\#2a3d5f\],
+.border-\[\#2a4070\]         { border-color: #d3dce8 !important; }
+
+/* ── Section gradients ── */
+.from-\[\#0f1a2e\]  { --tw-gradient-from: #ffffff !important; --tw-gradient-to: rgb(255 255 255 / 0) !important; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important; }
+.to-\[\#0c1624\]    { --tw-gradient-to: #f2f5fa !important; }
+.from-\[\#121729\]  { --tw-gradient-from: #f5f4fa !important; --tw-gradient-to: rgb(245 244 250 / 0) !important; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important; }
+.to-\[\#170f2a\]    { --tw-gradient-to: #efeaf7 !important; }
+.to-\[\#162035\]    { --tw-gradient-to: #ffffff !important; }
+.from-\[\#1e3050\]  { --tw-gradient-from: #e6ebf3 !important; --tw-gradient-to: rgb(230 235 243 / 0) !important; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important; }
+
+/* ── Ink (text) ── */
+.text-white     { color: #0f172a !important; }
+.text-slate-100,
+.text-slate-200 { color: #1e293b !important; }
+.text-slate-300 { color: #334155 !important; }
+.text-slate-400 { color: #475569 !important; }
+.text-slate-500 { color: #64748b !important; }
+.text-slate-600 { color: #8593a8 !important; }
+
+/* Text that must STAY white: on solid colored buttons/badges */
+.bg-red-500.text-white, .bg-red-600.text-white, .bg-red-700.text-white,
+.bg-green-600.text-white, .bg-green-700.text-white,
+.bg-blue-500.text-white, .bg-yellow-500.text-white,
+[class*="hover:bg-red-"].text-white { color: #ffffff !important; }
+
+/* ── Tinted chips/cards: dark translucent → light pastel ── */
+[class*="bg-red-900/"]    { background-color: #fdeeee !important; }
+[class*="bg-yellow-900/"] { background-color: #fdf6e3 !important; }
+[class*="bg-green-900/"]  { background-color: #eafaf1 !important; }
+[class*="bg-blue-900/"]   { background-color: #edf4fe !important; }
+[class*="from-red-900/"]    { --tw-gradient-from: #fdeeee !important; --tw-gradient-to: rgb(253 238 238 / 0) !important; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important; }
+[class*="from-yellow-900/"] { --tw-gradient-from: #fdf6e3 !important; --tw-gradient-to: rgb(253 246 227 / 0) !important; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important; }
+
+[class*="border-red-800/"], [class*="border-red-700/"], [class*="border-red-600/"] { border-color: #f3b4b4 !important; }
+[class*="border-yellow-700/"] { border-color: #f0d48a !important; }
+[class*="border-green-800/"], [class*="border-green-700/"] { border-color: #a7e3c0 !important; }
+[class*="border-blue-800/"] { border-color: #b6d3f7 !important; }
+
+/* Accent text on the new pastel chips — needs darker shades for contrast */
+.text-red-300   { color: #b91c1c !important; }
+.text-red-400   { color: #dc2626 !important; }
+.text-yellow-200, .text-yellow-300 { color: #a16207 !important; }
+.text-yellow-400 { color: #b45309 !important; }
+.text-green-200, .text-green-300 { color: #15803d !important; }
+.text-green-400 { color: #16a34a !important; }
+.text-blue-300  { color: #1d4ed8 !important; }
+.text-blue-400  { color: #2563eb !important; }
+/* …but keep them light where they sit on solid colored backgrounds */
+.bg-red-700 .text-red-100, .bg-red-600 .text-red-100 { color: #fee2e2 !important; }
+
+/* KakaoTalk copy button: brand-yellow text is unreadable on a light page */
+.text-\[\#FEE500\] { color: #8a6d00 !important; }
+[class*="bg-[#FEE500]/1"] { background-color: #fff7cc !important; }
+[class*="border-[#FEE500]/"] { border-color: #ecd75c !important; }
 
 @layer utilities {
   .text-balance {
@@ -46,14 +134,14 @@ body {
 }
 
 .text-glow-red {
-  text-shadow: 0 0 20px rgba(239, 68, 68, 0.35), 0 0 6px rgba(239, 68, 68, 0.25);
+  text-shadow: 0 0 22px rgba(229, 62, 62, 0.18);
 }
 
 /* Hero decorative texture: faint grid fading toward the bottom */
 .hero-grid {
   background-image:
-    linear-gradient(rgba(148, 163, 184, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
+    linear-gradient(rgba(15, 23, 42, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.05) 1px, transparent 1px);
   background-size: 44px 44px;
   mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), transparent 75%);
   -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), transparent 75%);
