@@ -12,11 +12,12 @@
 
 html {
   color-scheme: light;
+  font-size: 17.5px;
 }
 
 body {
   background-color: #f4f6fa;
-  color: #334155;
+  color: #1e293b;
   font-family: 'Inter', system-ui, sans-serif;
   /* Korean text must wrap at word boundaries, never mid-word ("검토하 / 세요").
      overflow-wrap keeps long unbroken strings (URLs, ids) from overflowing. */
@@ -66,11 +67,11 @@ body {
 /* ── Ink (text) ── */
 .text-white     { color: #0f172a !important; }
 .text-slate-100,
-.text-slate-200 { color: #1e293b !important; }
-.text-slate-300 { color: #334155 !important; }
-.text-slate-400 { color: #475569 !important; }
-.text-slate-500 { color: #64748b !important; }
-.text-slate-600 { color: #8593a8 !important; }
+.text-slate-200 { color: #0f172a !important; }
+.text-slate-300 { color: #1e293b !important; }
+.text-slate-400 { color: #334155 !important; }
+.text-slate-500 { color: #475569 !important; }
+.text-slate-600 { color: #64748b !important; }
 
 /* Text that must STAY white: on solid colored buttons/badges */
 .bg-red-500.text-white, .bg-red-600.text-white, .bg-red-700.text-white,
@@ -91,15 +92,16 @@ body {
 [class*="border-green-800/"], [class*="border-green-700/"] { border-color: #a7e3c0 !important; }
 [class*="border-blue-800/"] { border-color: #b6d3f7 !important; }
 
-/* Accent text on the new pastel chips — needs darker shades for contrast */
-.text-red-300   { color: #b91c1c !important; }
-.text-red-400   { color: #dc2626 !important; }
-.text-yellow-200, .text-yellow-300 { color: #a16207 !important; }
-.text-yellow-400 { color: #b45309 !important; }
-.text-green-200, .text-green-300 { color: #15803d !important; }
-.text-green-400 { color: #16a34a !important; }
-.text-blue-300  { color: #1d4ed8 !important; }
-.text-blue-400  { color: #2563eb !important; }
+/* Accent text on the new pastel chips — needs darker, bolder shades for contrast.
+   Green was especially hard to read at the original tint, so it goes darkest. */
+.text-red-300   { color: #b91c1c !important; font-weight: 600; }
+.text-red-400   { color: #b91c1c !important; font-weight: 600; }
+.text-yellow-200, .text-yellow-300 { color: #92400e !important; font-weight: 600; }
+.text-yellow-400 { color: #92400e !important; font-weight: 600; }
+.text-green-200, .text-green-300 { color: #14532d !important; font-weight: 600; }
+.text-green-400 { color: #14532d !important; font-weight: 600; }
+.text-blue-300  { color: #1e3a8a !important; font-weight: 600; }
+.text-blue-400  { color: #1e3a8a !important; font-weight: 600; }
 /* …but keep them light where they sit on solid colored backgrounds */
 .bg-red-700 .text-red-100, .bg-red-600 .text-red-100 { color: #fee2e2 !important; }
 

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import DisclaimerBanner from "@/components/DisclaimerBanner";
+import CursorGlow from "@/components/CursorGlow";
 import { LanguageProvider } from "@/lib/i18n/LanguageProvider";
 
 export const metadata: Metadata = {
@@ -71,6 +72,7 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased min-h-screen bg-[#0f1a2e] text-slate-200">
+        <CursorGlow />
         <LanguageProvider>
           <DisclaimerBanner />
           {children}
