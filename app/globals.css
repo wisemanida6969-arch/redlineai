@@ -115,6 +115,23 @@ body {
 /* …but keep them light where they sit on solid colored backgrounds */
 .bg-red-700 .text-red-100, .bg-red-600 .text-red-100 { color: #fee2e2 !important; }
 
+/* Yellow -100 tints (disclaimer banners) sit on pastel yellow now → dark amber */
+.text-yellow-100, [class*="text-yellow-100/"] { color: #92400e !important; }
+
+/* ── Action buttons ──
+   The substring matcher [class*="bg-red-900/"] above accidentally also hits
+   "disabled:bg-red-900/50", washing ENABLED red buttons out to pastel.
+   Re-assert solid red for enabled buttons, and give the disabled state an
+   unmistakable gray look so users can tell active from inactive at a glance. */
+.bg-red-600 { background-color: #dc2626 !important; }
+.bg-red-700 { background-color: #b91c1c !important; }
+.hover\:bg-red-700:hover { background-color: #b91c1c !important; }
+button:disabled[class*="disabled:bg-red-900/"],
+[class*="disabled:bg-red-900/"]:disabled {
+  background-color: #e2e8f0 !important;
+  color: #94a3b8 !important;
+}
+
 /* KakaoTalk copy button: brand-yellow text is unreadable on a light page */
 .text-\[\#FEE500\] { color: #8a6d00 !important; }
 [class*="bg-[#FEE500]/1"] { background-color: #fff7cc !important; }

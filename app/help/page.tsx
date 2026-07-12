@@ -73,7 +73,7 @@ export default function HelpPage() {
             {ko ? "당사자, 언제 사용하는지, 관할 부처 정보를 확인하고, 공식 원본 PDF를 문화체육관광부/한국예술인복지재단에서 내려받을 수 있습니다." : "Review the parties, when it's used, and the issuing ministry — then download the official PDF from MCST or the Korea Artist Welfare Foundation."}
           </Step>
           <Step n={3} title={ko ? "판례 확인" : "Check related precedents"} icon={Scale}>
-            {ko ? "각 표준양식 하단에서 이 분야 실제 법원 판례를 검색할 수 있습니다. 사건 목록·검색은 무료, 판시사항·판결요지 전체 열람은 24시간 패스 또는 멤버십이 필요합니다." : "Search real court precedents in this field at the bottom of each form. Case search & listing are free; the full issue & holding text needs a 24h pass or membership."}
+            {ko ? "각 표준양식 하단에서 이 분야 실제 법원 판례를 검색할 수 있습니다. 사건 목록·검색은 무료, 판시사항·판결요지 전체 열람은 판례 열람 패스(24시간, ₩4,900) 또는 사인 전 패키지(₩19,900)가 필요합니다." : "Search real court precedents in this field at the bottom of each form. Case search & listing are free; the full issue & holding text needs a 24h Precedent Pass (₩4,900) or the Pre-Sign Package (₩19,900)."}
           </Step>
           <Step n={4} title={ko ? "AI 작성 또는 검토로 이동" : "Jump to Draft or Review"}>
             {ko ? <><strong className="text-white">이 양식으로 AI 작성</strong>을 누르면 계약서 작성 탭으로, <strong className="text-white">받은 계약서 검토하기</strong>를 누르면 계약서 검토 탭으로 이 표준양식이 자동으로 연결된 채 이동합니다.</> : <>Tap <strong className="text-white">Draft this with AI</strong> to jump to Draft, or <strong className="text-white">Review a contract I received</strong> to jump to Review — both carry this standard form with you.</>}
@@ -207,7 +207,7 @@ export default function HelpPage() {
         >
           <Step n={1} title={ko ? "공급업체 리스크 스캔 탭 열기" : "Open Vendor Risk Scan tab"}>
             {ko ? <><strong className="text-white">공급업체 리스크 스캔</strong> 탭을 클릭하세요.</> : <>Click the <strong className="text-white">Vendor Risk Scan</strong> tab.</>}
-            <p className="text-yellow-400 text-xs mt-1">{ko ? "⚠️ 24시간 패스(₩2,900) 또는 멤버십(월 ₩9,900, 30회/월) 필요" : "⚠️ Needs a 24h pass (₩2,900) or membership (₩9,900/mo, 30/mo)"}</p>
+            <p className="text-yellow-400 text-xs mt-1">{ko ? "⚠️ 리스크 검색 패스(24시간, ₩4,900) 또는 사인 전 패키지(₩19,900) 필요 — 프로 플랜(월 ₩49,900)은 매월 10건 포함" : "⚠️ Needs a 24h Risk-Search Pass (₩4,900) or the Pre-Sign Package (₩19,900) — Pro plan (₩49,900/mo) includes 10/mo"}</p>
           </Step>
           <Step n={2} title={ko ? "공급업체명 입력" : "Enter the vendor name"}>
             {ko ? <>회사명을 입력하세요 (예: <code className="bg-[#0f1a2e] px-2 py-0.5 rounded text-red-300">Stripe</code>, <code className="bg-[#0f1a2e] px-2 py-0.5 rounded text-red-300">Acme Corp</code>, <code className="bg-[#0f1a2e] px-2 py-0.5 rounded text-red-300">Google</code>).</> : <>Type any company (e.g., <code className="bg-[#0f1a2e] px-2 py-0.5 rounded text-red-300">Stripe</code>, <code className="bg-[#0f1a2e] px-2 py-0.5 rounded text-red-300">Acme Corp</code>, <code className="bg-[#0f1a2e] px-2 py-0.5 rounded text-red-300">Google</code>).</>}
