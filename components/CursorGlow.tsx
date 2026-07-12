@@ -9,7 +9,6 @@ export default function CursorGlow() {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const el = ref.current;
     if (!el) return;
 
@@ -42,7 +41,7 @@ export default function CursorGlow() {
         opacity: 0,
         transition: "opacity 0.3s ease",
         background:
-          "radial-gradient(750px circle at var(--gx, 50%) var(--gy, 50%), rgba(229,62,62,0.16), transparent 70%)",
+          "radial-gradient(800px circle at var(--gx, 50%) var(--gy, 50%), rgba(229,62,62,0.30), rgba(229,62,62,0.08) 40%, transparent 70%)",
       }}
     />
   );
