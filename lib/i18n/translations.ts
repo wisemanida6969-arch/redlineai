@@ -65,7 +65,7 @@ export const translations = {
 
     /* Category preview */
     catTitle:      { en: "Official standard contracts, organized by field", ko: "분야별 공식 표준계약서를 한 곳에" },
-    catSub:        { en: "Published by the Ministry of Culture, Sports and Tourism. Browse, download the official form, then draft or review with AI.", ko: "문화체육관광부가 배포한 표준계약서입니다. 둘러보고, 공식 양식을 받고, AI로 작성·검토하세요." },
+    catSub:        { en: "Published by the Ministry of Culture, Sports and Tourism. Browse, download the official form, then draft or compare with AI.", ko: "문화체육관광부가 배포한 표준계약서입니다. 둘러보고, 공식 양식을 받고, AI로 작성·비교하세요." },
     catTypesLabel: { en: "forms", ko: "종" },
     catViewAll:    { en: "Open the standard contract library →", ko: "표준계약서 라이브러리 열기 →" },
 
