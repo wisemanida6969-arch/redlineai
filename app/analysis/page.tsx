@@ -19,15 +19,18 @@ interface PackageAccess {
   proQuotaExceeded?: boolean;
 }
 
-function buildClientMessage(clause: { title: string; fix: string; fixSource?: string }, lang: "en" | "ko"): string {
+// Same principle as the on-page card: a factual statement of what the
+// contract's clause provides, then the fixed connector + verbatim standard
+// quote — no evaluative "differs" framing composed here.
+function buildClientMessage(clause: { title: string; problem: string; fix: string; fixSource?: string }, lang: "en" | "ko"): string {
   const quoteLabel = clause.fixSource ? `${clause.fixSource}` : (lang === "ko" ? "표준계약서 원문" : "Standard contract text");
   const sourceLine = clause.fixSource
     ? (lang === "ko" ? `\n\n출처: 문화체육관광부 ${clause.fixSource}` : `\n\nSource: Korea MCST — ${clause.fixSource}`)
     : "";
   if (lang === "ko") {
-    return `안녕하세요! 계약서를 살펴보다가 문체부 표준계약서와 다른 부분이 있어 공유드려요 😊\n\n"${clause.title}" 조항이 표준계약서 원문과 다음과 같이 다릅니다:\n\n${quoteLabel}: "${clause.fix}"${sourceLine}\n\n참고차 말씀드려요. 확인 부탁드립니다 🙏`;
+    return `안녕하세요! 계약서 "${clause.title}" 조항 관련해서 참고차 공유드려요 😊\n\n${clause.problem}\n\n${quoteLabel}: "${clause.fix}"${sourceLine}\n\n확인 부탁드립니다 🙏`;
   }
-  return `Hi! While going through the contract I noticed this clause differs from the government standard form, wanted to share for reference 😊\n\nThe "${clause.title}" clause differs from the standard as follows:\n\n${quoteLabel}: "${clause.fix}"${sourceLine}\n\nJust sharing for reference. Let me know what you think 🙏`;
+  return `Hi! Sharing this for reference on the "${clause.title}" clause 😊\n\n${clause.problem}\n\n${quoteLabel}: "${clause.fix}"${sourceLine}\n\nLet me know what you think 🙏`;
 }
 
 export default function AnalysisPage() {
@@ -148,7 +151,7 @@ export default function AnalysisPage() {
     setTimeout(() => setCopied(null), 2000);
   };
 
-  const copyClientMessage = (id: string, clause: { title: string; fix: string; fixSource?: string }) => {
+  const copyClientMessage = (id: string, clause: { title: string; problem: string; fix: string; fixSource?: string }) => {
     navigator.clipboard.writeText(buildClientMessage(clause, lang));
     setCopiedMsg(id);
     setTimeout(() => setCopiedMsg(null), 2000);

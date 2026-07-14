@@ -65,7 +65,7 @@ Return this exact structure:
       "severity": "high",
       "title": "Short, neutral title naming the clause pattern",
       "original": "Exact quote from the contract (max 150 chars)",
-      "problem": "Factual statement of how this clause differs from what the standard contract provides — no danger/risk language",
+      "problem": "Exactly ONE sentence: a factual, neutral statement of what THIS CONTRACT's clause itself provides (paraphrase its content — not a comparison). Never compare it to the standard, characterize it as differing/lacking/weaker, or summarize what the standard says — a verbatim standard quote is attached separately for that. Do not use comparison/hedging words like \"typically\", \"usually\", \"whereas\", \"however\", \"but\", \"in contrast\".",
       "fix": "Always return an empty string \"\". Do not invent or rewrite wording — this field is reserved for a verbatim quote from the official standard contract, which is not available yet."
     }
   ],
@@ -85,7 +85,7 @@ Severity guide (degree of difference from the standard, not a danger rating):
 3. Uncapped late-delivery penalty clause — a daily penalty rate that is very high (e.g. 5%+ of the contract value per day) or has no overall cap, where the standard caps it.
 When any of these three appear, name the pattern explicitly in the title (e.g. "Unlimited-revision clause", "Full copyright-transfer clause", "Uncapped late-delivery penalty clause") so it's easy to recognize. As with every other clause, leave "fix" as an empty string — do not describe or suggest replacement wording for these either.
 
-Be thorough but practical, and stick to factual comparisons — not opinions about fairness or danger.`;
+Be thorough but practical. "problem" describes only the contract's own clause — never the standard's content, and never in comparative/evaluative language.`;
 
 const SYSTEM_PROMPT_KO = `당신은 계약서 조항을 문화체육관광부(MCST) 표준계약서 기준과 비교해 사실을 보여주는 표준계약서 비교 도구입니다. 법률적 판단이나 의견을 제시하지 않고, 표준과 다른 점을 사실 그대로 보여줍니다.
 
@@ -100,7 +100,7 @@ const SYSTEM_PROMPT_KO = `당신은 계약서 조항을 문화체육관광부(MC
       "severity": "high",
       "title": "조항 패턴을 나타내는 짧고 중립적인 제목 (한국어)",
       "original": "계약서에서 발췌한 정확한 원문 (최대 150자, 원본 언어 유지)",
-      "problem": "표준계약서와 어떻게 다른지 사실 위주로 설명 (위험하다/불리하다 등 판단 표현 금지)",
+      "problem": "정확히 한 문장: 이 계약서 조항 자체가 무엇을 규정하는지 사실 그대로 서술 (조항 내용을 풀어 쓴 것 — 표준과의 비교가 아님). 표준과 다르다/부족하다/약하다는 식으로 비교하거나, 표준계약서 내용을 요약·설명하지 마세요 — 표준 원문은 별도로 그대로 첨부됩니다. '일반적으로', '통상', '반면', '그러나' 같은 비교·완화 표현을 쓰지 마세요.",
       "fix": "항상 빈 문자열(\"\")을 반환하세요. 새로운 문장을 짓거나 다시 쓰지 마세요 — 이 필드는 표준계약서 원문을 그대로 인용하기 위한 자리이며, 아직 인용할 원문 데이터가 준비되지 않았습니다."
     }
   ],
@@ -120,7 +120,7 @@ const SYSTEM_PROMPT_KO = `당신은 계약서 조항을 문화체육관광부(MC
 3. **지체상금 상한 없는 조항** — 하루 지연당 계약금의 높은 비율(예: 1일당 5% 이상)을 부과하거나, 총액 상한이 없는 지체상금 조항. 표준계약서는 통상 상한을 둡니다.
 위 세 가지가 발견되면 title에 어떤 유형인지 정확히 명시하세요(예: "수정 횟수 제한 없는 조항", "저작권 전부 귀속 조항", "지체상금 상한 없는 조항") — 사용자가 한눈에 알아볼 수 있도록. 다른 조항과 마찬가지로 fix는 빈 문자열로 두고, 대체 문구를 짓거나 제안하지 마세요.
 
-original 필드는 계약서 원문 그대로 발췌하세요(번역하지 말 것). 나머지(title, problem, summary)는 모두 한국어로 자연스럽게 작성하세요. 철저하되, 판단이나 의견이 아닌 사실 비교에 집중하세요.`;
+original 필드는 계약서 원문 그대로 발췌하세요(번역하지 말 것). 나머지(title, problem, summary)는 모두 한국어로 자연스럽게 작성하세요. problem은 오직 계약서 자체 조항 내용만 사실 서술하고, 표준계약서 내용은 언급·요약하지 마세요.`;
 
 async function extractTextFromPdf(buffer: Buffer): Promise<string | null> {
   try {
@@ -251,18 +251,34 @@ async function analyzeContract(
       const pickedNo = typeof clause.stdArticleNo === "number" && validArticleNos.has(clause.stdArticleNo)
         ? clause.stdArticleNo
         : null;
+      let resolvedNo: number | null = null;
       if (pickedNo !== null) {
         const text = await getArticleText(service, standard.typeId, pickedNo);
         if (text) {
           clause.fix = text;
           clause.fixSource = cite(pickedNo);
-          continue;
+          resolvedNo = pickedNo;
         }
       }
-      const match = await findStandardArticleText(service, standard.typeId, clause.title, clause.problem);
-      if (match) {
-        clause.fix = match.text;
-        clause.fixSource = cite(match.articleNo);
+      if (resolvedNo === null) {
+        // Search uses the AI's factual clause description — not yet touched by
+        // the connector sentence appended below, so keyword matching stays clean.
+        const match = await findStandardArticleText(service, standard.typeId, clause.title, clause.problem);
+        if (match) {
+          clause.fix = match.text;
+          clause.fixSource = cite(match.articleNo);
+          resolvedNo = match.articleNo;
+        }
+      }
+      // The only sentence connecting the contract's clause to the standard is
+      // this fixed, non-evaluative template — never AI-generated, and only
+      // added when a real verbatim quote is actually attached below it.
+      if (resolvedNo !== null) {
+        clause.problem = `${clause.problem.trim()} ${
+          lang === "ko"
+            ? `표준계약서 제${resolvedNo}조는 아래 원문과 같이 규정하고 있습니다.`
+            : `MCST Standard Contract Article ${resolvedNo} provides as follows in the original text quoted below.`
+        }`;
       }
     }
   }
