@@ -20,11 +20,15 @@ function run(cmd: string, args: string[]): Promise<{ code: number | null; out: s
 }
 
 export async function GET() {
-  const [which, version, pipShow, pythonVersion] = await Promise.all([
+  const [which, version, pipShow, pythonVersion, pipVersion, pip3Version, whichPip, lsBin] = await Promise.all([
     run("which", ["hwp5txt"]),
     run("hwp5txt", ["--version"]),
     run("python3", ["-m", "pip", "show", "pyhwp"]),
     run("python3", ["--version"]),
+    run("pip", ["--version"]),
+    run("pip3", ["--version"]),
+    run("sh", ["-c", "which pip; which pip3; which pip3.11"]),
+    run("sh", ["-c", "ls /root/.nix-profile/bin | grep -i pip"]),
   ]);
 
   return NextResponse.json({
@@ -32,6 +36,10 @@ export async function GET() {
     version,
     pipShow,
     pythonVersion,
+    pipVersion,
+    pip3Version,
+    whichPip,
+    lsBin,
     PATH: process.env.PATH,
   });
 }
