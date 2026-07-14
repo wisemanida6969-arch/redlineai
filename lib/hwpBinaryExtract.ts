@@ -14,14 +14,23 @@ import { writeFile, unlink } from "fs/promises";
 import { tmpdir } from "os";
 import path from "path";
 
-// Railway build (nixpacks.toml) installs pyhwp into a venv under /app,
-// since pip cannot write into python311's own /nix/store site-packages.
+// Railway build (nixpacks.toml) installs pyhwp via `pip install --prefix=`
+// into a plain writable dir under /app (pip can't write into python311's
+// own /nix/store site-packages). A --prefix install's console script keeps
+// the shebang of whichever python ran pip — that interpreter has no idea
+// about our prefix dir, so PYTHONPATH must point at its site-packages
+// explicitly or the script fails with ModuleNotFoundError at runtime.
 // Falls back to a bare "hwp5txt" lookup on PATH for local dev setups.
-const HWP5TXT_BIN = process.env.HWP5TXT_BIN || "/app/.venv-hwp/bin/hwp5txt";
+const HWP5TXT_PREFIX = "/app/.venv-hwp";
+const HWP5TXT_BIN = process.env.HWP5TXT_BIN || `${HWP5TXT_PREFIX}/bin/hwp5txt`;
+const HWP5TXT_PYTHONPATH = `${HWP5TXT_PREFIX}/lib/python3.11/site-packages`;
 
-function runHwp5txtAt(bin: string, filePath: string): Promise<string | null> {
+function runHwp5txtAt(bin: string, filePath: string, extraPythonPath?: string): Promise<string | null> {
   return new Promise((resolve) => {
-    const child = spawn(bin, [filePath], { timeout: 15000 });
+    const env = extraPythonPath
+      ? { ...process.env, PYTHONPATH: [extraPythonPath, process.env.PYTHONPATH].filter(Boolean).join(path.delimiter) }
+      : process.env;
+    const child = spawn(bin, [filePath], { timeout: 15000, env });
     let out = "";
     let settled = false;
     const finish = (result: string | null) => { if (!settled) { settled = true; resolve(result); } };
@@ -33,7 +42,7 @@ function runHwp5txtAt(bin: string, filePath: string): Promise<string | null> {
 }
 
 async function runHwp5txt(filePath: string): Promise<string> {
-  const primary = await runHwp5txtAt(HWP5TXT_BIN, filePath);
+  const primary = await runHwp5txtAt(HWP5TXT_BIN, filePath, HWP5TXT_PYTHONPATH);
   if (primary !== null) return primary;
   const fallback = await runHwp5txtAt("hwp5txt", filePath);
   return fallback ?? "";

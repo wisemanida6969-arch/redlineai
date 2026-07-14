@@ -31,8 +31,20 @@ export async function GET() {
     run("sh", ["-c", "ls /root/.nix-profile/bin | grep -i pip"]),
   ]);
 
-  const venvHwp5txt = await run("/app/.venv-hwp/bin/hwp5txt", ["--version"]);
-  const venvLs = await run("sh", ["-c", "ls -la /app/.venv-hwp/bin 2>&1 || echo NO_VENV"]);
+  const venvHwp5txtNoPath = await run("/app/.venv-hwp/bin/hwp5txt", ["--version"]);
+  const venvHwp5txtWithPath = await new Promise<{ code: number | null; out: string; err: string }>((resolve) => {
+    const child = spawn("/app/.venv-hwp/bin/hwp5txt", ["--version"], {
+      timeout: 10000,
+      env: { ...process.env, PYTHONPATH: "/app/.venv-hwp/lib/python3.11/site-packages" },
+    });
+    let out = "";
+    let err = "";
+    child.stdout?.on("data", (d) => { out += d.toString("utf-8"); });
+    child.stderr?.on("data", (d) => { err += d.toString("utf-8"); });
+    child.on("error", (e) => resolve({ code: -1, out, err: err + " " + e.message }));
+    child.on("close", (code) => resolve({ code, out, err }));
+  });
+  const venvLs = await run("sh", ["-c", "ls -la /app/.venv-hwp/bin 2>&1 || echo NO_VENV; ls /app/.venv-hwp/lib/python3.11/site-packages 2>&1 | head -20"]);
 
   return NextResponse.json({
     which,
@@ -43,8 +55,9 @@ export async function GET() {
     pip3Version,
     whichPip,
     lsBin,
-    venvHwp5txt,
+    venvHwp5txtNoPath,
+    venvHwp5txtWithPath,
     venvLs,
     PATH: process.env.PATH,
-  }, { headers: { "Cache-Control": "no-store, no-cache, must-revalidate", "x-diag-marker": "v4" } });
+  }, { headers: { "Cache-Control": "no-store, no-cache, must-revalidate", "x-diag-marker": "v5" } });
 }
