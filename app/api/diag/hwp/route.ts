@@ -7,9 +7,9 @@ import { spawn } from "child_process";
  */
 export const dynamic = "force-dynamic";
 
-function run(cmd: string, args: string[]): Promise<{ code: number | null; out: string; err: string }> {
+function run(cmd: string, args: string[], timeout = 10000): Promise<{ code: number | null; out: string; err: string }> {
   return new Promise((resolve) => {
-    const child = spawn(cmd, args, { timeout: 10000 });
+    const child = spawn(cmd, args, { timeout });
     let out = "";
     let err = "";
     child.stdout?.on("data", (d) => { out += d.toString("utf-8"); });
@@ -31,6 +31,11 @@ export async function GET() {
     run("sh", ["-c", "ls /root/.nix-profile/bin | grep -i pip"]),
   ]);
 
+  // Live install attempt right now (idempotent, safe) to capture the exact
+  // failure reason instead of guessing from the build-phase logs.
+  const liveInstall = await run("pip", ["install", "--no-cache-dir", "pyhwp"], 45000);
+  const afterInstallWhich = await run("sh", ["-c", "which hwp5txt; ls /root/.nix-profile/bin | grep -i hwp"]);
+
   return NextResponse.json({
     which,
     version,
@@ -40,6 +45,8 @@ export async function GET() {
     pip3Version,
     whichPip,
     lsBin,
+    liveInstall,
+    afterInstallWhich,
     PATH: process.env.PATH,
-  }, { headers: { "Cache-Control": "no-store, no-cache, must-revalidate", "x-diag-marker": "v2" } });
+  }, { headers: { "Cache-Control": "no-store, no-cache, must-revalidate", "x-diag-marker": "v3" } });
 }
