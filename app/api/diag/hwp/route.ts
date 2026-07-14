@@ -31,10 +31,8 @@ export async function GET() {
     run("sh", ["-c", "ls /root/.nix-profile/bin | grep -i pip"]),
   ]);
 
-  // Live install attempt right now (idempotent, safe) to capture the exact
-  // failure reason instead of guessing from the build-phase logs.
-  const liveInstall = await run("pip", ["install", "--no-cache-dir", "pyhwp"], 45000);
-  const afterInstallWhich = await run("sh", ["-c", "which hwp5txt; ls /root/.nix-profile/bin | grep -i hwp"]);
+  const venvHwp5txt = await run("/app/.venv-hwp/bin/hwp5txt", ["--version"]);
+  const venvLs = await run("sh", ["-c", "ls -la /app/.venv-hwp/bin 2>&1 || echo NO_VENV"]);
 
   return NextResponse.json({
     which,
@@ -45,8 +43,8 @@ export async function GET() {
     pip3Version,
     whichPip,
     lsBin,
-    liveInstall,
-    afterInstallWhich,
+    venvHwp5txt,
+    venvLs,
     PATH: process.env.PATH,
-  }, { headers: { "Cache-Control": "no-store, no-cache, must-revalidate", "x-diag-marker": "v3" } });
+  }, { headers: { "Cache-Control": "no-store, no-cache, must-revalidate", "x-diag-marker": "v4" } });
 }

@@ -14,17 +14,29 @@ import { writeFile, unlink } from "fs/promises";
 import { tmpdir } from "os";
 import path from "path";
 
-function runHwp5txt(filePath: string): Promise<string> {
+// Railway build (nixpacks.toml) installs pyhwp into a venv under /app,
+// since pip cannot write into python311's own /nix/store site-packages.
+// Falls back to a bare "hwp5txt" lookup on PATH for local dev setups.
+const HWP5TXT_BIN = process.env.HWP5TXT_BIN || "/app/.venv-hwp/bin/hwp5txt";
+
+function runHwp5txtAt(bin: string, filePath: string): Promise<string | null> {
   return new Promise((resolve) => {
-    const child = spawn("hwp5txt", [filePath], { timeout: 15000 });
+    const child = spawn(bin, [filePath], { timeout: 15000 });
     let out = "";
     let settled = false;
-    const finish = (result: string) => { if (!settled) { settled = true; resolve(result); } };
+    const finish = (result: string | null) => { if (!settled) { settled = true; resolve(result); } };
 
     child.stdout.on("data", (d) => { out += d.toString("utf-8"); });
-    child.on("error", () => finish(""));           // binary not found / spawn failure
+    child.on("error", () => finish(null));          // binary not found / spawn failure -> try next
     child.on("close", (code) => finish(code === 0 ? out : ""));
   });
+}
+
+async function runHwp5txt(filePath: string): Promise<string> {
+  const primary = await runHwp5txtAt(HWP5TXT_BIN, filePath);
+  if (primary !== null) return primary;
+  const fallback = await runHwp5txtAt("hwp5txt", filePath);
+  return fallback ?? "";
 }
 
 /** Extract plain text from an old-format binary .hwp buffer. Returns "" on any failure. */
