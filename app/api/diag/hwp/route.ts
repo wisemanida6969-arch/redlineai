@@ -41,5 +41,5 @@ export async function GET() {
     whichPip,
     lsBin,
     PATH: process.env.PATH,
-  });
+  }, { headers: { "Cache-Control": "no-store, no-cache, must-revalidate", "x-diag-marker": "v2" } });
 }
