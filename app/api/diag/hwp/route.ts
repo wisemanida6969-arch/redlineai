@@ -59,5 +59,5 @@ export async function GET() {
     venvHwp5txtWithPath,
     venvLs,
     PATH: process.env.PATH,
-  }, { headers: { "Cache-Control": "no-store, no-cache, must-revalidate", "x-diag-marker": "v5" } });
+  }, { headers: { "Cache-Control": "no-store, no-cache, must-revalidate", "x-diag-marker": "v6" } });
 }

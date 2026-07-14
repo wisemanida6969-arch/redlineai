@@ -14,12 +14,10 @@ import { writeFile, unlink } from "fs/promises";
 import { tmpdir } from "os";
 import path from "path";
 
-// Railway build (nixpacks.toml) installs pyhwp via `pip install --prefix=`
-// into a plain writable dir under /app (pip can't write into python311's
-// own /nix/store site-packages). A --prefix install's console script keeps
-// the shebang of whichever python ran pip — that interpreter has no idea
-// about our prefix dir, so PYTHONPATH must point at its site-packages
-// explicitly or the script fails with ModuleNotFoundError at runtime.
+// Railway build (nixpacks.toml) installs pyhwp into a venv under /app,
+// since pip cannot write into python311's own /nix/store site-packages.
+// The venv resolves its own site-packages automatically at runtime, but
+// PYTHONPATH is set explicitly too as cheap extra insurance.
 // Falls back to a bare "hwp5txt" lookup on PATH for local dev setups.
 const HWP5TXT_PREFIX = "/app/.venv-hwp";
 const HWP5TXT_BIN = process.env.HWP5TXT_BIN || `${HWP5TXT_PREFIX}/bin/hwp5txt`;

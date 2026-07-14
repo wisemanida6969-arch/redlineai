@@ -17,11 +17,12 @@ cmds = [
   # pip cannot install into python311's own site-packages: that path lives
   # under the read-only /nix/store, so even --break-system-packages fails
   # ("externally-managed-environment... immutable /nix/store filesystem").
-  # `python3 -m venv` isn't an option either — it bootstraps via ensurepip,
-  # which this Nix python also lacks, so venv creation itself fails and
-  # aborts the whole build. Instead, use the already-working nixpkgs pip
-  # directly with --prefix to install into a plain writable directory under
-  # /app (same bin/ layout a venv would produce). No ensurepip involved.
-  # lib/hwpBinaryExtract.ts calls this prefix's hwp5txt by absolute path.
-  "pip install --no-cache-dir --prefix=/app/.venv-hwp pyhwp || true"
+  # A venv under /app is a normal writable directory, and its own bundled
+  # pip resolves and activates its site-packages automatically at runtime —
+  # confirmed working (hwp5txt's own modules import fine from it). The only
+  # gap found was pyhwp's "six" dependency not landing reliably, so it's
+  # installed explicitly alongside as insurance.
+  "python3 -m venv /app/.venv-hwp",
+  "/app/.venv-hwp/bin/pip install --no-cache-dir --upgrade pip || true",
+  "/app/.venv-hwp/bin/pip install --no-cache-dir six pyhwp || true"
 ]
