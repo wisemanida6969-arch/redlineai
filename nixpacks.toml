@@ -7,11 +7,12 @@
 providers = ["node"]
 
 [phases.setup]
-nixPkgs = ["nodejs", "python311"]
+# Nix's python311 does NOT bundle pip (ensurepip fails on it silently) — the
+# pip package must be pulled in explicitly or pyhwp never installs.
+nixPkgs = ["nodejs", "python311", "python311Packages.pip"]
 
 [phases.install]
 cmds = [
   "npm ci",
-  "python3 -m ensurepip --upgrade || true",
-  "python3 -m pip install --no-cache-dir pyhwp || python3 -m pip install --no-cache-dir --break-system-packages pyhwp || true"
+  "pip install --no-cache-dir pyhwp || pip install --no-cache-dir --break-system-packages pyhwp || true"
 ]
