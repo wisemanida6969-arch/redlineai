@@ -17,8 +17,10 @@ html {
 
 body {
   background-color: #f4f6fa;
-  color: #1e293b;
+  color: #0f172a;
   font-family: 'Inter', system-ui, sans-serif;
+  /* Slightly heavier base weight — light theme reads thin at 400 */
+  font-weight: 500;
   /* Korean text must wrap at word boundaries, never mid-word ("검토하 / 세요").
      overflow-wrap keeps long unbroken strings (URLs, ids) from overflowing. */
   word-break: keep-all;
@@ -65,13 +67,13 @@ body {
 .from-\[\#1e3050\]  { --tw-gradient-from: #e6ebf3 !important; --tw-gradient-to: rgb(230 235 243 / 0) !important; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important; }
 
 /* ── Ink (text) ── */
-.text-white     { color: #0f172a !important; }
+.text-white     { color: #020617 !important; }
 .text-slate-100,
-.text-slate-200 { color: #0f172a !important; }
-.text-slate-300 { color: #1e293b !important; }
-.text-slate-400 { color: #334155 !important; }
-.text-slate-500 { color: #475569 !important; }
-.text-slate-600 { color: #64748b !important; }
+.text-slate-200 { color: #020617 !important; }
+.text-slate-300 { color: #0f172a !important; }
+.text-slate-400 { color: #1e293b !important; }
+.text-slate-500 { color: #334155 !important; }
+.text-slate-600 { color: #475569 !important; }
 
 /* Text that must STAY white: on solid colored buttons/badges */
 .bg-red-500.text-white, .bg-red-600.text-white, .bg-red-700.text-white,
