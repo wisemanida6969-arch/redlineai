@@ -37,8 +37,11 @@ export default function Home() {
               <br />
               <span className="text-red-500 text-glow-red">{t("landing.headlineAccent")}</span>
             </h1>
-            <p className="text-xl text-slate-400 mb-10 animate-fade-in-up-delay break-keep">
+            <p className="text-xl text-slate-400 mb-4 animate-fade-in-up-delay break-keep">
               {t("landing.sub")}
+            </p>
+            <p className="text-xl text-slate-400 font-semibold mb-10 animate-fade-in-up-delay break-keep">
+              {t("landing.sub2")}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Link
@@ -206,6 +209,28 @@ export default function Home() {
 
           {/* Sign recommendation card */}
           <SignRecommendationCard t={t} />
+        </div>
+      </section>
+
+      {/* Post-signing entry: situation cards → upload */}
+      <section className="py-20 px-6 border-t border-[#1e3050] bg-[#0f1a2e]">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-3xl font-bold text-white text-center mb-3">{t("landing.afterTitle")}</h2>
+          <p className="text-slate-400 text-center max-w-2xl mx-auto mb-10 break-keep">{t("landing.afterSub")}</p>
+          <div className="grid sm:grid-cols-2 gap-4">
+            {[t("landing.after1"), t("landing.after2"), t("landing.after3"), t("landing.after4")].map((label) => (
+              <Link
+                key={label}
+                href="/dashboard"
+                className="group bg-[#162035] border border-[#2a3d5f] hover:border-red-600/60 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/30 rounded-2xl p-5 transition-all duration-300 ease-out"
+              >
+                <p className="text-white font-semibold mb-2 break-keep">{label}</p>
+                <span className="text-red-400 group-hover:text-red-300 text-sm font-medium transition-colors">
+                  {t("landing.afterCardCta")}
+                </span>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 

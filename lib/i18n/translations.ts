@@ -58,8 +58,12 @@ export const translations = {
       en: "Fine art · webtoon · performance · film · craft. We compare your contract against the government standard and quote the official standard text verbatim — not AI-generated opinions. You decide; we show the source.",
       ko: "미술·웹툰·공연·영화·공예. 받은 계약서를 문체부 표준계약서와 비교해, AI가 지어낸 의견이 아닌 표준계약서 원문 그대로 보여드립니다. 판단은 직접, 근거는 원문으로.",
     },
-    ctaHero:       { en: "Start Free →", ko: "무료로 비교해보기" },
-    ctaPrimary:    { en: "Start Free →", ko: "무료로 시작하기 →" },
+    sub2:          {
+      en: "If a problem has come up with your contract, start by seeing where it differs from the government standard.",
+      ko: "계약 때문에 문제가 생겼다면, 내 계약서가 정부 표준과 어디가 달랐는지부터 확인하세요.",
+    },
+    ctaHero:       { en: "Compare my contract", ko: "무료로 비교해보기" },
+    ctaPrimary:    { en: "Compare your contract →", ko: "계약서 비교하기 →" },
     ctaSecondary:  { en: "Browse standard contracts", ko: "표준계약서 둘러보기" },
     noCard:        { en: "No credit card · Built on the verbatim text of official MCST standard forms", ko: "신용카드 불필요 · 문체부 표준계약서 원문 기반" },
 
@@ -70,7 +74,7 @@ export const translations = {
     catViewAll:    { en: "Open the standard contract library →", ko: "표준계약서 라이브러리 열기 →" },
 
     /* Sample preview */
-    sampleDoc:     { en: "webtoon_serialization.pdf — Reviewed vs. standard", ko: "웹툰_연재계약서.pdf — 표준 대비 검토 완료" },
+    sampleDoc:     { en: "webtoon_serialization.pdf — Compared vs. standard", ko: "웹툰_연재계약서.pdf — 표준 대비 비교 완료" },
     suggestedFix:  { en: "Standard form says:", ko: "표준양식 기준:" },
 
     /* How it works */
@@ -78,7 +82,7 @@ export const translations = {
     step:          { en: "Step",         ko: "단계" },
     howStep1Title: { en: "Pick your field", ko: "내 분야 선택" },
     howStep1Desc:  { en: "Choose the standard contract for your field — fine art, webtoon, performance, film, or craft.", ko: "미술·웹툰·공연·영화·공예 중 내 분야의 표준계약서를 고르세요." },
-    howStep2Title: { en: "Draft or review with AI", ko: "AI로 작성 또는 검토" },
+    howStep2Title: { en: "Draft or compare with AI", ko: "AI로 작성 또는 비교" },
     howStep2Desc:  { en: "Enter your project terms to draft from the standard form, or upload a contract you received to compare it against the standard.", ko: "내 조건을 입력해 표준양식 기반 초안을 만들거나, 받은 계약서를 올려 표준과 비교 분석하세요." },
     howStep3Title: { en: "Sign with confidence", ko: "안심하고 계약" },
     howStep3Desc:  { en: "See which clauses differ from or are missing compared to the standard, update them, and sign knowing your rights are protected.", ko: "표준과 다르거나 빠진 보호 조항을 확인하고 수정한 뒤, 권리를 지킨 채 서명하세요." },
@@ -87,7 +91,7 @@ export const translations = {
     featuresTitle: { en: "Everything a creative freelancer needs to contract safely", ko: "창작 프리랜서가 안전하게 계약하는 데 필요한 모든 것" },
     f1Title: { en: "Standard contract library", ko: "표준계약서 라이브러리" },
     f1Desc:  { en: "Fine art (12), webtoon (8), performance (5), film (5), craft (5) — every official MCST standard form in one place, with a direct link to the authoritative download.", ko: "미술 12종·웹툰 8종·공연 5종·영화 5종·공예 5종 — 문체부 공식 표준양식을 한 곳에서, 원본 다운로드 링크와 함께." },
-    f2Title: { en: "Review against the standard", ko: "표준 대비 검토" },
+    f2Title: { en: "Compare against the standard", ko: "표준 대비 비교" },
     f2Desc:  { en: "Upload a contract you were offered. AI compares it to the matching standard form, flags clauses that differ, and quotes the official standard article verbatim — with its article number — so you can show the counterparty the source, not an AI's opinion.", ko: "제안받은 계약서를 올리면 해당 분야 표준양식과 비교해 다른 조항을 표시하고, 그 자리에서 표준계약서 원문을 조항 번호와 함께 그대로 인용해 드립니다. 상대방에게 AI 의견이 아닌 '출처'를 보여주세요." },
     f3Title: { en: "Standard-form draft organizer", ko: "표준양식 기반 초안 정리 툴" },
     f3Desc:  { en: "Enter your project details and this automation tool organizes them into the official standard structure — no blank-page stress. Not legal advice.", ko: "내 프로젝트 조건만 입력하면 공식 표준 구조에 맞춰 초안을 정리해 드리는 자동화 도구입니다. 법률 자문이 아닙니다." },
@@ -95,6 +99,18 @@ export const translations = {
     f4Desc:  { en: "Agreed something over KakaoTalk? Drop a screenshot or paste the chat — this tool organizes it into a standard-form draft for you to review.", ko: "카톡으로 합의했나요? 스크린샷을 올리거나 대화를 붙여넣으면 표준 양식에 맞춰 초안으로 정리해 드립니다." },
     f5Title: { en: "AI legal assistant", ko: "AI 법률 도우미" },
     f5Desc:  { en: "Chat with AI to understand a clause, draft a negotiation message, or ask what a term means in plain Korean.", ko: "AI와 대화하며 조항을 이해하고, 협상 메시지를 작성하고, 어려운 용어를 쉬운 말로 물어보세요." },
+
+    /* Post-signing entry section */
+    afterTitle: { en: "You can still compare after signing", ko: "이미 계약한 뒤라도 확인할 수 있습니다" },
+    afterSub:   {
+      en: "Upload your signed contract and see, article by article, where it differs from the government standard form — with the official standard text quoted verbatim.",
+      ko: "체결한 계약서를 올리면 정부 표준계약서와 어디가 다른지 조항별로 비교하고, 표준계약서 원문을 그대로 보여드립니다.",
+    },
+    after1: { en: "Payment has not been made as scheduled", ko: "정산이 예정대로 이루어지지 않은 경우" },
+    after2: { en: "A termination or penalty issue has come up", ko: "계약 해지나 위약금 문제가 발생한 경우" },
+    after3: { en: "The scope of derivative-work / copyright use is disputed", ko: "2차적저작물·저작권 이용 범위가 다투어지는 경우" },
+    after4: { en: "You are being asked for things not in the contract", ko: "계약서에 없던 요구를 받고 있는 경우" },
+    afterCardCta: { en: "Compare my contract with the standard →", ko: "내 계약서와 표준계약서 비교해보기 →" },
 
     /* Sign recommendation card */
     signNeededTag:   { en: "After review", ko: "검토 이후" },

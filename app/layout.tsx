@@ -9,10 +9,12 @@ export const metadata: Metadata = {
     default: "레드라인AI – 창작자를 위한 표준계약서 AI",
     template: "%s | 레드라인AI",
   },
-  description: "미술·웹툰·공연·영화·공예 — 문화체육관광부 표준계약서로 계약서를 작성하고, 받은 계약서를 표준과 비교 검토하세요. 관련 법원 판례까지 한 곳에서. Claude AI 기반.",
+  description: "미술·웹툰·공연·영화·공예 — 받은 계약서를 문화체육관광부 표준계약서와 조항별로 비교하고, 표준계약서 원문을 그대로 확인하세요. 관련 법원 판례까지 한 곳에서. Claude AI 기반.",
+  applicationName: "레드라인AI",
   keywords: [
+    "레드라인AI", "레드라인 AI", "RedlineAI", "redline ai",
     "표준계약서", "문체부 표준계약서", "창작자 계약서", "웹툰 계약서", "프리랜서 계약서",
-    "계약서 작성", "계약서 검토 AI", "저작권 판례", "예술인 표준계약서", "Claude AI",
+    "계약서 작성", "계약서 비교 AI", "저작권 판례", "예술인 표준계약서", "Claude AI",
   ],
   authors: [{ name: "Pactbug" }],
   creator: "Pactbug",
@@ -60,6 +62,30 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
+        {/* Organization + WebSite structured data (brand queries: 레드라인AI / RedlineAI) */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify([
+              {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                name: "레드라인AI",
+                alternateName: ["레드라인 AI", "RedlineAI"],
+                url: "https://getredlineai.com",
+                email: "admin@pactbug.com",
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                name: "레드라인AI",
+                alternateName: ["레드라인 AI", "RedlineAI"],
+                url: "https://getredlineai.com",
+                inLanguage: "ko",
+              },
+            ]),
+          }}
+        />
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-V4RD4V1GTP"></script>
         <script
           dangerouslySetInnerHTML={{
