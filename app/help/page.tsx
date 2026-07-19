@@ -64,7 +64,7 @@ export default function HelpPage() {
           onToggle={() => setOpen(open === "standard" ? null : "standard")}
           icon={Library}
           title={ko ? "표준계약서" : "Standard Contracts"}
-          tagline={ko ? "문화체육관광부 표준계약서 5개 분야 35종을 둘러보고, 공식 양식을 받고, AI로 작성·검토하세요" : "Browse 5 fields / 35 official MCST forms, download the original, then draft or review with AI"}
+          tagline={ko ? "문화체육관광부 표준계약서 5개 분야 35종을 둘러보고, 공식 양식을 받고, AI로 작성·비교하세요" : "Browse 5 fields / 35 official MCST forms, download the original, then draft or compare with AI"}
         >
           <Step n={1} title={ko ? "분야 선택" : "Pick a field"}>
             {ko ? <>미술(12종) · 만화·웹툰(8종) · 공연예술(5종) · 영화(5종) · 공예(5종) 중 내 상황에 맞는 분야를 고르세요.</> : <>Choose from Fine Art (12), Webtoon (8), Performing Arts (5), Film (5), or Craft (5).</>}
@@ -89,7 +89,7 @@ export default function HelpPage() {
           tagline={ko ? "계약서 업로드 → AI가 표준 대비 다른 조항 표시 → PDF 리포트" : "Upload a contract → AI shows how it differs vs. the standard → Export PDF report"}
         >
           <Step n={1} title={ko ? "계약서 검토 탭 열기" : "Open the Contract Review tab"}>
-            {ko ? <>대시보드에서 <strong className="text-white">계약서 검토</strong> 탭을 클릭하세요. 표준계약서 라이브러리에서 넘어왔다면 상단에 노란 배너로 어떤 표준과 비교 중인지 표시됩니다.</> : <>Click the <strong className="text-white">Contract Review</strong> tab. If you arrived from the Standard Contracts library, a yellow banner at the top shows which standard you&apos;re comparing against.</>}
+            {ko ? <>대시보드에서 <strong className="text-white">계약서 검토</strong> 탭을 클릭하세요. 표준계약서 라이브러리에서 넘어왔다면 상단에 노란 배너로 어떤 표준과 비교 중인지 표시됩니다. 표준을 직접 고르지 않아도, AI가 계약서 내용을 보고 알맞은 문체부 표준계약서를 자동으로 선택합니다.</> : <>Click the <strong className="text-white">Contract Review</strong> tab. If you arrived from the Standard Contracts library, a yellow banner at the top shows which standard you&apos;re comparing against. Even without picking one, AI auto-selects the matching MCST standard form from your contract&apos;s content.</>}
           </Step>
           <Step n={2} title={ko ? "계약서 업로드 또는 텍스트 붙여넣기" : "Upload your contract or paste text"}>
             <ul className="list-disc list-inside space-y-1 text-slate-400 text-sm mt-1">
@@ -126,17 +126,17 @@ export default function HelpPage() {
               </>}
             </ul>
           </Step>
-          <Step n={5} title={ko ? "리포트 검토" : "Review the report"}>
+          <Step n={5} title={ko ? "리포트 확인" : "Read the report"}>
             {ko ? "각 표시된 조항에는 다음이 포함됩니다:" : "Each flagged clause includes:"}
             <ul className="list-disc list-inside space-y-1 text-slate-400 text-sm mt-1">
               {ko ? <>
                 <li><strong className="text-slate-300">원문 인용</strong> — 계약서 원문 그대로</li>
-                <li><strong className="text-slate-300">표준과 다른 점</strong> — 쉬운 말로 설명</li>
-                <li><strong className="text-slate-300">표준계약서 원문</strong> — 해당 조항의 실제 표준계약서 문구 (없으면 표시되지 않음)</li>
+                <li><strong className="text-slate-300">표준과 다른 점</strong> — 이 계약서 조항이 무엇을 규정하는지 사실 그대로 서술</li>
+                <li><strong className="text-slate-300">표준계약서 원문</strong> — 대응하는 표준계약서 조항을 번호·출처와 함께 그대로 인용 (대응 조항이 없으면 표시되지 않음)</li>
               </> : <>
                 <li><strong className="text-slate-300">Original quote</strong> from the contract</li>
-                <li><strong className="text-slate-300">How it differs from the standard</strong> in plain language</li>
-                <li><strong className="text-slate-300">Official Standard Text</strong> — the actual standard-contract wording for that clause (shown only when one exists)</li>
+                <li><strong className="text-slate-300">How it differs from the standard</strong> — a factual statement of what the contract&apos;s clause provides</li>
+                <li><strong className="text-slate-300">Official Standard Text</strong> — the corresponding standard article quoted verbatim with its number and source (omitted when none corresponds)</li>
               </>}
             </ul>
           </Step>
@@ -144,7 +144,7 @@ export default function HelpPage() {
             {ko ? "리포트 하단에 이 계약 내용에서 뽑아낸 검색어로 실제 법원 판례를 보여줍니다. 검색어 칩을 누르거나 직접 검색할 수 있습니다." : "The bottom of the report surfaces real court precedents using keywords extracted from your contract. Tap a keyword chip or search your own."}
           </Step>
           <Step n={7} title={ko ? "리포트 내보내기" : "Export the report"} icon={Download}>
-            {ko ? <><strong className="text-white">리포트 다운로드</strong> 클릭 → <strong>PDF</strong> 또는 <strong>Word</strong> 선택. 팀이나 변호사와 공유하세요.</> : <>Click <strong className="text-white">Download Report</strong> → choose <strong>PDF</strong> or <strong>Word</strong>. Share with your team or lawyer.</>}
+            {ko ? <><strong className="text-white">리포트 다운로드</strong> 클릭 → <strong>PDF</strong> 또는 <strong>Word</strong> 선택. 팀이나 변호사와 공유하세요. <strong className="text-white">사인 전 패키지</strong>(₩19,900, 계약서 1건)를 이용하면 표지·요약·조항별 비교·관련 판례·업체 정보를 담은 정식 PDF 리포트를 받을 수 있고, 판례 열람·리스크 검색 24시간 이용이 함께 제공됩니다.</> : <>Click <strong className="text-white">Download Report</strong> → choose <strong>PDF</strong> or <strong>Word</strong>. Share with your team or lawyer. The <strong className="text-white">Pre-Sign Package</strong> (₩19,900 per contract) adds a full PDF report — cover, summary, clause-by-clause comparison, related precedents, vendor info — plus 24h precedent and risk-search access.</>}
           </Step>
           <Step n={8} title={ko ? "과거 스캔 다시 열기" : "Re-open past scans"} icon={Eye}>
             {ko ? <>이전 스캔 기록은 하단 <strong className="text-white">최근 스캔 기록</strong>에서 확인할 수 있습니다. 항목을 클릭하면 전체 리포트가 다시 열립니다.</> : <>All your past scans appear in <strong className="text-white">Recent Scans</strong> at the bottom. Click any item to re-open the full report.</>}

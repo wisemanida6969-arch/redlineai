@@ -318,7 +318,7 @@ export const translations = {
   /* ── Standard Contract Library ── */
   standard: {
     title:        { en: "Standard Contracts", ko: "표준계약서" },
-    intro:        { en: "Official standard contracts published by Korea's Ministry of Culture, Sports and Tourism. Browse by field, download the authoritative form, then draft or review with AI.", ko: "문화체육관광부가 배포한 분야별 공식 표준계약서입니다. 분야를 둘러보고 공식 양식을 내려받은 뒤, AI로 작성하거나 받은 계약서를 표준과 비교 검토하세요." },
+    intro:        { en: "Official standard contracts published by Korea's Ministry of Culture, Sports and Tourism. Browse by field, download the authoritative form, then draft or compare with AI.", ko: "문화체육관광부가 배포한 분야별 공식 표준계약서입니다. 분야를 둘러보고 공식 양식을 내려받은 뒤, AI로 작성하거나 받은 계약서를 표준과 비교하세요." },
     poweredByGov: { en: "Official forms by the Ministry of Culture, Sports and Tourism", ko: "문화체육관광부 공식 표준양식" },
 
     /* Category grid */
