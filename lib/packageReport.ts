@@ -53,36 +53,58 @@ const DISCLAIMER = REPORT_DISCLAIMER;
 const TOPIC_SEARCH_KEYWORDS: [RegExp, string[]][] = [
   // Order matters: more specific topics first (a 지체상금 clause often also
   // mentions 원고료, and must land on 위약금 — not the payment keyword).
+  // Each topic lists queries in PRIORITY order: domain-scoped first, generic
+  // fallback last — generic terms alone pull in tax/administrative cases
+  // (교육세부과처분취소 등), which the case-type filter then also guards against.
   [/2\s*차적\s*저작물/, ["2차적저작물작성권"]],
-  [/위약금|지체상금/, ["위약금 감액"]],
+  [/위약금|지체상금/, ["저작물 이용계약 위약금", "계약금 위약금", "위약금 감액"]],
   [/저작인격권|성명표시|동일성/, ["저작인격권"]],
   [/저작권.{0,6}(귀속|양도)|(귀속|양도).{0,6}저작권/, ["저작권 양도"]],
-  [/이용허락|이용 범위/, ["이용허락"]],
-  [/정산|수익|분배/, ["수익분배"]],
-  [/손해배상/, ["손해배상 예정"]],
+  [/이용허락|이용 범위/, ["저작물 이용허락", "이용허락"]],
+  [/정산|수익|분배/, ["저작권 수익분배", "저작물 수익배분", "수익분배"]],
+  [/손해배상/, ["저작권 손해배상", "손해배상 예정액"]],
   [/전속|경업/, ["전속계약"]],
   [/출연료|출연/, ["출연료"]],
   [/원고료|연재|휴재/, ["원고료", "연재계약"]],
 ];
 
-/** Per-clause canonical keywords: keyword → titles of the clauses it came from. */
+/**
+ * Domain gate for search hits. Generic keywords (수익분배, 위약금 …) also
+ * match tax/administrative/enforcement cases — those are never relevant to a
+ * creative-work contract comparison, whatever the keyword said.
+ */
+export function isContractDomainCase(ref: { title: string; caseType: string | null }): boolean {
+  if (ref.caseType && /세무|행정|조세|헌법|가사|선거/.test(ref.caseType)) return false;
+  if (/부과처분|과세|세금|교육세|재산세|양도소득|종합소득|부가가치세|배당이의|공탁|경매|추심|압류|강제집행|보전처분/.test(ref.title)) return false;
+  return true;
+}
+
+export interface PrecedentTopicPlan {
+  /** Queries in priority order — first one that yields domain-relevant hits wins. */
+  queries: string[];
+  /** Clause titles this topic came from, most severe first. */
+  clauseTitles: string[];
+}
+
+/** Per-clause topic plan: one entry per matched topic (not per query). */
 export function buildPrecedentSearchPlan(
   clauses: { title: string; problem: string }[],
-): Map<string, string[]> {
-  const plan = new Map<string, string[]>();
+): PrecedentTopicPlan[] {
+  const byTopic = new Map<number, string[]>();
   for (const clause of clauses) {
     const hay = `${clause.title} ${clause.problem}`;
-    for (const [re, kws] of TOPIC_SEARCH_KEYWORDS) {
-      if (!re.test(hay)) continue;
-      for (const kw of kws) {
-        const arr = plan.get(kw) ?? [];
-        if (!arr.includes(clause.title)) arr.push(clause.title);
-        plan.set(kw, arr);
-      }
+    for (let i = 0; i < TOPIC_SEARCH_KEYWORDS.length; i++) {
+      if (!TOPIC_SEARCH_KEYWORDS[i][0].test(hay)) continue;
+      const arr = byTopic.get(i) ?? [];
+      if (!arr.includes(clause.title)) arr.push(clause.title);
+      byTopic.set(i, arr);
       break; // first matching topic per clause
     }
   }
-  return plan;
+  return Array.from(byTopic.entries()).map(([i, titles]) => ({
+    queries: TOPIC_SEARCH_KEYWORDS[i][1],
+    clauseTitles: titles,
+  }));
 }
 
 /* ================================================================== */
@@ -309,37 +331,48 @@ export async function buildReportPdf(
 
   /* ── 4. Related precedents ── */
   sectionHeader("관련 판례 (참고 정보)");
-  // Per-clause canonical keywords (see TOPIC_SEARCH_KEYWORDS). AI-generated
-  // queries are only a fallback, and only short ones — long natural-language
-  // queries return zero results from the keyword-matching API.
-  const plan = buildPrecedentSearchPlan(clauses);
-  if (plan.size === 0) {
+  // Per-clause topic plan (see TOPIC_SEARCH_KEYWORDS). AI-generated queries
+  // are only a fallback, and only short ones — long natural-language queries
+  // return zero results from the keyword-matching API.
+  const topics = buildPrecedentSearchPlan(clauses).slice(0, 4);
+  if (topics.length === 0) {
     for (const q of (result.precedentQueries ?? []).filter(Boolean)) {
-      if (q.split(/\s+/).length <= 2 && !plan.has(q)) plan.set(q, []);
-      if (plan.size >= 3) break;
+      if (q.split(/\s+/).length <= 2) topics.push({ queries: [q], clauseTitles: [] });
+      if (topics.length >= 3) break;
     }
   }
-  const keywords = Array.from(plan.keys()).slice(0, 4);
 
   const lawRefs: (LawPrecedentRef & { matchedQuery: string; relatedClauses: string[] })[] = [];
   let fallbackRefs: (PrecedentRef & { matchedQuery: string; relatedClauses: string[] })[] = [];
-  // Round-robin cap: up to 3 cases per keyword, 8 total — so one prolific
-  // keyword can't crowd out the other clauses' topics.
-  for (const kw of keywords) {
+  const usedKeywords: string[] = [];
+  // Per topic: try queries in priority order (domain-scoped first), keep the
+  // first one that yields domain-relevant cases. Up to 3 cases per topic,
+  // 8 total — so one prolific topic can't crowd out the rest. Each case shows
+  // at most the 2 most severe related clauses.
+  for (const topic of topics) {
     if (lawRefs.length >= 8) break;
-    const found = await fetchLawPrecedents(kw, 10);
-    let taken = 0;
-    for (const f of found) {
-      if (lawRefs.length >= 8 || taken >= 3) break;
-      if (lawRefs.some((e) => e.externalId === f.externalId)) continue;
-      lawRefs.push({ ...f, matchedQuery: kw, relatedClauses: plan.get(kw) ?? [] });
-      taken++;
+    for (const q of topic.queries) {
+      const found = (await fetchLawPrecedents(q, 10))
+        .filter(isContractDomainCase)
+        .filter((f) => !lawRefs.some((e) => e.externalId === f.externalId));
+      if (found.length === 0) continue;
+      usedKeywords.push(q);
+      for (const f of found.slice(0, 3)) {
+        if (lawRefs.length >= 8) break;
+        lawRefs.push({ ...f, matchedQuery: q, relatedClauses: topic.clauseTitles.slice(0, 2) });
+      }
+      break; // first productive query for this topic
     }
   }
-  if (lawRefs.length === 0 && keywords.length > 0) {
-    const fb = await fetchPrecedentTitles(keywords[0], 5);
-    fallbackRefs = fb.map((f) => ({ ...f, matchedQuery: keywords[0], relatedClauses: plan.get(keywords[0]) ?? [] }));
+  if (lawRefs.length === 0 && topics.length > 0) {
+    const fbQuery = topics[0].queries[topics[0].queries.length - 1];
+    const fb = await fetchPrecedentTitles(fbQuery, 5);
+    fallbackRefs = fb
+      .filter((f) => isContractDomainCase({ title: f.title, caseType: null }))
+      .map((f) => ({ ...f, matchedQuery: fbQuery, relatedClauses: topics[0].clauseTitles.slice(0, 2) }));
+    if (fallbackRefs.length > 0) usedKeywords.push(fbQuery);
   }
+  const keywords = usedKeywords;
 
   const relatedLine = (r: { matchedQuery: string; relatedClauses: string[] }) =>
     r.relatedClauses.length > 0

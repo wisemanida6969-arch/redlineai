@@ -329,8 +329,12 @@ export async function analyzeContract(
   if (results.length === 0) throw new AiResponseParseError();
 
   // Merge chunk results into one report (ids reassigned to stay unique).
+  // Per-chunk AI summaries are intentionally DISCARDED: joining them leaked
+  // chunk artifacts ("본 부분에는 …") and evaluative phrasing into the
+  // report. The final summary is assembled deterministically below from
+  // counts and titles only.
   const data: AnalysisData = {
-    summary: results.map((r) => (r.summary ?? "").trim()).filter(Boolean).join(" "),
+    summary: "",
     high: results.flatMap((r) => r.high),
     medium: results.flatMap((r) => r.medium),
     low: results.flatMap((r) => r.low),
@@ -339,6 +343,14 @@ export async function analyzeContract(
   (["high", "medium", "low"] as const).forEach((sev) => {
     data[sev].forEach((clause, i) => { clause.id = `${sev[0]}${i + 1}`; clause.severity = sev; });
   });
+
+  // Smooth doubled endings the model sometimes produces in Korean
+  // ("…배제하고 있다고 규정하고 있습니다" → "…배제하고 있습니다").
+  if (lang === "ko") {
+    for (const clause of [...data.high, ...data.medium, ...data.low]) {
+      clause.problem = (clause.problem ?? "").replace(/([하되]고 있)다고 (규정|명시|정)하고 있습니다/g, "$1습니다");
+    }
+  }
 
   // Fill "fix" with a real verbatim standard-contract quote where one exists —
   // the AI never writes this text itself (see system prompt). Primary path: the
@@ -400,6 +412,29 @@ export async function analyzeContract(
       if (art && text) missingArticles.push({ articleNo: no, title: art.title, text });
     }
     data.missingArticles = missingArticles;
+  }
+
+  // Deterministic factual summary — counts and titles only, assembled in
+  // code. No AI-generated sentence reaches the summary, so evaluative
+  // phrasing ("일방적으로 유리" 등) and chunk artifacts ("본 부분에는…")
+  // are structurally impossible here.
+  const total = data.high.length + data.medium.length + data.low.length;
+  const highTitles = data.high.map((c) => c.title).slice(0, 5);
+  const missingN = data.missingArticles?.length ?? 0;
+  if (lang === "ko") {
+    const parts = [
+      `표준계약서와 다른 것으로 표시된 조항이 ${total}건 확인되었습니다 (큰 차이 ${data.high.length}건 · 다소 차이 ${data.medium.length}건 · 경미한 차이 ${data.low.length}건).`,
+    ];
+    if (highTitles.length > 0) parts.push(`큰 차이로 표시된 항목: ${highTitles.join(", ")}.`);
+    if (missingN > 0) parts.push(`표준계약서에 있으나 본 계약서에서 해당 내용이 확인되지 않은 조항은 ${missingN}건입니다.`);
+    data.summary = parts.join(" ");
+  } else {
+    const parts = [
+      `${total} clause(s) were marked as differing from the standard contract (${data.high.length} major · ${data.medium.length} moderate · ${data.low.length} minor).`,
+    ];
+    if (highTitles.length > 0) parts.push(`Marked as major differences: ${highTitles.join(", ")}.`);
+    if (missingN > 0) parts.push(`${missingN} standard article(s) had no corresponding content in this contract.`);
+    data.summary = parts.join(" ");
   }
 
   return data;

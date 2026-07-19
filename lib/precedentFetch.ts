@@ -60,6 +60,8 @@ export interface LawPrecedentRef {
   title: string;
   court: string | null;
   date: string | null;
+  /** 사건종류명 (민사/형사/세무/행정 …) — used to filter out unrelated domains. */
+  caseType: string | null;
 }
 
 /**
@@ -103,6 +105,7 @@ export async function fetchLawPrecedents(query: string, limit = 5): Promise<LawP
         title: String(p["사건명"] ?? "").trim(),
         court: String(p["법원명"] ?? "").trim() || null,
         date: fmtDate(String(p["선고일자"] ?? "").trim()),
+        caseType: String(p["사건종류명"] ?? "").trim() || null,
       }))
       .filter((r) => r.externalId && r.title)
       .slice(0, limit);
