@@ -54,6 +54,9 @@ function Block({ block }: { block: GuideBlock }) {
   if (block.type === "h2") {
     return <h2 className="text-2xl font-bold text-white mt-10 mb-4 break-keep">{block.text}</h2>;
   }
+  if (block.type === "h3") {
+    return <h3 className="text-lg font-bold text-white mt-8 mb-3 break-keep">{block.text}</h3>;
+  }
   if (block.type === "quote") {
     return (
       <blockquote className="bg-[#162035] border-l-4 border-red-600 border border-[#2a3d5f] rounded-xl px-5 py-4 my-4">

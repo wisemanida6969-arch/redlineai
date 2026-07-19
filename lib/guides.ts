@@ -22,6 +22,7 @@ export interface GuideMeta {
 
 export type GuideBlock =
   | { type: "h2"; text: string }
+  | { type: "h3"; text: string }
   | { type: "p"; text: string }
   | { type: "quote"; lines: string[] }
   | { type: "ul"; items: string[] };
@@ -90,6 +91,9 @@ function parseBody(body: string): GuideBlock[] {
       flushPara(); flushList();
       if (!quote) quote = [];
       quote.push(trimmed.replace(/^>\s?/, ""));
+    } else if (trimmed.startsWith("### ")) {
+      flushAll();
+      blocks.push({ type: "h3", text: trimmed.slice(4) });
     } else if (trimmed.startsWith("## ")) {
       flushAll();
       blocks.push({ type: "h2", text: trimmed.slice(3) });
