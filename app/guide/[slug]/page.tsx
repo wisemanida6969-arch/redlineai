@@ -18,6 +18,7 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   return {
     title: guide.title,
     description: guide.description,
+    keywords: guide.keywords.length > 0 ? guide.keywords : undefined,
     alternates: { canonical: url },
     openGraph: {
       type: "article",
@@ -31,12 +32,22 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   };
 }
 
-/** Render **bold** spans without a markdown library. */
-function withBold(text: string) {
-  const parts = text.split(/\*\*(.+?)\*\*/g);
-  return parts.map((part, i) =>
-    i % 2 === 1 ? <strong key={i} className="text-white font-semibold">{part}</strong> : part
-  );
+/** Render **bold** and [link](url) spans without a markdown library. */
+function withInline(text: string) {
+  const parts = text.split(/(\*\*.+?\*\*|\[.+?\]\(.+?\))/g);
+  return parts.map((part, i) => {
+    const bold = part.match(/^\*\*(.+)\*\*$/);
+    if (bold) return <strong key={i} className="text-white font-semibold">{bold[1]}</strong>;
+    const link = part.match(/^\[(.+)\]\((.+)\)$/);
+    if (link) {
+      return (
+        <a key={i} href={link[2]} className="text-red-400 hover:text-red-300 underline underline-offset-2">
+          {link[1]}
+        </a>
+      );
+    }
+    return part;
+  });
 }
 
 function Block({ block }: { block: GuideBlock }) {
@@ -47,12 +58,21 @@ function Block({ block }: { block: GuideBlock }) {
     return (
       <blockquote className="bg-[#162035] border-l-4 border-red-600 border border-[#2a3d5f] rounded-xl px-5 py-4 my-4">
         {block.lines.map((line, i) => (
-          <p key={i} className="text-slate-300 text-sm leading-relaxed break-keep">{line}</p>
+          <p key={i} className="text-slate-300 text-sm leading-relaxed break-keep">{line ? withInline(line) : " "}</p>
         ))}
       </blockquote>
     );
   }
-  return <p className="text-slate-300 leading-relaxed my-4 break-keep">{withBold(block.text)}</p>;
+  if (block.type === "ul") {
+    return (
+      <ul className="list-disc list-inside space-y-1.5 my-4 text-slate-300">
+        {block.items.map((item, i) => (
+          <li key={i} className="leading-relaxed break-keep">{withInline(item)}</li>
+        ))}
+      </ul>
+    );
+  }
+  return <p className="text-slate-300 leading-relaxed my-4 break-keep">{withInline(block.text)}</p>;
 }
 
 export default function GuidePage({ params }: { params: { slug: string } }) {
