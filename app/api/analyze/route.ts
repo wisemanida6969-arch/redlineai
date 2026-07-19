@@ -6,121 +6,10 @@ import { STANDARD_CONTRACTS, getCategory, getContractType } from "@/lib/standard
 import { extractTextFromHwpx, looksLikeZip } from "@/lib/hwpxExtract";
 import { extractTextFromHwpBinary } from "@/lib/hwpBinaryExtract";
 import { CLAUDE_MODEL, extractText } from "@/lib/anthropic";
-import { findStandardArticleText, listArticleTitles, getArticleText } from "@/lib/standardArticles";
 import { logUsageEvent } from "@/lib/usageEvents";
+import { analyzeContract, type StandardCtx } from "@/lib/analyzeCore";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-/** Resolved standard-contract context for "compare against the standard" mode. */
-interface StandardCtx {
-  categoryKo: string; categoryEn: string;
-  typeKo: string;     typeEn: string;
-  partiesKo: string;  partiesEn: string;
-  /** Matches lib/standardContracts.ts ids — used to look up real standard_articles rows. */
-  typeId: string;
-}
-
-/** Extra system-prompt guidance that turns analysis into a standard-comparison review. */
-function standardNote(lang: "en" | "ko", s: StandardCtx, articles: { no: number; title: string }[]): string {
-  const articleList = articles.map((a) => `제${a.no}조(${a.title})`).join(", ");
-  const mappingNoteKo = articles.length > 0
-    ? `
-- 아래는 「${s.typeKo}」 표준계약서의 실제 조항 목록입니다: ${articleList}
-- 표시하는 각 조항 객체에 "stdArticleNo" 필드(숫자)를 추가하세요: 위 목록에서 해당 조항과 주제가 대응하는 표준계약서 조항 번호입니다. 대응하는 조항이 목록에 없으면 null을 넣으세요. 목록에 없는 번호를 지어내지 마세요.`
-    : "";
-  const mappingNoteEn = articles.length > 0
-    ? `
-- The actual article list of the "${s.typeEn}" standard contract: ${articleList}
-- Add a "stdArticleNo" field (number) to every flagged clause object: the article number from the list above whose subject corresponds to the clause. Use null when no listed article corresponds. Never invent numbers not in the list.`
-    : "";
-  return lang === "ko"
-    ? `
-
-[표준 대비 비교 모드]
-이 계약서를 문화체육관광부 「${s.categoryKo} 분야 표준계약서」 중 「${s.typeKo}」(통상 당사자: ${s.partiesKo})를 기준으로 비교하세요.
-- 표준계약서가 통상 두는 보호 조항이 이 계약서에 없거나 약화되어 있는지 적극적으로 찾아 분류하세요: 대금 및 지급 시기·방법, 저작권·2차적저작물작성권 등 권리 귀속, 저작인격권(성명표시·동일성유지), 수정·재작업 범위와 횟수, 납품·계약 기간, 비밀유지, 계약 해지, 손해배상, 분쟁 해결.
-- 표준과 차이가 있는 조항을 우선적으로 표시하세요.
-- summary는 표준과 다른 점을 항목별로 나열하되, 「${s.typeKo}」 표준 대비 총평(예: "위험합니다", "불리합니다")은 포함하지 마세요.
-- 표준계약서 원문을 그대로 인용하지 말고, 일반적으로 알려진 표준계약서의 보호 취지를 기준으로 비교하세요. 결과는 참고용이며 사용자는 공식 표준양식과 대조해야 합니다.${mappingNoteKo}`
-    : `
-
-[Standard comparison mode]
-Compare this contract against Korea MCST's "${s.categoryEn} standard contract — ${s.typeEn}" (typical parties: ${s.partiesEn}).
-- Actively flag protections the standard usually guarantees that are missing or weakened in this contract: payment & timing, ownership of copyright / derivative-work rights, moral rights, revision scope & count, delivery/term, confidentiality, termination, damages, dispute resolution.
-- Prioritise clauses that differ from the standard.
-- List the differences from the standard in "summary" item by item — do not include an overall verdict (e.g. "this contract is risky" or "unfavorable").
-- Do not quote the official form verbatim; compare by the standard's general protective intent. Results are for reference and must be checked against the official form.${mappingNoteEn}`;
-}
-
-const SYSTEM_PROMPT_EN = `You are a standard-contract comparison tool. You compare a contract's clauses against Korean government (MCST) standard-contract norms and report factual differences — you do not render legal judgments or opinions.
-
-Your response MUST be valid JSON only — no markdown, no explanation outside the JSON.
-
-Return this exact structure:
-{
-  "summary": "2-3 sentence factual list of what differs from the standard — no overall verdict about the contract",
-  "high": [
-    {
-      "id": "h1",
-      "severity": "high",
-      "title": "Short, neutral title naming the clause pattern",
-      "original": "Exact quote from the contract (max 150 chars)",
-      "problem": "Exactly ONE sentence: a factual, neutral statement of what THIS CONTRACT's clause itself provides (paraphrase its content — not a comparison). Never compare it to the standard, characterize it as differing/lacking/weaker, or summarize what the standard says — a verbatim standard quote is attached separately for that. Do not use comparison/hedging words like \"typically\", \"usually\", \"whereas\", \"however\", \"but\", \"in contrast\".",
-      "fix": "Always return an empty string \"\". Do not invent or rewrite wording — this field is reserved for a verbatim quote from the official standard contract, which is not available yet."
-    }
-  ],
-  "medium": [...same structure...],
-  "low": [...same structure...],
-  "precedentQueries": ["2 to 4 short Korean keywords for finding related Korean court precedents, based on the contract's subject and main topics — e.g. \"저작권 양도\", \"2차적저작물\", \"용역 대금\", \"전속계약\""]
-}
-
-Severity guide (degree of difference from the standard, not a danger rating):
-- HIGH: Differs substantially from the standard's usual terms
-- MEDIUM: Differs somewhat, or the wording is unclear compared to the standard
-- LOW: Minor difference, or a standard protection is simply missing
-
-[3 clause patterns to always actively check for, regardless of contract type, and flag as HIGH when found]
-1. Unlimited-revision clause — language that lets the client (갑) demand revisions indefinitely with no cap ("revise until the client is satisfied", no stated round limit), where the standard caps revision rounds.
-2. Full copyright-transfer clause — language transferring all rights (including copyright) to the client regardless of, or before, payment ("all rights to the plan and deliverables belong to the client"), where the standard ties the transfer to payment.
-3. Uncapped late-delivery penalty clause — a daily penalty rate that is very high (e.g. 5%+ of the contract value per day) or has no overall cap, where the standard caps it.
-When any of these three appear, name the pattern explicitly in the title (e.g. "Unlimited-revision clause", "Full copyright-transfer clause", "Uncapped late-delivery penalty clause") so it's easy to recognize. As with every other clause, leave "fix" as an empty string — do not describe or suggest replacement wording for these either.
-
-Be thorough but practical. "problem" describes only the contract's own clause — never the standard's content, and never in comparative/evaluative language.`;
-
-const SYSTEM_PROMPT_KO = `당신은 계약서 조항을 문화체육관광부(MCST) 표준계약서 기준과 비교해 사실을 보여주는 표준계약서 비교 도구입니다. 법률적 판단이나 의견을 제시하지 않고, 표준과 다른 점을 사실 그대로 보여줍니다.
-
-응답은 반드시 유효한 JSON만 반환해야 합니다 — 마크다운이나 JSON 외부의 설명은 금지입니다.
-
-다음 정확한 구조로 반환하세요:
-{
-  "summary": "표준과 다른 점을 항목별로 나열한 2-3 문장 (한국어) — '이 계약서는 위험합니다' 같은 총평은 포함하지 말 것",
-  "high": [
-    {
-      "id": "h1",
-      "severity": "high",
-      "title": "조항 패턴을 나타내는 짧고 중립적인 제목 (한국어)",
-      "original": "계약서에서 발췌한 정확한 원문 (최대 150자, 원본 언어 유지)",
-      "problem": "정확히 한 문장: 이 계약서 조항 자체가 무엇을 규정하는지 사실 그대로 서술 (조항 내용을 풀어 쓴 것 — 표준과의 비교가 아님). 표준과 다르다/부족하다/약하다는 식으로 비교하거나, 표준계약서 내용을 요약·설명하지 마세요 — 표준 원문은 별도로 그대로 첨부됩니다. '일반적으로', '통상', '반면', '그러나' 같은 비교·완화 표현을 쓰지 마세요.",
-      "fix": "항상 빈 문자열(\"\")을 반환하세요. 새로운 문장을 짓거나 다시 쓰지 마세요 — 이 필드는 표준계약서 원문을 그대로 인용하기 위한 자리이며, 아직 인용할 원문 데이터가 준비되지 않았습니다."
-    }
-  ],
-  "medium": [...같은 구조...],
-  "low": [...같은 구조...],
-  "precedentQueries": ["이 계약의 분야와 핵심 쟁점에 기반해 관련 한국 법원 판례를 찾을 검색어 2~4개 (한국어, 짧게) — 예: \"저작권 양도\", \"2차적저작물\", \"용역 대금\", \"전속계약\""]
-}
-
-심각도 가이드 (표준과의 차이 정도를 나타내며, 위험도 판단이 아닙니다):
-- HIGH(큰 차이): 표준계약서의 일반적인 조건과 크게 다름
-- MEDIUM(다소 차이): 표준과 다소 다르거나, 표준 대비 표현이 불명확함
-- LOW(경미한 차이): 차이가 미미하거나, 표준에 있는 보호 조항이 단순히 빠져 있음
-
-[계약서 종류와 무관하게 항상 최우선으로 확인할 3가지 조항 패턴 — 발견 시 반드시 HIGH로 분류]
-1. **수정 횟수 제한 없는 조항** — "갑이 만족할 때까지 수정한다", "수정 횟수 제한 없음" 등 수정 범위·횟수를 명시하지 않은 조항. 표준계약서는 통상 수정 횟수를 제한합니다.
-2. **저작권 전부 귀속 조항** — "기획 및 결과물에 관한 모든 권리(저작권 포함)는 갑에게 귀속된다" 등 대금 지급 여부와 무관하게 또는 대금 지급 전에 저작권을 전부 이전시키는 조항. 표준계약서는 통상 저작권 이전을 대금 지급과 연동합니다.
-3. **지체상금 상한 없는 조항** — 하루 지연당 계약금의 높은 비율(예: 1일당 5% 이상)을 부과하거나, 총액 상한이 없는 지체상금 조항. 표준계약서는 통상 상한을 둡니다.
-위 세 가지가 발견되면 title에 어떤 유형인지 정확히 명시하세요(예: "수정 횟수 제한 없는 조항", "저작권 전부 귀속 조항", "지체상금 상한 없는 조항") — 사용자가 한눈에 알아볼 수 있도록. 다른 조항과 마찬가지로 fix는 빈 문자열로 두고, 대체 문구를 짓거나 제안하지 마세요.
-
-original 필드는 계약서 원문 그대로 발췌하세요(번역하지 말 것). 나머지(title, problem, summary)는 모두 한국어로 자연스럽게 작성하세요. problem은 오직 계약서 자체 조항 내용만 사실 서술하고, 표준계약서 내용은 언급·요약하지 마세요.`;
 
 async function extractTextFromPdf(buffer: Buffer): Promise<string | null> {
   try {
@@ -200,93 +89,8 @@ ${list}
   }
 }
 
-async function analyzeContract(
-  contractText: string,
-  lang: "en" | "ko" = "en",
-  standard: StandardCtx | undefined,
-  service: ReturnType<typeof createServiceClient>,
-): Promise<object> {
-  const truncated = contractText.slice(0, 15000);
-  const baseSys = lang === "ko" ? SYSTEM_PROMPT_KO : SYSTEM_PROMPT_EN;
-  // Real article list of the chosen standard: the AI maps each flagged clause
-  // to an article NUMBER only — the text itself is always quoted from the DB.
-  const articles = standard ? await listArticleTitles(service, standard.typeId) : [];
-  const validArticleNos = new Set(articles.map((a) => a.no));
-  const sys = standard ? baseSys + standardNote(lang, standard, articles) : baseSys;
-  const stdLine = standard
-    ? (lang === "ko" ? `(기준 표준: 문체부 「${standard.typeKo}」)\n\n` : `(Benchmark standard: MCST "${standard.typeEn}")\n\n`)
-    : "";
-  const userPrompt = lang === "ko"
-    ? `이 계약서를 분석해 JSON 리스크 리포트를 한국어로 반환해주세요:\n\n${stdLine}${truncated}`
-    : `Please analyze this contract and return a JSON risk report:\n\n${stdLine}${truncated}`;
-  const message = await client.messages.create({
-    model: CLAUDE_MODEL,
-    max_tokens: 4096,
-    thinking: { type: "disabled" },
-    system: sys,
-    messages: [{ role: "user", content: userPrompt }],
-  });
-  const rawText = extractText(message);
-  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error("Invalid AI response format");
-  const data = JSON.parse(jsonMatch[0]) as {
-    high: { title: string; problem: string; fix: string; fixSource?: string; stdArticleNo?: number | null }[];
-    medium: { title: string; problem: string; fix: string; fixSource?: string; stdArticleNo?: number | null }[];
-    low: { title: string; problem: string; fix: string; fixSource?: string; stdArticleNo?: number | null }[];
-    [key: string]: unknown;
-  };
-
-  // Fill "fix" with a real verbatim standard-contract quote where one exists —
-  // the AI never writes this text itself (see system prompt). Primary path: the
-  // AI picked an article NUMBER from the real article list; we validate it and
-  // quote that article verbatim from the DB. Fallback: keyword-topic matching.
-  // "fixSource" is app-added citation metadata around the quote, never part of the quote itself.
-  if (standard) {
-    const typeName = lang === "ko" ? standard.typeKo : standard.typeEn;
-    const cite = (articleNo: number) => lang === "ko"
-      ? `${typeName} 표준계약서 제${articleNo}조`
-      : `${typeName} Standard Contract, Article ${articleNo}`;
-
-    for (const clause of [...data.high, ...data.medium, ...data.low]) {
-      const pickedNo = typeof clause.stdArticleNo === "number" && validArticleNos.has(clause.stdArticleNo)
-        ? clause.stdArticleNo
-        : null;
-      let resolvedNo: number | null = null;
-      if (pickedNo !== null) {
-        const text = await getArticleText(service, standard.typeId, pickedNo);
-        if (text) {
-          clause.fix = text;
-          clause.fixSource = cite(pickedNo);
-          resolvedNo = pickedNo;
-        }
-      }
-      if (resolvedNo === null) {
-        // Search uses the AI's factual clause description — not yet touched by
-        // the connector sentence appended below, so keyword matching stays clean.
-        const match = await findStandardArticleText(service, standard.typeId, clause.title, clause.problem);
-        if (match) {
-          clause.fix = match.text;
-          clause.fixSource = cite(match.articleNo);
-          resolvedNo = match.articleNo;
-        }
-      }
-      // The only sentence connecting the contract's clause to the standard is
-      // this fixed, non-evaluative template — never AI-generated, and only
-      // added when a real verbatim quote is actually attached below it.
-      if (resolvedNo !== null) {
-        clause.problem = `${clause.problem.trim()} ${
-          lang === "ko"
-            ? `표준계약서 제${resolvedNo}조는 아래 원문과 같이 규정하고 있습니다.`
-            : `MCST Standard Contract Article ${resolvedNo} provides as follows in the original text quoted below.`
-        }`;
-      }
-    }
-  }
-
-  return data;
-}
-
 export async function POST(req: NextRequest) {
+  let lang: "en" | "ko" = "ko";
   try {
     // ── Auth check ──
     const supabase = createClient();
@@ -320,7 +124,7 @@ export async function POST(req: NextRequest) {
     const file = formData.get("file") as File | null;
     const pastedText = formData.get("text") as string | null;
     const langField = formData.get("lang");
-    const lang: "en" | "ko" = langField === "ko" ? "ko" : "en";
+    lang = langField === "ko" ? "ko" : "en";
 
     // ── Optional: compare against a chosen MCST standard contract ──
     const stdCatId = formData.get("standardCategory") as string | null;
@@ -462,7 +266,12 @@ export async function POST(req: NextRequest) {
       scanLimit: limit,
     });
   } catch (err: unknown) {
+    // Full error goes to the server log only — the client never sees raw
+    // internals (e.g. JSON parse positions from a truncated AI response).
     console.error("Analysis error:", err);
-    return NextResponse.json({ error: err instanceof Error ? err.message : "Analysis failed" }, { status: 500 });
+    const friendly = lang === "ko"
+      ? "비교 결과를 생성하지 못했습니다. 다시 시도해 주세요."
+      : "Could not generate the comparison result. Please try again.";
+    return NextResponse.json({ error: friendly }, { status: 500 });
   }
 }
