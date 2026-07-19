@@ -13,6 +13,24 @@ import type { createServiceClient } from "@/lib/supabase/server";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+/**
+ * PDF/HWP extraction often inserts spaces between characters of legal
+ * references ("제 1 조", "제 2 항", "제 3 자"), which breaks article-number
+ * matching and looks broken in quotes. Collapse those spaces.
+ */
+export function normalizeArticleSpacing(text: string): string {
+  return text.replace(/제\s*(\d+)\s*(조|항|호|자)/g, "제$1$2");
+}
+
+/** Count distinct article numbers ("제N조") — distinct so inline
+ *  cross-references ("제3조에 따라") don't inflate the count. Returns 0 when
+ *  no article headings are recognizable. */
+export function countArticles(text: string): number {
+  const nums = new Set<number>();
+  for (const m of Array.from(text.matchAll(/제\s*(\d+)\s*조/g))) nums.add(Number(m[1]));
+  return nums.size;
+}
+
 /** Resolved standard-contract context for "compare against the standard" mode. */
 export interface StandardCtx {
   categoryKo: string; categoryEn: string;
@@ -76,8 +94,8 @@ Return this exact structure:
   "precedentQueries": ["2 to 4 short Korean keywords for finding related Korean court precedents, based on the contract's subject and main topics — e.g. \"저작권 양도\", \"2차적저작물\", \"용역 대금\", \"전속계약\""]
 }
 
-Severity guide (degree of difference from the standard, not a danger rating):
-- HIGH: Differs substantially from the standard's usual terms
+Severity guide (degree of textual difference from the standard, not a danger rating):
+- HIGH: Differs substantially from the standard's usual terms. **If the contract excludes or reverses something the standard form explicitly guarantees or mandates (e.g. settlement-record access, hiatus guarantees, revision caps), ALWAYS classify it HIGH.**
 - MEDIUM: Differs somewhat, or the wording is unclear compared to the standard
 - LOW: Minor difference, or a standard protection is simply missing
 
@@ -102,7 +120,7 @@ const SYSTEM_PROMPT_KO = `당신은 계약서 조항을 문화체육관광부(MC
       "severity": "high",
       "title": "조항 패턴을 나타내는 짧고 중립적인 제목 (한국어)",
       "original": "계약서에서 발췌한 정확한 원문 (최대 150자, 원본 언어 유지)",
-      "problem": "정확히 한 문장: 이 계약서 조항 자체가 무엇을 규정하는지 사실 그대로 서술 (조항 내용을 풀어 쓴 것 — 표준과의 비교가 아님). 표준과 다르다/부족하다/약하다는 식으로 비교하거나, 표준계약서 내용을 요약·설명하지 마세요 — 표준 원문은 별도로 그대로 첨부됩니다. '일반적으로', '통상', '반면', '그러나' 같은 비교·완화 표현을 쓰지 마세요.",
+      "problem": "정확히 한 문장: 이 계약서 조항 자체가 무엇을 규정하는지 사실 그대로 서술 (조항 내용을 풀어 쓴 것 — 표준과의 비교가 아님). 표준과 다르다/부족하다/약하다는 식으로 비교하거나, 표준계약서 내용을 요약·설명하지 마세요 — 표준 원문은 별도로 그대로 첨부됩니다. '일반적으로', '통상', '반면', '그러나' 같은 비교·완화 표현을 쓰지 마세요. 어미는 반드시 '~라고 규정하고 있습니다', '~하도록 정하고 있습니다' 같은 정중한 서술형(합니다체)으로 끝맺으세요 — '~규정한다' 같은 반말체 금지.",
       "fix": "항상 빈 문자열(\"\")을 반환하세요. 새로운 문장을 짓거나 다시 쓰지 마세요 — 이 필드는 표준계약서 원문을 그대로 인용하기 위한 자리이며, 아직 인용할 원문 데이터가 준비되지 않았습니다."
     }
   ],
@@ -111,8 +129,8 @@ const SYSTEM_PROMPT_KO = `당신은 계약서 조항을 문화체육관광부(MC
   "precedentQueries": ["이 계약의 분야와 핵심 쟁점에 기반해 관련 한국 법원 판례를 찾을 검색어 2~4개 (한국어, 짧게) — 예: \"저작권 양도\", \"2차적저작물\", \"용역 대금\", \"전속계약\""]
 }
 
-심각도 가이드 (표준과의 차이 정도를 나타내며, 위험도 판단이 아닙니다):
-- HIGH(큰 차이): 표준계약서의 일반적인 조건과 크게 다름
+심각도 가이드 (표준과의 문언상 차이 정도를 나타내며, 위험도 판단이 아닙니다):
+- HIGH(큰 차이): 표준계약서의 일반적인 조건과 크게 다름. **표준계약서가 명문으로 보장하거나 의무화한 사항(예: 정산 근거자료 열람, 휴재 보장, 수정 횟수 제한)을 이 계약서가 배제하거나 정반대로 규정한 경우 반드시 HIGH로 분류하세요.**
 - MEDIUM(다소 차이): 표준과 다소 다르거나, 표준 대비 표현이 불명확함
 - LOW(경미한 차이): 차이가 미미하거나, 표준에 있는 보호 조항이 단순히 빠져 있음
 
@@ -135,12 +153,20 @@ interface ClauseItem {
   fixSource?: string;
   stdArticleNo?: number | null;
 }
+export interface MissingArticle {
+  articleNo: number;
+  title: string;
+  /** Verbatim standard-contract text, quoted from the DB — never AI-written. */
+  text: string;
+}
+
 interface AnalysisData {
   summary?: string;
   high: ClauseItem[];
   medium: ClauseItem[];
   low: ClauseItem[];
   precedentQueries?: string[];
+  missingArticles?: MissingArticle[];
   [key: string]: unknown;
 }
 
@@ -185,6 +211,50 @@ async function callAnalysisModel(sys: string, userPrompt: string): Promise<Analy
   }
   console.error("Analysis raw response (both attempts failed):", lastRaw);
   throw new AiResponseParseError();
+}
+
+/**
+ * One dedicated pass over the WHOLE contract (independent of chunking):
+ * which standard articles have no corresponding content in this contract?
+ * The model only picks NUMBERS from the real article list — the quoted text
+ * always comes verbatim from the DB. Returns [] on any failure (the report
+ * then simply omits the missing-articles section).
+ */
+async function detectMissingArticles(
+  contractText: string,
+  articles: { no: number; title: string }[],
+): Promise<number[]> {
+  const list = articles.map((a) => `제${a.no}조(${a.title})`).join(", ");
+  const sys = `당신은 계약서에 특정 주제의 조항이 존재하는지 확인하는 도구입니다.
+아래는 기준이 되는 표준계약서의 조항 목록입니다:
+${list}
+
+사용자가 제공하는 계약서 전문을 읽고, 위 목록의 각 조항이 다루는 주제에 해당하는 내용이 계약서에 존재하는지 확인하세요. 조항 번호가 달라도 같은 주제를 다루면 존재하는 것입니다.
+
+규칙:
+- 반드시 JSON만 반환: {"missing":[번호, 번호, ...]}
+- "missing"에는 해당 주제의 내용이 계약서 어디에도 없는 표준 조항 번호만 넣으세요.
+- 어떤 형태로든 다뤄진 주제는 넣지 마세요. 확실하지 않으면 넣지 마세요.
+- 계약의 명칭·당사자 표시·서명란 같은 형식 요소에 해당하는 조항은 제외하세요.
+- 위 목록에 없는 번호를 지어내지 마세요.`;
+  try {
+    const msg = await client.messages.create({
+      model: CLAUDE_MODEL,
+      max_tokens: 500,
+      thinking: { type: "disabled" },
+      system: sys,
+      messages: [{ role: "user", content: `계약서 전문:\n\n${contractText.slice(0, 30000)}` }],
+    });
+    const m = extractText(msg).match(/\{[\s\S]*\}/);
+    if (!m) return [];
+    const parsed = JSON.parse(m[0]) as { missing?: unknown };
+    if (!Array.isArray(parsed.missing)) return [];
+    const valid = new Set(articles.map((a) => a.no));
+    return parsed.missing.filter((n): n is number => typeof n === "number" && valid.has(n));
+  } catch (err) {
+    console.error("Missing-article detection failed:", err);
+    return [];
+  }
 }
 
 /** Split a long contract into chunks of ~CHUNK_ARTICLES articles each, so no
@@ -235,6 +305,12 @@ export async function analyzeContract(
       : `Please analyze this contract and return a JSON risk report:\n\n${partNote}${stdLine}${chunk}`;
   };
 
+  // Missing-article detection runs over the WHOLE contract in one pass,
+  // in parallel with the chunked clause analysis (independent of chunking).
+  const missingPromise = standard && articles.length > 0
+    ? detectMissingArticles(contractText, articles)
+    : Promise.resolve<number[]>([]);
+
   // All chunks in parallel; a chunk that fails (after its internal parse
   // retry) gets ONE more full retry. Chunks that still fail are dropped so
   // the successful articles' results are kept — unless everything failed.
@@ -275,6 +351,10 @@ export async function analyzeContract(
       ? `${typeName} 표준계약서 제${articleNo}조`
       : `${typeName} Standard Contract, Article ${articleNo}`;
 
+    // Standard articles matched to a clause the contract actually CONTAINS —
+    // those can't be "missing" whatever the detection pass says.
+    const presentNos = new Set<number>();
+
     for (const clause of [...data.high, ...data.medium, ...data.low]) {
       const pickedNo = typeof clause.stdArticleNo === "number" && validArticleNos.has(clause.stdArticleNo)
         ? clause.stdArticleNo
@@ -302,6 +382,7 @@ export async function analyzeContract(
       // this fixed, non-evaluative template — never AI-generated, and only
       // added when a real verbatim quote is actually attached below it.
       if (resolvedNo !== null) {
+        if (clause.original && clause.original.trim()) presentNos.add(resolvedNo);
         clause.problem = `${clause.problem.trim()} ${
           lang === "ko"
             ? `표준계약서 제${resolvedNo}조는 아래 원문과 같이 규정하고 있습니다.`
@@ -309,6 +390,16 @@ export async function analyzeContract(
         }`;
       }
     }
+
+    // Attach the missing-articles list with verbatim DB text.
+    const missingNos = (await missingPromise).filter((no) => !presentNos.has(no));
+    const missingArticles: MissingArticle[] = [];
+    for (const no of missingNos) {
+      const art = articles.find((a) => a.no === no);
+      const text = await getArticleText(service, standard.typeId, no);
+      if (art && text) missingArticles.push({ articleNo: no, title: art.title, text });
+    }
+    data.missingArticles = missingArticles;
   }
 
   return data;

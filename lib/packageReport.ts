@@ -25,6 +25,7 @@ export interface ScanResult {
   low: ReportClause[];
   precedentQueries?: string[];
   articleCount?: number;
+  missingArticles?: { articleNo: number; title: string; text: string }[];
   standardInfo?: { typeId: string; typeKo: string; categoryKo: string } | null;
 }
 
@@ -33,8 +34,6 @@ const SEVERITY_KO: Record<string, string> = {
   medium: "표준과 다소 차이",
   low: "표준과 경미한 차이",
 };
-
-const RISK_LEVEL_KO: Record<string, string> = { high: "높음", medium: "중간", low: "낮음" };
 
 export const REPORT_DISCLAIMER =
   "본 리포트는 법률 자문이 아니며, 문화체육관광부 표준계약서와의 객관적 차이 및 공개된 판례 정보를 정리한 사실 정보 제공물입니다. 법적 판단이 필요한 사안은 변호사와 상담하시기 바랍니다.";
@@ -105,7 +104,12 @@ export async function buildReportPdf(
     ...(result.medium ?? []).map((c) => ({ ...c, severity: "medium" as const })),
     ...(result.low ?? []).map((c) => ({ ...c, severity: "low" as const })),
   ];
-  const missingCount = clauses.filter((c) => !c.original || !c.original.trim()).length;
+  // Missing articles come from the dedicated whole-contract detection pass;
+  // legacy scans (no missingArticles field) fall back to the old byproduct count.
+  const missingArticles = result.missingArticles ?? null;
+  const missingCount = missingArticles
+    ? missingArticles.length
+    : clauses.filter((c) => !c.original || !c.original.trim()).length;
   const dateStr = String(scan.created_at).slice(0, 10);
   const fieldLabel = result.standardInfo
     ? `${result.standardInfo.categoryKo} · ${result.standardInfo.typeKo}`
@@ -152,9 +156,11 @@ export async function buildReportPdf(
   y = MARGIN;
   sectionHeader("요약");
   const summaryRows: [string, string][] = [
-    ["계약서 내 조항 수", result.articleCount ? `${result.articleCount}개` : "확인 불가 (조항 번호 형식 미검출)"],
+    // When no article numbering was detected, the row is simply omitted —
+    // the flagged-item count below already says what was found.
+    ...(result.articleCount ? [["계약서 내 조항 수", `${result.articleCount}개`] as [string, string]] : []),
     ["표준계약서와 다른 것으로 표시된 조항", `${clauses.length}개 (큰 차이 ${result.high?.length ?? 0} · 다소 차이 ${result.medium?.length ?? 0} · 경미한 차이 ${result.low?.length ?? 0})`],
-    ["표준계약서에 존재하나 본 계약서에 없음", `${missingCount}개`],
+    ["표준계약서에 존재하나 본 계약서에서 확인되지 않은 조항", `${missingCount}개`],
   ];
   for (const [k, v] of summaryRows) {
     checkPage(10);
@@ -170,6 +176,8 @@ export async function buildReportPdf(
   }
   y += 2;
   paragraph(scan.summary || result.summary || "", 9);
+  y += 3;
+  paragraph("* '큰 차이/다소 차이/경미한 차이'는 문화체육관광부 표준계약서와의 문언상 차이 정도를 나타내는 표시이며, 법적 평가나 위험도 판단이 아닙니다.", 7.5, slate);
   y += 4;
 
   /* ── 3. Clause-by-clause comparison ── */
@@ -225,18 +233,60 @@ export async function buildReportPdf(
     y += 5;
   });
 
+  /* ── 3b. Standard articles with no corresponding content ── */
+  if (missingArticles && missingArticles.length > 0) {
+    sectionHeader("표준계약서에 있으나 본 계약서에서 확인되지 않은 조항");
+    for (const ma of missingArticles) {
+      const head = `표준계약서 제${ma.articleNo}조(${ma.title})에 해당하는 내용이 본 계약서에서 확인되지 않았습니다.`;
+      const headLines = wrap(head, CONTENT_W, 9);
+      checkPage(headLines.length * 5 + 10);
+      doc.setFont("NanumGothic", "bold");
+      doc.setFontSize(9);
+      doc.setTextColor(...dark);
+      for (const line of headLines) { doc.text(line, MARGIN, y); y += 5; }
+      y += 1;
+      doc.setFont("NanumGothic", "normal");
+      doc.setFontSize(8.5);
+      doc.setTextColor(...green);
+      for (const line of wrap(ma.text, CONTENT_W - 8, 8.5)) { checkPage(6); doc.text(line, MARGIN + 4, y); y += 4.7; }
+      if (result.standardInfo) {
+        doc.setFont("NanumGothic", "italic");
+        doc.setFontSize(7.5);
+        doc.setTextColor(...slate);
+        checkPage(5);
+        doc.text(`출처: 문화체육관광부 ${result.standardInfo.typeKo} 표준계약서 제${ma.articleNo}조`, MARGIN + 4, y);
+        y += 4.2;
+      }
+      y += 4;
+    }
+    y += 2;
+  }
+
   /* ── 4. Related precedents ── */
   sectionHeader("관련 판례 (참고 정보)");
-  const queries = (result.precedentQueries ?? []).filter(Boolean).slice(0, 2);
-  let lawRefs: LawPrecedentRef[] = [];
-  let fallbackRefs: PrecedentRef[] = [];
+  const queries = (result.precedentQueries ?? []).filter(Boolean).slice(0, 3);
+  // Relevance gate: a search hit only makes the report when its TITLE actually
+  // contains a meaningful token of the query that found it. Padding the list
+  // with loosely matched cases is worse than an honest empty section.
+  const relevantTo = (q: string, title: string): boolean => {
+    const tokens = q.split(/\s+/).map((t) => t.trim()).filter((t) => t.length >= 2);
+    return tokens.some((t) => title.includes(t));
+  };
+  const lawRefs: (LawPrecedentRef & { matchedQuery: string })[] = [];
+  let fallbackRefs: (PrecedentRef & { matchedQuery: string })[] = [];
   for (const q of queries) {
     if (lawRefs.length >= 5) break;
     const found = await fetchLawPrecedents(q, 5 - lawRefs.length);
-    lawRefs = lawRefs.concat(found.filter((f) => !lawRefs.some((e) => e.externalId === f.externalId)));
+    for (const f of found) {
+      if (lawRefs.length >= 5) break;
+      if (!relevantTo(q, f.title)) continue;
+      if (lawRefs.some((e) => e.externalId === f.externalId)) continue;
+      lawRefs.push({ ...f, matchedQuery: q });
+    }
   }
   if (lawRefs.length === 0 && queries.length > 0) {
-    fallbackRefs = await fetchPrecedentTitles(queries[0], 5);
+    const fb = await fetchPrecedentTitles(queries[0], 5);
+    fallbackRefs = fb.filter((f) => relevantTo(queries[0], f.title)).map((f) => ({ ...f, matchedQuery: queries[0] }));
   }
 
   if (lawRefs.length > 0) {
@@ -254,6 +304,7 @@ export async function buildReportPdf(
       doc.setFontSize(8);
       doc.setTextColor(...slate);
       if (head) { doc.text(head, MARGIN, y); y += 4.5; }
+      doc.text(`관련 검색어: ${r.matchedQuery}`, MARGIN, y); y += 4.5;
       doc.setTextColor(29, 78, 216);
       // ?scan= ties the link to this purchased report: the package owner can
       // open it even after the 24h precedent pass expires (see precedents/view).
@@ -272,22 +323,24 @@ export async function buildReportPdf(
       for (const line of titleLines) { doc.text(line, MARGIN, y); y += 5; }
       doc.setFont("NanumGothic", "normal");
       doc.setFontSize(8);
+      doc.setTextColor(...slate);
+      doc.text(`관련 검색어: ${r.matchedQuery}`, MARGIN, y); y += 4.5;
       doc.setTextColor(29, 78, 216);
       doc.text(`원문 보기: ${r.url}`, MARGIN, y);
       y += 8;
     }
   } else {
-    paragraph("검색 조건에 해당하는 판례 정보를 가져오지 못했습니다. 리포트 화면의 판례 검색에서 다시 확인할 수 있습니다.");
+    paragraph("관련 판례가 검색되지 않았습니다.");
   }
   y += 4;
 
-  /* ── 5. Vendor risk scan result ── */
-  sectionHeader("사업체 리스크 검색 결과 (참고 정보)");
+  /* ── 5. Vendor public info ── */
+  sectionHeader("사업체 공개 정보 (참고 정보)");
   // Only a vendor search run AFTER this contract was uploaded is included —
   // an older search for an unrelated company must not leak into this report.
   const { data: vendorScan } = await service
     .from("vendor_scans")
-    .select("vendor_name, overall_score, overview, created_at")
+    .select("vendor_name, overview, result, created_at")
     .eq("user_id", userId)
     .gte("created_at", scan.created_at)
     .order("created_at", { ascending: false })
@@ -297,7 +350,6 @@ export async function buildReportPdf(
   if (vendorScan) {
     const rows: [string, string][] = [
       ["검색 대상", vendorScan.vendor_name],
-      ["리스크 등급", RISK_LEVEL_KO[vendorScan.overall_score] ?? vendorScan.overall_score],
       ["검색일", String(vendorScan.created_at).slice(0, 10)],
     ];
     for (const [k, v] of rows) {
@@ -312,9 +364,14 @@ export async function buildReportPdf(
       y += 6;
     }
     y += 2;
+    const publicInfo = (vendorScan.result as { publicInfo?: string[] } | null)?.publicInfo ?? [];
+    for (const fact of publicInfo) {
+      for (const line of wrap(`• ${fact}`, CONTENT_W - 4, 8.5)) { checkPage(6); doc.setFont("NanumGothic", "normal"); doc.setFontSize(8.5); doc.setTextColor(...body); doc.text(line, MARGIN, y); y += 4.7; }
+    }
+    if (publicInfo.length > 0) y += 2;
     paragraph(vendorScan.overview ?? "", 8.5);
   } else {
-    paragraph("이 계정에서 실행한 사업체 리스크 검색 기록이 없습니다. 대시보드의 '공급업체 리스크 스캔'에서 상대 업체명을 검색하면 결과가 이 리포트에 포함됩니다.");
+    paragraph("이 계정에서 실행한 사업체 공개 정보 검색 기록이 없습니다. 대시보드의 '공급업체 리스크 스캔'에서 상대 업체명을 검색하면 결과가 이 리포트에 포함됩니다.");
   }
 
   /* ── 6. Disclaimer (fixed, last page) ── */

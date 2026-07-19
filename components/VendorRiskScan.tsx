@@ -1,9 +1,9 @@
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
 import {
-  Search, Loader2, AlertCircle, AlertTriangle, CheckCircle,
+  Search, Loader2, AlertCircle, CheckCircle,
   Building2, Newspaper, DollarSign, Scale, Shield, Download,
-  ArrowLeft, Copy, Check, ExternalLink, Sparkles, FileText, ChevronDown, Clock, Star
+  ArrowLeft, Copy, Check, ExternalLink, Sparkles, FileText, ChevronDown, Clock
 } from "lucide-react";
 import { downloadVendorPDF, downloadVendorDOCX, type VendorReport } from "@/lib/vendorReportExport";
 import { useT } from "@/lib/i18n/LanguageProvider";
@@ -13,7 +13,6 @@ import { PADDLE_VENDOR_PASS_PRICE_ID } from "@/lib/paddle";
 interface VendorScanRecord {
   id: string;
   vendor_name: string;
-  overall_score: "high" | "medium" | "low";
   overview: string | null;
   created_at: string;
 }
@@ -137,26 +136,24 @@ export default function VendorRiskScan({ onUsed }: Props = {}) {
   const handleCopy = () => {
     if (!result) return;
     const r = result.report;
-    const text = `VENDOR RISK REPORT — ${r.vendorName}
-Overall Risk: ${r.overallScore.toUpperCase()}
+    const publicInfoBlock = r.publicInfo && r.publicInfo.length > 0
+      ? `사업체 공개 정보\n${r.publicInfo.map((f) => `• ${f}`).join("\n")}\n\n`
+      : "";
+    const text = `사업체 공개 정보 리포트 — ${r.vendorName}
 
-EXECUTIVE SUMMARY
-${r.overallSummary}
+${r.overview}
 
-NEWS & REPUTATION (${r.newsRisk.severity.toUpperCase()})
+${publicInfoBlock}뉴스·보도 (공개 정보)
 ${r.newsRisk.summary}
 ${r.newsRisk.items.map((i) => `• ${i}`).join("\n")}
 
-FINANCIAL RISK (${r.financialRisk.severity.toUpperCase()})
+재무 관련 공개 정보
 ${r.financialRisk.summary}
 ${r.financialRisk.items.map((i) => `• ${i}`).join("\n")}
 
-LEGAL RISK (${r.legalRisk.severity.toUpperCase()})
+법적 기록 (공개 정보)
 ${r.legalRisk.summary}
 ${r.legalRisk.items.map((i) => `• ${i}`).join("\n")}
-
-RECOMMENDATIONS
-${r.recommendations.map((rec, i) => `${i + 1}. ${rec}`).join("\n")}
 `;
     navigator.clipboard.writeText(text);
     setCopied(true);
@@ -415,12 +412,27 @@ ${r.recommendations.map((rec, i) => `${i + 1}. ${rec}`).join("\n")}
               <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">{r.vendorName}</h2>
               <p className="text-slate-400 text-sm leading-relaxed">{r.overview}</p>
             </div>
-            <OverallBadge score={r.overallScore} t={t} />
           </div>
         </div>
 
-        {/* Executive summary */}
-        <SummaryCard summary={r.overallSummary} t={t} />
+        {/* Public company facts */}
+        {r.publicInfo && r.publicInfo.length > 0 && (
+          <div className="bg-[#162035] border border-[#1e3050] rounded-2xl p-5 mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <Building2 className="w-4 h-4 text-red-400" />
+              <span className="text-white font-semibold text-sm">사업체 공개 정보</span>
+            </div>
+            <ul className="space-y-1.5">
+              {r.publicInfo.map((f, i) => (
+                <li key={i} className="flex items-start gap-2 text-slate-300 text-sm">
+                  <span className="text-red-400 mt-1">•</span>
+                  <span>{f}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {r.overallSummary && <SummaryCard summary={r.overallSummary} t={t} />}
 
         {/* Risk sections */}
         <div className="space-y-4 mb-6">
@@ -429,7 +441,8 @@ ${r.recommendations.map((rec, i) => `${i + 1}. ${rec}`).join("\n")}
           <RiskSection title={t("vendor.legalRisk")}      icon={Scale}      data={r.legalRisk}     t={t} />
         </div>
 
-        {/* Recommendations */}
+        {/* Recommendations (legacy scans only — no longer generated) */}
+        {r.recommendations && r.recommendations.length > 0 && (
         <div className="bg-green-900/15 border border-green-800/40 rounded-2xl p-6 mb-6">
           <div className="flex items-center gap-2 mb-3">
             <CheckCircle className="w-5 h-5 text-green-400" />
@@ -441,6 +454,7 @@ ${r.recommendations.map((rec, i) => `${i + 1}. ${rec}`).join("\n")}
             ))}
           </ol>
         </div>
+        )}
 
         {/* Sources */}
         {r.sources && r.sources.length > 0 && (
@@ -476,23 +490,6 @@ ${r.recommendations.map((rec, i) => `${i + 1}. ${rec}`).join("\n")}
 
 /* ──────────────── Sub-components ──────────────── */
 
-/** Lower risk → closer to 5 stars. */
-const RISK_STARS: Record<"high" | "medium" | "low", number> = { high: 1, medium: 3, low: 5 };
-
-function StarRating({ score, size = "w-3.5 h-3.5" }: { score: "high" | "medium" | "low"; size?: string }) {
-  const filled = RISK_STARS[score];
-  return (
-    <div className="flex items-center gap-0.5" aria-label={`${filled}/5`}>
-      {[1, 2, 3, 4, 5].map((i) => (
-        <Star
-          key={i}
-          className={`${size} ${i <= filled ? "text-yellow-400 fill-yellow-400" : "text-slate-600"}`}
-        />
-      ))}
-    </div>
-  );
-}
-
 function VendorHistoryItem({
   item, loading, onClick,
 }: {
@@ -500,14 +497,6 @@ function VendorHistoryItem({
   loading: boolean;
   onClick: () => void;
 }) {
-  const { t } = useT();
-  const sevConfig = {
-    high:   { color: "text-red-400",    bg: "bg-red-900/30",    label: t("vendor.highRisk")   },
-    medium: { color: "text-yellow-400", bg: "bg-yellow-900/30", label: t("vendor.mediumRisk") },
-    low:    { color: "text-blue-400",   bg: "bg-blue-900/30",   label: t("vendor.lowRisk")    },
-  };
-  const c = sevConfig[item.overall_score];
-
   return (
     <button
       onClick={onClick}
@@ -528,10 +517,6 @@ function VendorHistoryItem({
         )}
       </div>
       <div className="flex items-center gap-2 shrink-0">
-        <StarRating score={item.overall_score} />
-        <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${c.bg} ${c.color}`}>
-          {c.label}
-        </span>
         <span className="hidden sm:flex items-center gap-1 text-xs text-slate-500 ml-1">
           <Clock className="w-3 h-3" />
           {new Date(item.created_at).toLocaleDateString()}
@@ -546,26 +531,6 @@ function Hint({ icon: Icon, label }: { icon: typeof Newspaper; label: string }) 
     <div className="flex items-center gap-1.5 bg-[#0f1a2e] border border-[#1e3050] rounded-lg px-3 py-2">
       <Icon className="w-3.5 h-3.5 text-red-400" />
       <span className="text-slate-400 text-xs">{label}</span>
-    </div>
-  );
-}
-
-function OverallBadge({ score, t }: { score: "high" | "medium" | "low"; t: (k: string) => string }) {
-  const config = {
-    high:   { bg: "bg-red-900/30",    border: "border-red-700/60",    text: "text-red-300",    icon: AlertTriangle, label: t("vendor.highRisk")   },
-    medium: { bg: "bg-yellow-900/30", border: "border-yellow-700/60", text: "text-yellow-300", icon: AlertCircle,   label: t("vendor.mediumRisk") },
-    low:    { bg: "bg-green-900/30",  border: "border-green-700/60",  text: "text-green-300",  icon: CheckCircle,   label: t("vendor.lowRisk")    },
-  };
-  const c = config[score];
-  const Icon = c.icon;
-  return (
-    <div className={`${c.bg} ${c.border} border-2 ${c.text} rounded-2xl px-5 py-3 flex items-center gap-2 shrink-0`}>
-      <Icon className="w-5 h-5" />
-      <div className="text-left">
-        <p className="text-[10px] font-bold uppercase tracking-wider opacity-70">{t("vendor.overall")}</p>
-        <p className="font-bold">{c.label}</p>
-        <StarRating score={score} size="w-3 h-3" />
-      </div>
     </div>
   );
 }
@@ -587,27 +552,14 @@ function RiskSection({
 }: {
   title: string;
   icon: typeof Newspaper;
-  data: { severity: "high" | "medium" | "low"; summary: string; items: string[] };
+  data: { summary: string; items: string[] };
   t: (k: string) => string;
 }) {
-  const config = {
-    high:   { bg: "bg-red-900/10",    border: "border-red-800/40",    badge: "bg-red-900/50 text-red-400",       iconColor: "text-red-400",    label: t("vendor.highRisk")   },
-    medium: { bg: "bg-yellow-900/10", border: "border-yellow-800/40", badge: "bg-yellow-900/50 text-yellow-400", iconColor: "text-yellow-400", label: t("vendor.mediumRisk") },
-    low:    { bg: "bg-blue-900/10",   border: "border-blue-800/40",   badge: "bg-blue-900/50 text-blue-400",     iconColor: "text-blue-400",   label: t("vendor.lowRisk")    },
-  };
-  const c = config[data.severity];
-
   return (
-    <div className={`${c.bg} border ${c.border} rounded-2xl p-5`}>
-      <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
-        <div className="flex items-center gap-2">
-          <Icon className={`w-5 h-5 ${c.iconColor}`} />
-          <h3 className="text-white font-semibold">{title}</h3>
-        </div>
-        <div className="flex items-center gap-2">
-          <StarRating score={data.severity} />
-          <span className={`text-xs font-bold uppercase px-2 py-0.5 rounded ${c.badge}`}>{c.label}</span>
-        </div>
+    <div className="bg-[#162035] border border-[#1e3050] rounded-2xl p-5">
+      <div className="flex items-center gap-2 mb-3">
+        <Icon className="w-5 h-5 text-red-400" />
+        <h3 className="text-white font-semibold">{title}</h3>
       </div>
 
       <p className="text-slate-300 text-sm leading-relaxed mb-3">{data.summary}</p>
@@ -618,7 +570,7 @@ function RiskSection({
           <ul className="space-y-1.5">
             {data.items.map((item, i) => (
               <li key={i} className="flex items-start gap-2 text-slate-300 text-sm">
-                <span className={`${c.iconColor} mt-1`}>•</span>
+                <span className="text-red-400 mt-1">•</span>
                 <span>{item}</span>
               </li>
             ))}

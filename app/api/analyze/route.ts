@@ -7,7 +7,7 @@ import { extractTextFromHwpx, looksLikeZip } from "@/lib/hwpxExtract";
 import { extractTextFromHwpBinary } from "@/lib/hwpBinaryExtract";
 import { CLAUDE_MODEL, extractText } from "@/lib/anthropic";
 import { logUsageEvent } from "@/lib/usageEvents";
-import { analyzeContract, type StandardCtx } from "@/lib/analyzeCore";
+import { analyzeContract, normalizeArticleSpacing, countArticles, type StandardCtx } from "@/lib/analyzeCore";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -197,6 +197,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Could not extract text from the document" }, { status: 400 });
     }
 
+    // PDF/HWP extraction inserts spaces inside legal references ("제 1 조") —
+    // normalize before anything downstream (article counting, AI excerpts).
+    contractText = normalizeArticleSpacing(contractText);
+
     // ── No standard chosen → auto-detect the matching MCST form from the text ──
     let autoMatched = false;
     if (!standard) {
@@ -224,8 +228,8 @@ export async function POST(req: NextRequest) {
       low: unknown[];
     };
 
-    // Count "제N조" article headings in the uploaded contract (for the report summary).
-    const articleCount = (contractText.match(/(?:^|\n)\s*제\s*\d+\s*조/g) ?? []).length;
+    // Distinct "제N조" numbers in the uploaded contract (for the report summary).
+    const articleCount = countArticles(contractText);
     const resultToSave = {
       ...analysisData,
       articleCount,

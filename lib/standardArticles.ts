@@ -40,6 +40,16 @@ export interface StandardArticleMatch {
 }
 
 /**
+ * The source HWP documents contain tables the extractor couldn't read, left
+ * as a literal "<표>" marker in the stored text. Replace the marker with an
+ * explicit omission note so quotes never show raw markup. This is a display
+ * substitution only — no article wording is ever altered or invented.
+ */
+export function sanitizeStandardText(text: string): string {
+  return text.replace(/\s*<표>\s*/g, "\n(표 부분 생략 — 원문 참조)\n").trim();
+}
+
+/**
  * Looks up a verbatim standard-contract article matching the topic of a flagged
  * clause, for the specific standard type the user is comparing against. Returns
  * null (never invents text) when no topic can be inferred or no article matches —
@@ -64,7 +74,7 @@ export async function findStandardArticleText(
     .maybeSingle();
 
   if (!data) return null;
-  return { text: data.article_text, articleNo: data.article_no };
+  return { text: sanitizeStandardText(data.article_text), articleNo: data.article_no };
 }
 
 /** All article numbers + titles for one standard-contract type (for AI article mapping). */
@@ -92,7 +102,7 @@ export async function getArticleText(
     .eq("type_id", typeId)
     .eq("article_no", articleNo)
     .maybeSingle();
-  return data?.article_text ?? null;
+  return data?.article_text ? sanitizeStandardText(data.article_text) : null;
 }
 
 export interface StandardArticleSearchResult {
@@ -177,7 +187,7 @@ export async function searchStandardArticles(
       typeTitle: meta?.typeTitle ?? row.type_id,
       articleNo: row.article_no,
       articleTitle: row.article_title,
-      articleText: row.article_text,
+      articleText: sanitizeStandardText(row.article_text),
     };
   });
 }

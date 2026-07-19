@@ -2,19 +2,22 @@
 /*  RedlineAI – Vendor Risk Report PDF export                          */
 /* ------------------------------------------------------------------ */
 
+export interface VendorSection { severity?: "high" | "medium" | "low"; summary: string; items: string[] }
+
 export interface VendorReport {
   vendorName: string;
   overview: string;
-  newsRisk: { severity: "high" | "medium" | "low"; summary: string; items: string[] };
-  financialRisk: { severity: "high" | "medium" | "low"; summary: string; items: string[] };
-  legalRisk: { severity: "high" | "medium" | "low"; summary: string; items: string[] };
-  overallScore: "high" | "medium" | "low";
-  overallSummary: string;
-  recommendations: string[];
+  /** Public company facts. */
+  publicInfo?: string[];
+  newsRisk: VendorSection;
+  financialRisk: VendorSection;
+  legalRisk: VendorSection;
+  /** Legacy fields - no longer generated; optional so old saved scans still open. */
+  overallScore?: "high" | "medium" | "low";
+  overallSummary?: string;
+  recommendations?: string[];
   sources: string[];
 }
-
-const SEV_LABEL: Record<string, string> = { high: "HIGH RISK", medium: "MEDIUM RISK", low: "LOW RISK" };
 
 export async function downloadVendorPDF(report: VendorReport, scannedAt: string, filename = "vendor-risk-report") {
   const { default: jsPDF } = await import("jspdf");
@@ -34,16 +37,6 @@ export async function downloadVendorPDF(report: VendorReport, scannedAt: string,
   const red    = [229, 62, 62]   as [number,number,number];
   const white  = [255,255,255]   as [number,number,number];
   const slate  = [100,116,139]   as [number,number,number];
-
-  const sevBg: Record<string, [number,number,number]> = {
-    high: [254,226,226], medium: [254,243,199], low: [219,234,254],
-  };
-  const sevText: Record<string, [number,number,number]> = {
-    high: [185,28,28], medium: [180,83,9], low: [29,78,216],
-  };
-  const sevBorder: Record<string, [number,number,number]> = {
-    high: [252,165,165], medium: [253,230,138], low: [147,197,253],
-  };
 
   const checkPage = (need = 10) => {
     if (y + need > FOOTER_Y - 6) {
@@ -71,7 +64,7 @@ export async function downloadVendorPDF(report: VendorReport, scannedAt: string,
   doc.setFontSize(8);
   doc.setFont("NanumGothic", "normal");
   doc.setTextColor(180, 195, 215);
-  doc.text("Vendor Risk Report", MARGIN + 42, 15.5);
+  doc.text("사업체 공개 정보 리포트", MARGIN + 42, 15.5);
 
   const dateStr = new Date(scannedAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
   doc.text(`Scanned: ${dateStr}`, PAGE_W - MARGIN, 15.5, { align: "right" });
@@ -85,17 +78,6 @@ export async function downloadVendorPDF(report: VendorReport, scannedAt: string,
   doc.text(report.vendorName, MARGIN, y);
   y += 8;
 
-  /* ── Overall Risk Score badge ── */
-  const score = report.overallScore;
-  const scoreLabel = SEV_LABEL[score];
-  doc.setFillColor(...sevText[score]);
-  doc.roundedRect(MARGIN, y, 50, 9, 2, 2, "F");
-  doc.setTextColor(...white);
-  doc.setFontSize(10);
-  doc.setFont("NanumGothic", "bold");
-  doc.text(`OVERALL: ${scoreLabel}`, MARGIN + 25, y + 6, { align: "center" });
-  y += 14;
-
   /* ── Overview ── */
   doc.setTextColor(60, 70, 90);
   doc.setFontSize(9.5);
@@ -104,60 +86,73 @@ export async function downloadVendorPDF(report: VendorReport, scannedAt: string,
   overviewLines.forEach((l) => { checkPage(6); doc.text(l, MARGIN, y); y += 5; });
   y += 6;
 
-  /* ── Executive Summary ── */
-  checkPage(15);
-  doc.setFillColor(22, 32, 53);
-  doc.roundedRect(MARGIN, y, CONTENT_W, 6, 2, 2, "F");
-  doc.setTextColor(...white);
-  doc.setFontSize(9);
-  doc.setFont("NanumGothic", "bold");
-  doc.text("EXECUTIVE SUMMARY", MARGIN + 4, y + 4.2);
-  y += 9;
+  /* ── Public company facts ── */
+  if (report.publicInfo && report.publicInfo.length > 0) {
+    checkPage(15);
+    doc.setFillColor(22, 32, 53);
+    doc.roundedRect(MARGIN, y, CONTENT_W, 6, 2, 2, "F");
+    doc.setTextColor(...white);
+    doc.setFontSize(9);
+    doc.setFont("NanumGothic", "bold");
+    doc.text("사업체 공개 정보", MARGIN + 4, y + 4.2);
+    y += 9;
+    const infoLines = report.publicInfo.flatMap((f) => wrap(`• ${f}`, CONTENT_W - 8, 9));
+    const infoH = infoLines.length * 5 + 6;
+    checkPage(infoH + 4);
+    doc.setFillColor(240, 244, 250);
+    doc.roundedRect(MARGIN, y, CONTENT_W, infoH, 2, 2, "F");
+    doc.setTextColor(51, 65, 85);
+    doc.setFont("NanumGothic", "normal");
+    infoLines.forEach((l, i) => doc.text(l, MARGIN + 4, y + 5 + i * 5));
+    y += infoH + 8;
+  }
 
-  const summaryLines = wrap(report.overallSummary, CONTENT_W - 8, 9);
-  const summaryH = summaryLines.length * 5 + 6;
-  checkPage(summaryH + 4);
-  doc.setFillColor(240, 244, 250);
-  doc.roundedRect(MARGIN, y, CONTENT_W, summaryH, 2, 2, "F");
-  doc.setTextColor(51, 65, 85);
-  doc.setFont("NanumGothic", "normal");
-  summaryLines.forEach((l, i) => doc.text(l, MARGIN + 4, y + 5 + i * 5));
-  y += summaryH + 8;
+  /* ── Executive Summary (legacy scans only) ── */
+  if (report.overallSummary) {
+    checkPage(15);
+    doc.setFillColor(22, 32, 53);
+    doc.roundedRect(MARGIN, y, CONTENT_W, 6, 2, 2, "F");
+    doc.setTextColor(...white);
+    doc.setFontSize(9);
+    doc.setFont("NanumGothic", "bold");
+    doc.text("종합 요약", MARGIN + 4, y + 4.2);
+    y += 9;
+    const summaryLines = wrap(report.overallSummary, CONTENT_W - 8, 9);
+    const summaryH = summaryLines.length * 5 + 6;
+    checkPage(summaryH + 4);
+    doc.setFillColor(240, 244, 250);
+    doc.roundedRect(MARGIN, y, CONTENT_W, summaryH, 2, 2, "F");
+    doc.setTextColor(51, 65, 85);
+    doc.setFont("NanumGothic", "normal");
+    summaryLines.forEach((l, i) => doc.text(l, MARGIN + 4, y + 5 + i * 5));
+    y += summaryH + 8;
+  }
 
   /* ── Risk sections ── */
   const sections = [
-    { title: "News & Reputation Risk", data: report.newsRisk },
-    { title: "Financial Risk",         data: report.financialRisk },
-    { title: "Legal Risk",             data: report.legalRisk },
+    { title: "뉴스·보도 (공개 정보)", data: report.newsRisk },
+    { title: "재무 관련 공개 정보", data: report.financialRisk },
+    { title: "법적 기록 (공개 정보)", data: report.legalRisk },
   ];
 
   for (const section of sections) {
-    const sev = section.data.severity;
     const sumLines = wrap(section.data.summary, CONTENT_W - 12, 9);
     const itemLines = section.data.items.flatMap((it) => wrap(`• ${it}`, CONTENT_W - 16, 9));
     const cardH = 14 + sumLines.length * 5 + (itemLines.length > 0 ? itemLines.length * 5 + 4 : 0) + 6;
 
     checkPage(cardH + 4);
 
-    // Card bg
-    doc.setFillColor(...sevBg[sev]);
-    doc.setDrawColor(...sevBorder[sev]);
+    // Card bg (neutral - no rating colors)
+    doc.setFillColor(244, 246, 250);
+    doc.setDrawColor(210, 220, 232);
     doc.setLineWidth(0.4);
     doc.roundedRect(MARGIN, y, CONTENT_W, cardH, 3, 3, "FD");
-
-    // Severity badge
-    doc.setFillColor(...sevText[sev]);
-    doc.roundedRect(MARGIN + 4, y + 4, 26, 5.5, 1, 1, "F");
-    doc.setTextColor(...white);
-    doc.setFontSize(7);
-    doc.setFont("NanumGothic", "bold");
-    doc.text(SEV_LABEL[sev], MARGIN + 17, y + 7.8, { align: "center" });
 
     // Section title
     doc.setTextColor(15, 23, 42);
     doc.setFontSize(11);
     doc.setFont("NanumGothic", "bold");
-    doc.text(section.title, MARGIN + 33, y + 8);
+    doc.text(section.title, MARGIN + 4, y + 8);
 
     // Summary
     doc.setTextColor(40, 50, 65);
@@ -169,10 +164,10 @@ export async function downloadVendorPDF(report: VendorReport, scannedAt: string,
     // Items
     if (itemLines.length > 0) {
       cy += 2;
-      doc.setTextColor(...sevText[sev]);
+      doc.setTextColor(100, 116, 139);
       doc.setFontSize(7.5);
       doc.setFont("NanumGothic", "bold");
-      doc.text("KEY FINDINGS", MARGIN + 4, cy);
+      doc.text("확인된 사항", MARGIN + 4, cy);
       cy += 4;
       doc.setTextColor(40, 50, 65);
       doc.setFont("NanumGothic", "normal");
@@ -183,7 +178,8 @@ export async function downloadVendorPDF(report: VendorReport, scannedAt: string,
     y += cardH + 5;
   }
 
-  /* ── Recommendations ── */
+  /* ── Recommendations (legacy scans only) ── */
+  if (report.recommendations && report.recommendations.length > 0) {
   checkPage(15 + report.recommendations.length * 6);
   doc.setFillColor(22, 32, 53);
   doc.roundedRect(MARGIN, y, CONTENT_W, 6, 2, 2, "F");
@@ -203,6 +199,7 @@ export async function downloadVendorPDF(report: VendorReport, scannedAt: string,
   doc.setFontSize(9);
   recLines.forEach((l, i) => doc.text(l, MARGIN + 4, y + 5 + i * 5));
   y += recH + 8;
+  }
 
   /* ── Sources ── */
   if (report.sources && report.sources.length > 0) {
