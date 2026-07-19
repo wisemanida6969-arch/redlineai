@@ -23,6 +23,7 @@ export default function AppFooter() {
 
         <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-xs text-slate-500">
           <Link href="/help"    className="hover:text-slate-300 transition-colors">{t("common.helpGuide")}</Link>
+          <Link href="/guide"   className="hover:text-slate-300 transition-colors">{t("common.contractGuide")}</Link>
           <Link href="/terms"   className="hover:text-slate-300 transition-colors">{t("auth.termsOfService")}</Link>
           <Link href="/privacy" className="hover:text-slate-300 transition-colors">{t("auth.privacyPolicy")}</Link>
           <Link href="/refund"  className="hover:text-slate-300 transition-colors">{t("auth.refundPolicy")}</Link>

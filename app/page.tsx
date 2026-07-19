@@ -231,6 +231,11 @@ export default function Home() {
               </Link>
             ))}
           </div>
+          <div className="text-center mt-8">
+            <Link href="/guide" className="text-red-400 hover:text-red-300 text-sm font-medium transition-colors">
+              {t("landing.guideLink")}
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -275,6 +280,7 @@ export default function Home() {
             <span className="text-white font-bold">레드라인AI</span>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-500">
+            <Link href="/guide"   className="hover:text-slate-300 transition-colors">{t("common.contractGuide")}</Link>
             <Link href="/terms"   className="hover:text-slate-300 transition-colors">{t("auth.termsOfService")}</Link>
             <Link href="/privacy" className="hover:text-slate-300 transition-colors">{t("auth.privacyPolicy")}</Link>
             <Link href="/refund"  className="hover:text-slate-300 transition-colors">{t("auth.refundPolicy")}</Link>

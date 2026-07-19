@@ -15,6 +15,7 @@ export const translations = {
     pricing:        { en: "Pricing",         ko: "가격" },
     help:           { en: "Help",            ko: "도움말" },
     helpGuide:      { en: "Help & Guide",    ko: "도움말 및 가이드" },
+    contractGuide:  { en: "Contract Guide",  ko: "계약 가이드" },
     contact:        { en: "Contact",         ko: "문의하기" },
     inquiries:      { en: "Contact",         ko: "문의" },
     save:           { en: "Save",            ko: "저장" },
@@ -111,6 +112,7 @@ export const translations = {
     after3: { en: "The scope of derivative-work / copyright use is disputed", ko: "2차적저작물·저작권 이용 범위가 다투어지는 경우" },
     after4: { en: "You are being asked for things not in the contract", ko: "계약서에 없던 요구를 받고 있는 경우" },
     afterCardCta: { en: "Compare my contract with the standard →", ko: "내 계약서와 표준계약서 비교해보기 →" },
+    guideLink:    { en: "See how the standard contract addresses this →", ko: "표준계약서가 해당 사안을 어떻게 규정하는지 살펴보기 →" },
 
     /* Sign recommendation card */
     signNeededTag:   { en: "After review", ko: "검토 이후" },

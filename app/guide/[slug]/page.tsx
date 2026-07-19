@@ -120,6 +120,12 @@ export default function GuidePage({ params }: { params: { slug: string } }) {
           법적 책임은 사용자 본인에게 있습니다. 본 페이지의 내용은 참고 정보이며, 표준계약서 원문은 반드시
           문화체육관광부·한국예술인복지재단의 공식 양식과 대조하세요.
         </p>
+
+        <div className="mt-6 text-center">
+          <Link href="/guide" className="text-red-400 hover:text-red-300 text-sm font-medium transition-colors">
+            다른 사안별 규정 보기 →
+          </Link>
+        </div>
       </article>
       <AppFooter />
     </div>
