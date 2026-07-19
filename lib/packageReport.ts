@@ -40,6 +40,51 @@ export const REPORT_DISCLAIMER =
 
 const DISCLAIMER = REPORT_DISCLAIMER;
 
+/*
+ * Clause-topic → canonical short search keywords for the 법제처 precedent API.
+ * The API is keyword-matching: long natural-language queries return totalCnt 0
+ * (measured), while these short terms return real case pools (측정치: 위약금
+ * 1,320건 · 수익분배 1,599건 · 2차적저작물작성권 40건 · 연재계약 13건 등).
+ * Because each keyword is a precise legal term, every hit necessarily concerns
+ * that topic — precision comes from the query itself, not post-filtering
+ * (case titles are often generic like "손해배상(기)", so title-token filters
+ * wrongly discard relevant cases).
+ */
+const TOPIC_SEARCH_KEYWORDS: [RegExp, string[]][] = [
+  // Order matters: more specific topics first (a 지체상금 clause often also
+  // mentions 원고료, and must land on 위약금 — not the payment keyword).
+  [/2\s*차적\s*저작물/, ["2차적저작물작성권"]],
+  [/위약금|지체상금/, ["위약금 감액"]],
+  [/저작인격권|성명표시|동일성/, ["저작인격권"]],
+  [/저작권.{0,6}(귀속|양도)|(귀속|양도).{0,6}저작권/, ["저작권 양도"]],
+  [/이용허락|이용 범위/, ["이용허락"]],
+  [/정산|수익|분배/, ["수익분배"]],
+  [/손해배상/, ["손해배상 예정"]],
+  [/전속|경업/, ["전속계약"]],
+  [/출연료|출연/, ["출연료"]],
+  [/원고료|연재|휴재/, ["원고료", "연재계약"]],
+];
+
+/** Per-clause canonical keywords: keyword → titles of the clauses it came from. */
+export function buildPrecedentSearchPlan(
+  clauses: { title: string; problem: string }[],
+): Map<string, string[]> {
+  const plan = new Map<string, string[]>();
+  for (const clause of clauses) {
+    const hay = `${clause.title} ${clause.problem}`;
+    for (const [re, kws] of TOPIC_SEARCH_KEYWORDS) {
+      if (!re.test(hay)) continue;
+      for (const kw of kws) {
+        const arr = plan.get(kw) ?? [];
+        if (!arr.includes(clause.title)) arr.push(clause.title);
+        plan.set(kw, arr);
+      }
+      break; // first matching topic per clause
+    }
+  }
+  return plan;
+}
+
 /* ================================================================== */
 /*  PDF assembly                                                       */
 /* ================================================================== */
@@ -264,38 +309,51 @@ export async function buildReportPdf(
 
   /* ── 4. Related precedents ── */
   sectionHeader("관련 판례 (참고 정보)");
-  const queries = (result.precedentQueries ?? []).filter(Boolean).slice(0, 3);
-  // Relevance gate: a search hit only makes the report when its TITLE actually
-  // contains a meaningful token of the query that found it. Padding the list
-  // with loosely matched cases is worse than an honest empty section.
-  const relevantTo = (q: string, title: string): boolean => {
-    const tokens = q.split(/\s+/).map((t) => t.trim()).filter((t) => t.length >= 2);
-    return tokens.some((t) => title.includes(t));
-  };
-  const lawRefs: (LawPrecedentRef & { matchedQuery: string })[] = [];
-  let fallbackRefs: (PrecedentRef & { matchedQuery: string })[] = [];
-  for (const q of queries) {
-    if (lawRefs.length >= 5) break;
-    const found = await fetchLawPrecedents(q, 5 - lawRefs.length);
-    for (const f of found) {
-      if (lawRefs.length >= 5) break;
-      if (!relevantTo(q, f.title)) continue;
-      if (lawRefs.some((e) => e.externalId === f.externalId)) continue;
-      lawRefs.push({ ...f, matchedQuery: q });
+  // Per-clause canonical keywords (see TOPIC_SEARCH_KEYWORDS). AI-generated
+  // queries are only a fallback, and only short ones — long natural-language
+  // queries return zero results from the keyword-matching API.
+  const plan = buildPrecedentSearchPlan(clauses);
+  if (plan.size === 0) {
+    for (const q of (result.precedentQueries ?? []).filter(Boolean)) {
+      if (q.split(/\s+/).length <= 2 && !plan.has(q)) plan.set(q, []);
+      if (plan.size >= 3) break;
     }
   }
-  if (lawRefs.length === 0 && queries.length > 0) {
-    const fb = await fetchPrecedentTitles(queries[0], 5);
-    fallbackRefs = fb.filter((f) => relevantTo(queries[0], f.title)).map((f) => ({ ...f, matchedQuery: queries[0] }));
+  const keywords = Array.from(plan.keys()).slice(0, 4);
+
+  const lawRefs: (LawPrecedentRef & { matchedQuery: string; relatedClauses: string[] })[] = [];
+  let fallbackRefs: (PrecedentRef & { matchedQuery: string; relatedClauses: string[] })[] = [];
+  // Round-robin cap: up to 3 cases per keyword, 8 total — so one prolific
+  // keyword can't crowd out the other clauses' topics.
+  for (const kw of keywords) {
+    if (lawRefs.length >= 8) break;
+    const found = await fetchLawPrecedents(kw, 10);
+    let taken = 0;
+    for (const f of found) {
+      if (lawRefs.length >= 8 || taken >= 3) break;
+      if (lawRefs.some((e) => e.externalId === f.externalId)) continue;
+      lawRefs.push({ ...f, matchedQuery: kw, relatedClauses: plan.get(kw) ?? [] });
+      taken++;
+    }
+  }
+  if (lawRefs.length === 0 && keywords.length > 0) {
+    const fb = await fetchPrecedentTitles(keywords[0], 5);
+    fallbackRefs = fb.map((f) => ({ ...f, matchedQuery: keywords[0], relatedClauses: plan.get(keywords[0]) ?? [] }));
   }
 
+  const relatedLine = (r: { matchedQuery: string; relatedClauses: string[] }) =>
+    r.relatedClauses.length > 0
+      ? `관련 조항: ${r.relatedClauses.join(", ")} · 검색어: ${r.matchedQuery}`
+      : `검색어: ${r.matchedQuery}`;
+
   if (lawRefs.length > 0) {
-    paragraph(`검색 기준: ${queries.join(", ")} · 출처: 법제처 국가법령정보센터`, 8, slate);
+    paragraph(`검색 키워드: ${keywords.join(", ")} · 출처: 법제처 국가법령정보센터`, 8, slate);
     y += 2;
     for (const r of lawRefs) {
       const head = [r.court, r.caseNo, r.date ? `선고 ${r.date}` : null].filter(Boolean).join(" · ");
       const titleLines = wrap(r.title, CONTENT_W - 4, 9);
-      checkPage(titleLines.length * 5 + 14);
+      const relLines = wrap(relatedLine(r), CONTENT_W - 4, 8);
+      checkPage(titleLines.length * 5 + relLines.length * 4.5 + 14);
       doc.setFont("NanumGothic", "bold");
       doc.setFontSize(9);
       doc.setTextColor(...dark);
@@ -304,7 +362,7 @@ export async function buildReportPdf(
       doc.setFontSize(8);
       doc.setTextColor(...slate);
       if (head) { doc.text(head, MARGIN, y); y += 4.5; }
-      doc.text(`관련 검색어: ${r.matchedQuery}`, MARGIN, y); y += 4.5;
+      for (const line of relLines) { doc.text(line, MARGIN, y); y += 4.5; }
       doc.setTextColor(29, 78, 216);
       // ?scan= ties the link to this purchased report: the package owner can
       // open it even after the 24h precedent pass expires (see precedents/view).
@@ -312,11 +370,12 @@ export async function buildReportPdf(
       y += 8;
     }
   } else if (fallbackRefs.length > 0) {
-    paragraph(`검색 기준: ${queries.join(", ")} · 출처: 한국저작권위원회 판례 DB`, 8, slate);
+    paragraph(`검색 키워드: ${keywords.join(", ")} · 출처: 한국저작권위원회 판례 DB`, 8, slate);
     y += 2;
     for (const r of fallbackRefs) {
       const titleLines = wrap(`${r.court ? `[${r.court}] ` : ""}${r.title}`, CONTENT_W - 4, 9);
-      checkPage(titleLines.length * 5 + 10);
+      const relLines = wrap(relatedLine(r), CONTENT_W - 4, 8);
+      checkPage(titleLines.length * 5 + relLines.length * 4.5 + 10);
       doc.setFont("NanumGothic", "bold");
       doc.setFontSize(9);
       doc.setTextColor(...dark);
@@ -324,7 +383,7 @@ export async function buildReportPdf(
       doc.setFont("NanumGothic", "normal");
       doc.setFontSize(8);
       doc.setTextColor(...slate);
-      doc.text(`관련 검색어: ${r.matchedQuery}`, MARGIN, y); y += 4.5;
+      for (const line of relLines) { doc.text(line, MARGIN, y); y += 4.5; }
       doc.setTextColor(29, 78, 216);
       doc.text(`원문 보기: ${r.url}`, MARGIN, y);
       y += 8;

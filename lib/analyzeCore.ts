@@ -91,7 +91,7 @@ Return this exact structure:
   ],
   "medium": [...same structure...],
   "low": [...same structure...],
-  "precedentQueries": ["2 to 4 short Korean keywords for finding related Korean court precedents, based on the contract's subject and main topics — e.g. \"저작권 양도\", \"2차적저작물\", \"용역 대금\", \"전속계약\""]
+  "precedentQueries": ["2 to 4 precedent-search keywords, each a SHORT Korean legal term of 1-2 words (never a long phrase — the search is keyword-matching and long queries return zero results), based on the contract's subject and main topics — e.g. \"저작권 양도\", \"2차적저작물\", \"용역 대금\", \"전속계약\""]
 }
 
 Severity guide (degree of textual difference from the standard, not a danger rating):
@@ -126,7 +126,7 @@ const SYSTEM_PROMPT_KO = `당신은 계약서 조항을 문화체육관광부(MC
   ],
   "medium": [...같은 구조...],
   "low": [...같은 구조...],
-  "precedentQueries": ["이 계약의 분야와 핵심 쟁점에 기반해 관련 한국 법원 판례를 찾을 검색어 2~4개 (한국어, 짧게) — 예: \"저작권 양도\", \"2차적저작물\", \"용역 대금\", \"전속계약\""]
+  "precedentQueries": ["이 계약의 분야와 핵심 쟁점에 기반한 판례 검색 키워드 2~4개 — 각각 반드시 1~2단어의 짧은 법률 용어일 것 (긴 문장·구절 금지: 키워드 매칭 검색이라 긴 질의는 결과가 0건이 됩니다) — 예: \"저작권 양도\", \"2차적저작물\", \"용역 대금\", \"전속계약\""]
 }
 
 심각도 가이드 (표준과의 문언상 차이 정도를 나타내며, 위험도 판단이 아닙니다):
