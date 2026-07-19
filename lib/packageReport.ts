@@ -283,10 +283,13 @@ export async function buildReportPdf(
 
   /* ── 5. Vendor risk scan result ── */
   sectionHeader("사업체 리스크 검색 결과 (참고 정보)");
+  // Only a vendor search run AFTER this contract was uploaded is included —
+  // an older search for an unrelated company must not leak into this report.
   const { data: vendorScan } = await service
     .from("vendor_scans")
     .select("vendor_name, overall_score, overview, created_at")
     .eq("user_id", userId)
+    .gte("created_at", scan.created_at)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
