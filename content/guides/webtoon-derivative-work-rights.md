@@ -74,6 +74,7 @@ date: 2026-07-19
 ### 함께 보면 좋은 글
 
 - [웹툰 정산이 늦어지거나 내역이 불투명할 때, 표준계약서는 어떻게 정하고 있을까](/guide/webtoon-settlement-standard-contract)
+- [휴재를 요청했더니 계약 위반이라는 답이 왔다면, 표준계약서는 어떻게 정하고 있을까](/guide/webtoon-hiatus-standard-contract)
 
 ---
 

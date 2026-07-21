@@ -80,6 +80,7 @@ date: 2026-07-19
 ### 함께 보면 좋은 글
 
 - [영상화·게임화 권리까지 넘긴다는 계약, 표준계약서는 어떻게 정하고 있을까](/guide/webtoon-derivative-work-rights)
+- [휴재를 요청했더니 계약 위반이라는 답이 왔다면, 표준계약서는 어떻게 정하고 있을까](/guide/webtoon-hiatus-standard-contract)
 
 ---
 
